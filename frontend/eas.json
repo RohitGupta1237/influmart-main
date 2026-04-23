@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 9.2.0"
+  },
+  "build": {
+    "production": {
+      "android": {
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "development": {
+      "android": {
+        "developmentClient": true,
+        "env": {
+          "API_ENDPOINT": "$API_ENDPOINT",
+          "RAZORPAY_KEY_ID": "$RAZORPAY_KEY_ID",
+          "CLIENT_URL": "$CLIENT_URL",
+          "GOOGLE_API_KEY": "$GOOGLE_API_KEY"
+        }
+      },
+      "ios": {
+        "env": {
+          "API_ENDPOINT": "$API_ENDPOINT",
+          "RAZORPAY_KEY_ID": "$RAZORPAY_KEY_ID",
+          "CLIENT_URL": "$CLIENT_URL",
+          "GOOGLE_API_KEY": "$GOOGLE_API_KEY"
+        }
+      }
+    }
+  },
+  "submit": {}
+}

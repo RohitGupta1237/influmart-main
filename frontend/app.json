@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "influmart",
+    "slug": "influmart",
+    "scheme": "influmart",
+    "description": "One point solution for influencers-brands.",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/influmart_icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/influmart_icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.influmart.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/influmart_icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.influmart.app",
+      "versionCode": 13,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "influmart",
+              "host": "*"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-image-picker",
+      "expo-dev-client",
+      "expo-asset",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Influmart to use your location to auto-fill your profile location."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7719b1d6-2ba5-442a-881b-2c5709b5ccf1"
+      }
+    },
+    "owner": "hemu21"
+  }
+}
