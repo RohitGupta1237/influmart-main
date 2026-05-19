@@ -13,8 +13,7 @@ import { useAlert } from "../../../util/AlertContext";
 import Loader from "../../../shared/Loader";
 import axios from "axios";
 import { Color, Padding, FontSize, FontFamily, Border } from "../../../GlobalStyles";
-
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../../../config";
 
 const InfluencerChangePassword = ({ navigation }) => {
   const { showAlert } = useAlert();
@@ -44,9 +43,9 @@ const InfluencerChangePassword = ({ navigation }) => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${API_ENDPOINT}/influencers/change-password`,
-        { influencerId, currentPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
+          `${API_ENDPOINT}/influencers/change-password`,
+          { influencerId, currentPassword, newPassword },
+          { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.status === 200) {
         showAlert("Success", "Password changed successfully");
@@ -59,80 +58,80 @@ const InfluencerChangePassword = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.scrollView}>
-      {loading && <Loader loading={loading} />}
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <View style={styles.headerContainer}>
-          <View style={styles.headerContent}>
-            <Image
-              style={styles.headerImage}
-              contentFit="cover"
-              source={require("../../../assets/depth-4-frame-07.png")}
+      <ScrollView style={styles.scrollView}>
+        {loading && <Loader loading={loading} />}
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <View style={styles.headerContainer}>
+            <View style={styles.headerContent}>
+              <Image
+                  style={styles.headerImage}
+                  contentFit="cover"
+                  source={require("../../../assets/depth-4-frame-07.png")}
+              />
+              <Text style={styles.headerText}>Change Password</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.label}>Current Password</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+                style={styles.textInput}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                secureTextEntry={!showCurrent}
+                placeholder="Enter current password"
+                placeholderTextColor="#aaa"
             />
-            <Text style={styles.headerText}>Change Password</Text>
+            <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)}>
+              <Text style={styles.toggle}>{showCurrent ? "Hide" : "Show"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.label}>New Password</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+                style={styles.textInput}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showNew}
+                placeholder="Enter new password"
+                placeholderTextColor="#aaa"
+            />
+            <TouchableOpacity onPress={() => setShowNew(!showNew)}>
+              <Text style={styles.toggle}>{showNew ? "Hide" : "Show"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.label}>Confirm New Password</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+                style={styles.textInput}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirm}
+                placeholder="Confirm new password"
+                placeholderTextColor="#aaa"
+            />
+            <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
+              <Text style={styles.toggle}>{showConfirm ? "Hide" : "Show"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.submitButton} onPress={handleChangePassword}>
+              <Text style={styles.submitButtonText}>Change Password</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.cancelButtonContainer}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
-
-      <View style={styles.formContainer}>
-        <Text style={styles.label}>Current Password</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry={!showCurrent}
-            placeholder="Enter current password"
-            placeholderTextColor="#aaa"
-          />
-          <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)}>
-            <Text style={styles.toggle}>{showCurrent ? "Hide" : "Show"}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.label}>New Password</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry={!showNew}
-            placeholder="Enter new password"
-            placeholderTextColor="#aaa"
-          />
-          <TouchableOpacity onPress={() => setShowNew(!showNew)}>
-            <Text style={styles.toggle}>{showNew ? "Hide" : "Show"}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.label}>Confirm New Password</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry={!showConfirm}
-            placeholder="Confirm new password"
-            placeholderTextColor="#aaa"
-          />
-          <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
-            <Text style={styles.toggle}>{showConfirm ? "Hide" : "Show"}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.submitButton} onPress={handleChangePassword}>
-            <Text style={styles.submitButtonText}>Change Password</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.cancelButtonContainer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
   );
 };
 

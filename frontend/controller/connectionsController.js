@@ -1,19 +1,18 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-//import { API_ENDPOINT } from '@env';
-import {timeStampFormatter} from '../helpers/GraphData'
-const API_ENDPOINT = "http://localhost:3000";
+import {timeStampFormatter} from '../helpers/GraphData';
+import API_ENDPOINT from "../config";
 const sendRequest = async (senderId, receiverId, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/send-request`,
-      { senderId, receiverId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/connection/send-request`,
+        { senderId, receiverId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert("Success", "Request sent");
@@ -30,32 +29,32 @@ const getAllRequests = async (userId, setRequests, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.get(
-      `${API_ENDPOINT}/connection/requests/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/connection/requests/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
-        const data = response.data.user;
-        const formatData = data.map((item) => ({
-            imageSource: item?.sender?.isSelectedImage? item?.sender?.profileUrl : item?.sender?.profileUrl?.includes("uploads")
-              ? {
-                  uri: `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(
-                    /\\/g,
-                    "/"
-                  ).replace("uploads/", "")}`,
-                }
-              : null,
-            postTitle: item?.sender?.name,
-            isSelectedImage: item?.sender?.isSelectedImage,
-            postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
-            productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
-            requestId: item?._id,
-          }));
+      const data = response.data.user;
+      const formatData = data.map((item) => ({
+        imageSource: item?.sender?.isSelectedImage? item?.sender?.profileUrl : item?.sender?.profileUrl?.includes("uploads")
+            ? {
+              uri: `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(
+                  /\\/g,
+                  "/"
+              ).replace("uploads/", "")}`,
+            }
+            : null,
+        postTitle: item?.sender?.name,
+        isSelectedImage: item?.sender?.isSelectedImage,
+        postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
+        productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
+        requestId: item?._id,
+      }));
       setRequests(formatData);
-    } 
+    }
   } catch (error) {
     console.log(error);
   }
@@ -65,13 +64,13 @@ const acceptRequest = async (requestId, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/accept-request`,
-      { requestId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/connection/accept-request`,
+        { requestId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert("Success", "Request accepted and hello message sent");
@@ -89,13 +88,13 @@ const rejectRequest = async (requestId, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/reject-request`,
-      { requestId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/connection/reject-request`,
+        { requestId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert("Success", "Request rejected");
@@ -111,9 +110,9 @@ const rejectRequest = async (requestId, showAlert) => {
 const closeChat = async (userId, chatUserId, conversationId) => {
   const token = await AsyncStorage.getItem('token');
   const response = await axios.post(
-    `${API_ENDPOINT}/connection/closeChat`,
-    { userId, chatUserId, conversationId },
-    { headers: { Authorization: `Bearer ${token}` } }
+      `${API_ENDPOINT}/connection/closeChat`,
+      { userId, chatUserId, conversationId },
+      { headers: { Authorization: `Bearer ${token}` } }
   );
   return response.status === 200;
 };
@@ -122,13 +121,13 @@ const sendMessage = async (senderId, receiverId, content, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/send-message`,
-      { senderId, receiverId, content },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/connection/send-message`,
+        { senderId, receiverId, content },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       return response.data;
@@ -147,14 +146,14 @@ const getMessages = async (conversationId,userId,userType, setMessages, showAler
 
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/messages/${conversationId}`,
-      {userId, userType},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+        `${API_ENDPOINT}/connection/messages/${conversationId}`,
+        {userId, userType},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-      
+
     );
     if (response.status === 200) {
       const formattedMessages = response.data.messages.map(message => ({
@@ -182,13 +181,13 @@ const getAllConversations = async (userId, userType, setConversations, showAlert
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/get-conversation`,
-      { userId, userType },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/connection/get-conversation`,
+        { userId, userType },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       const conversations = response.data.conversations.map(conversation => {
@@ -221,8 +220,8 @@ const searchUsers = async (query, userType) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.get(
-      `${API_ENDPOINT}/connection/search?query=${encodeURIComponent(query)}&userType=${userType}`,
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/connection/search?query=${encodeURIComponent(query)}&userType=${userType}`,
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     if (response.status === 200) {
       return response.data.results;
@@ -238,9 +237,9 @@ const findOrCreateConversation = async (userId, receiverId, userType) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/connection/find-or-create-conversation`,
-      { userId, receiverId, userType },
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/connection/find-or-create-conversation`,
+        { userId, receiverId, userType },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     if (response.status === 200) {
       return response.data.conversationId;

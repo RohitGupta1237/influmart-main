@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-//import { API_ENDPOINT } from "@env";
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 const getTopAccounts = async (showAlert) => {
     const token = await AsyncStorage.getItem("token")
     try {
@@ -15,8 +14,8 @@ const getTopAccounts = async (showAlert) => {
         res = data?.slice(0, 5)?.map((brand) => {
             return {
                 profileUrl: brand.isSelectedImage? brand.profileUrl :brand.profileUrl.includes("uploads")
-                ? `${API_ENDPOINT}/${brand.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
-                : null,
+                    ? `${API_ENDPOINT}/${brand.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
+                    : null,
                 name: brand.name,
                 accountType: "BRAND",
                 isSelectedImage: brand?.isSelectedImage

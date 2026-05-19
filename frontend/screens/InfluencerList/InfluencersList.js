@@ -10,9 +10,8 @@ import { GetAllInfluencerProfile } from "../../controller/InfluencerController";
 import { useAlert } from "../../util/AlertContext";
 import Loader from '../../shared/Loader'
 import ThemeToggle from '../../shared/ThemeToggle'
-import { useTheme } from '../../util/ThemeContext'
-
-const API_ENDPOINT = "http://localhost:3000";
+import { useTheme } from '../../util/ThemeContext';
+import API_ENDPOINT from "../../config";
 
 const InfluencersList = ({ route, navigation }) => {
   const newData = route.params?.newData
@@ -130,113 +129,113 @@ const InfluencersList = ({ route, navigation }) => {
   }
 
   const filteredData = influencerData
-    ? influencerData.filter((item) =>
-      item.influencerName?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      item.userName?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      item.category?.toLowerCase().includes(searchValue.toLowerCase())
-    )
-    : [];
+      ? influencerData.filter((item) =>
+          item.influencerName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          item.userName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          item.category?.toLowerCase().includes(searchValue.toLowerCase())
+      )
+      : [];
 
   const filterTags = buildFilterTags(aiParsedFilters)
 
   return (
-    <>
-      <View style={[styles.container, { backgroundColor: theme.bg }]}>
-        {selectedFilter !== "" && selectedFilter !== "Reset" && (
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => setSeletedFilter("")}
-            style={styles.backdrop}
-          />
-        )}
-        {loading && <Loader loading={loading} />}
-        <Depth1Frame11 style={styles.menuBar} onChange={setSearchValue} />
+      <>
+        <View style={[styles.container, { backgroundColor: theme.bg }]}>
+          {selectedFilter !== "" && selectedFilter !== "Reset" && (
+              <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={() => setSeletedFilter("")}
+                  style={styles.backdrop}
+              />
+          )}
+          {loading && <Loader loading={loading} />}
+          <Depth1Frame11 style={styles.menuBar} onChange={setSearchValue} />
 
-        {/* AI Search Bar */}
-        <View style={[styles.aiSearchContainer, { backgroundColor: theme.bg, borderColor: theme.filterBorder || "#e0e7ef" }]}>
-          <Text style={styles.aiLabel}>AI Search</Text>
-          <View style={styles.aiInputRow}>
-            <TextInput
-              style={[styles.aiInput, { color: theme.filterText || "#111", backgroundColor: theme.filterBg || "#f4f7fb", borderColor: theme.filterBorder || "#d0dbe8" }]}
-              placeholder='e.g. "female fitness influencer in Mumbai under ₹10k"'
-              placeholderTextColor="#9aabbb"
-              value={aiQuery}
-              onChangeText={setAiQuery}
-              onSubmitEditing={handleAiSearch}
-              returnKeyType="search"
-            />
-            <TouchableOpacity
-              style={[styles.aiSearchBtn, aiLoading && { opacity: 0.6 }]}
-              onPress={handleAiSearch}
-              disabled={aiLoading}
-            >
-              {aiLoading
-                ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.aiSearchBtnText}>Search</Text>
-              }
-            </TouchableOpacity>
-          </View>
-          {isAiResult && filterTags.length > 0 && (
-            <View style={styles.aiTagsRow}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {filterTags.map((tag, i) => (
-                  <View key={i} style={styles.aiTag}>
-                    <Text style={styles.aiTagText}>{tag}</Text>
-                  </View>
-                ))}
-              </ScrollView>
-              <TouchableOpacity onPress={() => { clearAiSearch(); GetAllInfluencerProfile(setInfluencerData) }} style={styles.aiClearBtn}>
-                <Text style={styles.aiClearText}>✕ Clear</Text>
+          {/* AI Search Bar */}
+          <View style={[styles.aiSearchContainer, { backgroundColor: theme.bg, borderColor: theme.filterBorder || "#e0e7ef" }]}>
+            <Text style={styles.aiLabel}>AI Search</Text>
+            <View style={styles.aiInputRow}>
+              <TextInput
+                  style={[styles.aiInput, { color: theme.filterText || "#111", backgroundColor: theme.filterBg || "#f4f7fb", borderColor: theme.filterBorder || "#d0dbe8" }]}
+                  placeholder='e.g. "female fitness influencer in Mumbai under ₹10k"'
+                  placeholderTextColor="#9aabbb"
+                  value={aiQuery}
+                  onChangeText={setAiQuery}
+                  onSubmitEditing={handleAiSearch}
+                  returnKeyType="search"
+              />
+              <TouchableOpacity
+                  style={[styles.aiSearchBtn, aiLoading && { opacity: 0.6 }]}
+                  onPress={handleAiSearch}
+                  disabled={aiLoading}
+              >
+                {aiLoading
+                    ? <ActivityIndicator color="#fff" size="small" />
+                    : <Text style={styles.aiSearchBtnText}>Search</Text>
+                }
               </TouchableOpacity>
             </View>
-          )}
-        </View>
+            {isAiResult && filterTags.length > 0 && (
+                <View style={styles.aiTagsRow}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {filterTags.map((tag, i) => (
+                        <View key={i} style={styles.aiTag}>
+                          <Text style={styles.aiTagText}>{tag}</Text>
+                        </View>
+                    ))}
+                  </ScrollView>
+                  <TouchableOpacity onPress={() => { clearAiSearch(); GetAllInfluencerProfile(setInfluencerData) }} style={styles.aiClearBtn}>
+                    <Text style={styles.aiClearText}>✕ Clear</Text>
+                  </TouchableOpacity>
+                </View>
+            )}
+          </View>
 
-        <View style={[styles.scrollContainer, { backgroundColor: theme.bg }]}>
-          <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.scrollView, { backgroundColor: theme.bg }]}>
-            <View style={{ width: "100%", height: "auto", display: "flex", flexDirection: "row", alignItems: "center", padding: Padding.p_base }}>
-              <Image style={styles.filterIcon} contentFit="cover" tintColor={theme.iconTint} source={require("../../assets/filter-icon.png")} />
-              <ScrollView showsHorizontalScrollIndicator={false} horizontal contentContainerStyle={{ paddingRight: 10 }} style={{ width: "auto", paddingVertical: 8, height: "auto" }}>
+          <View style={[styles.scrollContainer, { backgroundColor: theme.bg }]}>
+            <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.scrollView, { backgroundColor: theme.bg }]}>
+              <View style={{ width: "100%", height: "auto", display: "flex", flexDirection: "row", alignItems: "center", padding: Padding.p_base }}>
+                <Image style={styles.filterIcon} contentFit="cover" tintColor={theme.iconTint} source={require("../../assets/filter-icon.png")} />
+                <ScrollView showsHorizontalScrollIndicator={false} horizontal contentContainerStyle={{ paddingRight: 10 }} style={{ width: "auto", paddingVertical: 8, height: "auto" }}>
+                  {
+                    filterOptions?.map((filterValue, key) => {
+                      return (
+                          <TouchableOpacity style={[styles.filterContainer, { backgroundColor: theme.filterBg, borderColor: theme.filterBorder }]} key={key} onPress={() => {
+                            setSeletedFilter(filterValue)
+                          }}>
+                            <Text style={[styles.filterText, { color: theme.filterText }]}>{filterValue}</Text>
+                          </TouchableOpacity>
+                      )
+                    })
+                  }
+                  <TouchableOpacity style={[styles.filterContainer, { backgroundColor: "red", borderColor: "red" }]} onPress={() => { setSeletedFilter("Reset") }}>
+                    <Text style={[styles.filterText, { color: "#fff" }]}>Reset</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+              <View style={styles.cardContainer}>
                 {
-                  filterOptions?.map((filterValue, key) => {
-                    return (
-                      <TouchableOpacity style={[styles.filterContainer, { backgroundColor: theme.filterBg, borderColor: theme.filterBorder }]} key={key} onPress={() => {
-                        setSeletedFilter(filterValue)
-                      }}>
-                        <Text style={[styles.filterText, { color: theme.filterText }]}>{filterValue}</Text>
-                      </TouchableOpacity>
-                    )
-                  })
+                  filteredData?.length == 0 ?
+                      <View>
+                        <Text style={{ color: theme.emptyText }}>No influencers found</Text>
+                      </View>
+                      :
+                      filteredData && filteredData.map((item, index) => {
+                        let ytSubscribers = "N/A";
+                        try {
+                          const yt = item?.ytData?.[0];
+                          const parsed = typeof yt === "string" ? JSON.parse(yt) : yt;
+                          ytSubscribers = parsed?.overAll?.subscriberCount ?? parsed?.subscriberCount ?? "N/A";
+                        } catch (e) {}
+                        return <InfluencerCard key={index} userName={item?.userName} influencerId={item?._id} depth5Frame0={item?.profileUrl} isSelectedImage={item?.isSelectedImage} kylieCosmetics={item?.influencerName} beauty={item?.category} statistics={{ ytData: ytSubscribers, instaData: item?.instaData[0]?.followers || "N/A", fbData: item?.fbData[0]?.followers || "N/A" }} />;
+                      })
                 }
-                <TouchableOpacity style={[styles.filterContainer, { backgroundColor: "red", borderColor: "red" }]} onPress={() => { setSeletedFilter("Reset") }}>
-                  <Text style={[styles.filterText, { color: "#fff" }]}>Reset</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-            <View style={styles.cardContainer}>
-              {
-                filteredData?.length == 0 ?
-                  <View>
-                    <Text style={{ color: theme.emptyText }}>No influencers found</Text>
-                  </View>
-                  :
-                  filteredData && filteredData.map((item, index) => {
-                    let ytSubscribers = "N/A";
-                    try {
-                      const yt = item?.ytData?.[0];
-                      const parsed = typeof yt === "string" ? JSON.parse(yt) : yt;
-                      ytSubscribers = parsed?.overAll?.subscriberCount ?? parsed?.subscriberCount ?? "N/A";
-                    } catch (e) {}
-                    return <InfluencerCard key={index} userName={item?.userName} influencerId={item?._id} depth5Frame0={item?.profileUrl} isSelectedImage={item?.isSelectedImage} kylieCosmetics={item?.influencerName} beauty={item?.category} statistics={{ ytData: ytSubscribers, instaData: item?.instaData[0]?.followers || "N/A", fbData: item?.fbData[0]?.followers || "N/A" }} />;
-                  })
-              }
-            </View>
-          </ScrollView>
+              </View>
+            </ScrollView>
+          </View>
+          <ThemeToggle />
         </View>
-        <ThemeToggle />
-      </View>
-      <Filter selectedFilter={selectedFilter} setLoading={setLoading} setSeletedFilter={setSeletedFilter} setInfluencerData={setInfluencerData} />
-    </>
+        <Filter selectedFilter={selectedFilter} setLoading={setLoading} setSeletedFilter={setSeletedFilter} setInfluencerData={setInfluencerData} />
+      </>
   );
 };
 

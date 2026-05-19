@@ -1,6 +1,6 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 
 // Forgot Password — sends OTP to email, then navigates to reset screen
 const forgotPasswordControl = async (email, type, showAlert, navigation) => {

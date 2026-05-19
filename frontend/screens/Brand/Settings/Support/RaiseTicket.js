@@ -16,6 +16,7 @@ import {
   FontSize,
   Padding,
 } from "../../../../GlobalStyles";
+import API_ENDPOINT from "../../../../config";
 import { Image } from "expo-image";
 import { useAlert } from "../../../../util/AlertContext";
 
@@ -35,7 +36,7 @@ const RaiseTicket = ({ route, navigation }) => {
 
     try {
       // Send the data to your backend API
-      const response = await axios.post("http://localhost:3000/otp/tickets", {
+      const response = await axios.post(`${API_ENDPOINT}/otp/tickets`, {
         name,
         email,
         subject,
@@ -48,14 +49,14 @@ const RaiseTicket = ({ route, navigation }) => {
       const { ticketId } = response.data;
 
       // Send confirmation email
-      await axios.post("http://localhost:3000/otp/send-confirmation-email", {
+      await axios.post(`${API_ENDPOINT}/otp/send-confirmation-email`, {
         email,
         ticketId,
       });
 
       showAlert(
-        "Success",
-        `Thank you for raising a ticket. Your Ticket ID is ${ticketId}. We will get back to you soon.`
+          "Success",
+          `Thank you for raising a ticket. Your Ticket ID is ${ticketId}. We will get back to you soon.`
       );
       setName("");
       setCategory("");
@@ -66,72 +67,72 @@ const RaiseTicket = ({ route, navigation }) => {
     } catch (error) {
       console.error(error);
       showAlert(
-        "Error",
-        "There was a problem raising your ticket. Please try again later."
+          "Error",
+          "There was a problem raising your ticket. Please try again later."
       );
     }
   };
 
   return (
-    <ScrollView style={styles.helpcenter}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <View style={styles.headerContent}>
-            <Image
-              style={styles.headerImage}
-              contentFit="cover"
-              source={require("../../../../assets/depth-4-frame-07.png")}
-            />
-            <Text style={styles.headerText}>Raise Ticket</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.container}>
-        <Text style={styles.label}>Name</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} />
+      <ScrollView style={styles.helpcenter}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <View style={styles.headerContent}>
+              <Image
+                  style={styles.headerImage}
+                  contentFit="cover"
+                  source={require("../../../../assets/depth-4-frame-07.png")}
+              />
+              <Text style={styles.headerText}>Raise Ticket</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.container}>
+          <Text style={styles.label}>Name</Text>
+          <TextInput style={styles.input} value={name} onChangeText={setName} />
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-        />
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+          />
 
-        <Text style={styles.label}>Subject</Text>
-        <TextInput
-          style={styles.input}
-          value={subject}
-          onChangeText={setSubject}
-        />
+          <Text style={styles.label}>Subject</Text>
+          <TextInput
+              style={styles.input}
+              value={subject}
+              onChangeText={setSubject}
+          />
 
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={styles.input}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
+          <Text style={styles.label}>Description</Text>
+          <TextInput
+              style={styles.input}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+          />
 
-        <Text style={styles.label}>Priority</Text>
-        <TextInput
-          style={styles.input}
-          value={priority}
-          onChangeText={setPriority}
-        />
+          <Text style={styles.label}>Priority</Text>
+          <TextInput
+              style={styles.input}
+              value={priority}
+              onChangeText={setPriority}
+          />
 
-        <Text style={styles.label}>Category</Text>
-        <TextInput
-          style={styles.input}
-          value={category}
-          onChangeText={setCategory}
-        />
+          <Text style={styles.label}>Category</Text>
+          <TextInput
+              style={styles.input}
+              value={category}
+              onChangeText={setCategory}
+          />
 
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Raise Ticket</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Raise Ticket</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
   );
 };
 

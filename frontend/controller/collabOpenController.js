@@ -1,8 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-//import {API_ENDPOINT} from "@env"
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 
 // Returns collab photo if uploaded, otherwise brand profile photo, otherwise null
 const resolveCollabImage = (collab) => {
@@ -17,7 +16,7 @@ const resolveCollabImage = (collab) => {
   return null;
 };
 const createCollabPost = async (collabPostData, showAlert,navigation) => {
-  
+
   const data = new FormData();
   data.append("campaignTitle", collabPostData?.campaignTitle || "");
   data.append("campaignType", collabPostData?.campaignType);
@@ -70,58 +69,58 @@ const createCollabPost = async (collabPostData, showAlert,navigation) => {
 };
 
 const getAllCollabPosts = async (setCollabPosts, showAlert) => {
-    const token = await AsyncStorage.getItem('token');
-    const influencerId = await AsyncStorage.getItem('influencerId');
-    try {
-      const params = influencerId ? { influencerId } : {};
-      const response = await axios.get(
+  const token = await AsyncStorage.getItem('token');
+  const influencerId = await AsyncStorage.getItem('influencerId');
+  try {
+    const params = influencerId ? { influencerId } : {};
+    const response = await axios.get(
         `${API_ENDPOINT}/collab-open/get-collab-open`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params,
         }
-      );
-      if (response.status === 200) {
-        const collabPosts = response.data?.collabOpenings?.map((collab) => ({
-          collabOpeningId: collab._id,
-          brandName: collab.brand?.brandName,
-          brandId: collab.brand?._id,
-          category: collab.brand?.category,
-          campaignType: JSON.parse(collab.campaignType).join(", "),
-          earningCapacity: `${collab.earningCapacity?.min} to ${collab.earningCapacity?.max}`,
-          campaignTimelines: collab.campaignTimelines,
-          minEligibilityCriteria: collab.minEligibilityCriteria,
-          postInfo: JSON.parse(collab.postInfo).join(", "),
-          productReviewInstructions: collab.productReviewInstructions,
-          campaignSteps: collab.campaignSteps,
-          compensationType: collab.compensationType,
-          numberOfInfluencers: collab.numberOfInfluencers,
-          brandDescription: collab.brandDescription,
-          createdAt: new Date(collab.createdAt).toLocaleDateString(),
-          imageSource: resolveCollabImage(collab),
-          isSelectedImage: !collab?.photoUrl?.includes("uploads") && collab?.brand?.isSelectedImage,
-        }));
-        setCollabPosts(collabPosts);
-      } else {
-        showAlert('Error', response.data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      showAlert('Error', 'Something went wrong');
+    );
+    if (response.status === 200) {
+      const collabPosts = response.data?.collabOpenings?.map((collab) => ({
+        collabOpeningId: collab._id,
+        brandName: collab.brand?.brandName,
+        brandId: collab.brand?._id,
+        category: collab.brand?.category,
+        campaignType: JSON.parse(collab.campaignType).join(", "),
+        earningCapacity: `${collab.earningCapacity?.min} to ${collab.earningCapacity?.max}`,
+        campaignTimelines: collab.campaignTimelines,
+        minEligibilityCriteria: collab.minEligibilityCriteria,
+        postInfo: JSON.parse(collab.postInfo).join(", "),
+        productReviewInstructions: collab.productReviewInstructions,
+        campaignSteps: collab.campaignSteps,
+        compensationType: collab.compensationType,
+        numberOfInfluencers: collab.numberOfInfluencers,
+        brandDescription: collab.brandDescription,
+        createdAt: new Date(collab.createdAt).toLocaleDateString(),
+        imageSource: resolveCollabImage(collab),
+        isSelectedImage: !collab?.photoUrl?.includes("uploads") && collab?.brand?.isSelectedImage,
+      }));
+      setCollabPosts(collabPosts);
+    } else {
+      showAlert('Error', response.data.message);
     }
-  };
+  } catch (error) {
+    console.log(error);
+    showAlert('Error', 'Something went wrong');
+  }
+};
 // Send Collaboration Request
 const sendCollabOpenRequest = async (influencerId, brandId, showAlert, navigation, collabOpeningId) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/collab-open/send-collab-open-request`,
-      { influencerId, brandId, collabOpeningId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/collab-open/send-collab-open-request`,
+        { influencerId, brandId, collabOpeningId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert('Success', 'Request sent successfully');
@@ -140,37 +139,37 @@ const getAllCollabOpenRequests = async (userId, setRequests, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.get(
-      `${API_ENDPOINT}/collab-open/collab-open-requests/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/collab-open/collab-open-requests/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       const data = response.data.user;
-        const formatData = data.map((item) => ({
-            imageSource: item?.sender?.isSelectedImage ? item?.sender?.profileUrl : item?.sender?.profileUrl
-              ? {
-                  uri: `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(
-                    /\\/g,
-                    "/"
-                  ).replace("uploads/", "")}`,
-                }
-              : require("../assets/blank-profile.png"),
-            postTitle: item?.sender?.influencerName,
-            isSelectedImage: item?.sender?.isSelectedImage,
-            postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
-            productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
-            requestId: item?._id,
-            campaignTitle: (() => {
-              const title = item?.collabOpeningId?.campaignTitle;
-              if (title) return title;
-              const rawType = item?.collabOpeningId?.campaignType;
-              if (!rawType) return null;
-              try { return JSON.parse(rawType).join(", "); } catch { return rawType; }
-            })(),
-          }));
+      const formatData = data.map((item) => ({
+        imageSource: item?.sender?.isSelectedImage ? item?.sender?.profileUrl : item?.sender?.profileUrl
+            ? {
+              uri: `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(
+                  /\\/g,
+                  "/"
+              ).replace("uploads/", "")}`,
+            }
+            : require("../assets/blank-profile.png"),
+        postTitle: item?.sender?.influencerName,
+        isSelectedImage: item?.sender?.isSelectedImage,
+        postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
+        productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
+        requestId: item?._id,
+        campaignTitle: (() => {
+          const title = item?.collabOpeningId?.campaignTitle;
+          if (title) return title;
+          const rawType = item?.collabOpeningId?.campaignType;
+          if (!rawType) return null;
+          try { return JSON.parse(rawType).join(", "); } catch { return rawType; }
+        })(),
+      }));
       setRequests(formatData);
     } else {
       showAlert('Error', response.data.message);
@@ -186,17 +185,17 @@ const acceptCollabOpen = async (requestId, showAlert, navigation) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/collab-open/accept-collab-open-request`,
-      { requestId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/collab-open/accept-collab-open-request`,
+        { requestId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert('Success', 'Request accepted and message sent');
-      navigation.navigate('BrandProfile'); 
+      navigation.navigate('BrandProfile');
     } else {
       showAlert('Error', response.data.message);
     }
@@ -211,13 +210,13 @@ const rejectCollabOpen = async (requestId, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/collab-open/reject-collab-open-request`,
-      { requestId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/collab-open/reject-collab-open-request`,
+        { requestId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert('Success', 'Request rejected successfully');
@@ -237,11 +236,11 @@ const getAppliedCollabPosts = async (setCollabPosts, showAlert) => {
   if (!influencerId) return;
   try {
     const response = await axios.get(
-      `${API_ENDPOINT}/collab-open/get-applied-posts`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { influencerId },
-      }
+        `${API_ENDPOINT}/collab-open/get-applied-posts`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { influencerId },
+        }
     );
     if (response.status === 200) {
       const collabPosts = response.data?.collabOpenings?.map((collab) => ({
@@ -261,8 +260,8 @@ const getAppliedCollabPosts = async (setCollabPosts, showAlert) => {
         brandDescription: collab.brandDescription,
         createdAt: new Date(collab.createdAt).toLocaleDateString(),
         imageSource: collab?.photoUrl?.includes("uploads")
-          ? `${API_ENDPOINT}/${collab?.photoUrl?.replace(/\\/g, '/').replace('uploads/', '')}`
-          : null,
+            ? `${API_ENDPOINT}/${collab?.photoUrl?.replace(/\\/g, '/').replace('uploads/', '')}`
+            : null,
       }));
       setCollabPosts(collabPosts);
     } else {
@@ -311,8 +310,8 @@ const getBrandOwnCampaigns = async (brandId, setCampaigns, showAlert) => {
         brandDescription: collab.brandDescription,
         createdAt: new Date(collab.createdAt).toLocaleDateString(),
         imageSource: collab?.photoUrl?.includes("uploads")
-          ? `${API_ENDPOINT}/${collab?.photoUrl?.replace(/\\/g, '/').replace('uploads/', '')}`
-          : null,
+            ? `${API_ENDPOINT}/${collab?.photoUrl?.replace(/\\/g, '/').replace('uploads/', '')}`
+            : null,
         status: collab.status || 'active',
         collaboratedInfluencers: collab.collaboratedInfluencers || [],
       }));
@@ -330,9 +329,9 @@ const updateCampaignStatus = async (campaignId, status, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.patch(
-      `${API_ENDPOINT}/collab-open/campaign-status/${campaignId}`,
-      { status },
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/collab-open/campaign-status/${campaignId}`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.status === 200;
   } catch (error) {
@@ -346,9 +345,9 @@ const addCollaboratedInfluencer = async (campaignId, username, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.patch(
-      `${API_ENDPOINT}/collab-open/campaign-influencers/${campaignId}`,
-      { username },
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/collab-open/campaign-influencers/${campaignId}`,
+        { username },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.status === 200;
   } catch (error) {

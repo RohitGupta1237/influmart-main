@@ -22,9 +22,9 @@ import {
 } from "../../../util/AuthFunction";
 import { InfluencerSignUp } from "../../../controller/signupController";
 
-WebBrowser.maybeCompleteAuthSession();
+import API_ENDPOINT from "../../../config";
 
-const API_ENDPOINT = "http://localhost:3000";
+WebBrowser.maybeCompleteAuthSession();
 
 // Replace with your TikTok app Client Key from developers.tiktok.com
 const TIKTOK_CLIENT_KEY = "YOUR_TIKTOK_CLIENT_KEY";

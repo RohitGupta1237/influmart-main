@@ -23,51 +23,50 @@ import DropDown from "../../shared/DropDown";
 import Loader from "../../shared/Loader";
 import PlaceSearchBar from "../../shared/PlaceSearchBar";
 import MultiDropDown from "../../shared/MultiDropDown";
-
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../../config";
 
 const FormField = ({
-  label,
-  value,
-  setValue,
-  secureTextEntry = false,
-  showPassword,
-  setShowPassword,
-  style,
-  setInfluTypeDropdown,
-  setGenderDropdown
-}) => (
-  <View style={[styles.fieldContainer, style]}>
-    <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <Text style={styles.madantoryText}>*</Text>
+                     label,
+                     value,
+                     setValue,
+                     secureTextEntry = false,
+                     showPassword,
+                     setShowPassword,
+                     style,
+                     setInfluTypeDropdown,
+                     setGenderDropdown
+                   }) => (
+    <View style={[styles.fieldContainer, style]}>
+      <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+        <Text style={styles.fieldLabel}>{label}</Text>
+        <Text style={styles.madantoryText}>*</Text>
+      </View>
+      <View style={secureTextEntry}>
+        <TextInput
+            style={styles.textInput}
+            value={value}
+            onChangeText={setValue}
+            placeholder={label}
+            secureTextEntry={secureTextEntry && !showPassword}
+            onFocus={() => {
+              setInfluTypeDropdown(false)
+              setGenderDropdown(false)
+            }}
+        />
+        {secureTextEntry && (
+            <TouchableOpacity
+                style={styles.password}
+                onPress={() => setShowPassword(!showPassword)}
+            >
+              <Icon
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="gray"
+              />
+            </TouchableOpacity>
+        )}
+      </View>
     </View>
-    <View style={secureTextEntry}>
-      <TextInput
-        style={styles.textInput}
-        value={value}
-        onChangeText={setValue}
-        placeholder={label}
-        secureTextEntry={secureTextEntry && !showPassword}
-        onFocus={() => {
-          setInfluTypeDropdown(false)
-          setGenderDropdown(false)
-        }}
-      />
-      {secureTextEntry && (
-        <TouchableOpacity
-          style={styles.password}
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <Icon
-            name={showPassword ? "eye-off" : "eye"}
-            size={20}
-            color="gray"
-          />
-        </TouchableOpacity>
-      )}
-    </View>
-  </View>
 );
 
 const InfluencerRegistrationForm = ({ route, navigation }) => {
@@ -165,7 +164,7 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
 
       // Use Google Geocoding API — works on web, iOS and Android
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyB1VXXbx0lvqZYImnPGhGz3BtjSF1oyFsM`
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyB1VXXbx0lvqZYImnPGhGz3BtjSF1oyFsM`
       );
       const data = await response.json();
 
@@ -173,7 +172,7 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
         // Extract city, state, country from address components
         const components = data.results[0].address_components;
         const get = (type) =>
-          components.find((c) => c.types.includes(type))?.long_name;
+            components.find((c) => c.types.includes(type))?.long_name;
 
         const city = get("locality") || get("administrative_area_level_2");
         const state = get("administrative_area_level_1");
@@ -193,13 +192,13 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
   };
   useEffect(() => {
     if (
-      name &&
-      email &&
-      emailVerified &&
-      password &&
-      username &&
-      //location &&  // In production, location is mandatory. But for testing, it is optional. in production, uncomment this line
-      social
+        name &&
+        email &&
+        emailVerified &&
+        password &&
+        username &&
+        //location &&  // In production, location is mandatory. But for testing, it is optional. in production, uncomment this line
+        social
     ) {
       setIsFormValid(true);
     } else {
@@ -319,314 +318,314 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
   };
 
   return (
-    <View style={{ width: "100%", height: "100%" }}>
-      {loading && <Loader loading={loading} />}
-      <ScrollView style={{ backgroundColor: Color.colorWhite }}>
-        <View style={styles.influencerRegistrationForm}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("BrandorInfluencer")}
-          >
-            <View style={styles.header}>
-              <Image
-                style={styles.headerNavigation}
-                resizeMode="cover"
-                source={require("../../assets/depth-4-frame-Backarrow3x.png")}
-              />
-              <Text style={styles.headerText}>Sign up</Text>
-              <View style={styles.headerNavigation} />
-            </View>
-          </TouchableOpacity>
-          <FormField label="Name" value={name} setValue={setName} setInfluTypeDropdown={setInfluTypeDropdown} setGenderDropdown={setGenderDropdown} />
+      <View style={{ width: "100%", height: "100%" }}>
+        {loading && <Loader loading={loading} />}
+        <ScrollView style={{ backgroundColor: Color.colorWhite }}>
+          <View style={styles.influencerRegistrationForm}>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BrandorInfluencer")}
+            >
+              <View style={styles.header}>
+                <Image
+                    style={styles.headerNavigation}
+                    resizeMode="cover"
+                    source={require("../../assets/depth-4-frame-Backarrow3x.png")}
+                />
+                <Text style={styles.headerText}>Sign up</Text>
+                <View style={styles.headerNavigation} />
+              </View>
+            </TouchableOpacity>
+            <FormField label="Name" value={name} setValue={setName} setInfluTypeDropdown={setInfluTypeDropdown} setGenderDropdown={setGenderDropdown} />
 
-          {/* Email with OTP verification */}
-          <View style={styles.fieldContainer}>
-            <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-              <Text style={styles.fieldLabel}>Email</Text>
-              <Text style={styles.madantoryText}>*</Text>
-            </View>
-            <Text style={styles.desc}>Verify your email via OTP to proceed</Text>
-            <View style={[styles.textInput, { flexDirection: "row", alignItems: "center" }]}>
-              <TextInput
-                style={{ flex: 1, color: "#4F7A94", fontSize: FontSize.size_base, outlineStyle: "none" }}
-                value={email}
-                onChangeText={(val) => { setEmail(val); setEmailVerified(false); setShowEmailOtp(false); setEmailOtpValue(""); }}
-                placeholder="Email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!emailVerified}
-                onFocus={() => { setInfluTypeDropdown(false); setGenderDropdown(false); }}
-              />
-              {emailVerified ? (
-                <Image style={{ width: 28, height: 28 }} source={require("../../assets/green_tick.png")} />
-              ) : (
-                <TouchableOpacity onPress={handleSendEmailOtp} disabled={emailOtpLoading}>
-                  {emailOtpLoading ? (
-                    <ActivityIndicator size="small" color="#4A90E2" />
-                  ) : (
-                    <Image style={{ width: 28, height: 28 }} source={require("../../assets/verify_symbol.png")} />
-                  )}
-                </TouchableOpacity>
+            {/* Email with OTP verification */}
+            <View style={styles.fieldContainer}>
+              <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+                <Text style={styles.fieldLabel}>Email</Text>
+                <Text style={styles.madantoryText}>*</Text>
+              </View>
+              <Text style={styles.desc}>Verify your email via OTP to proceed</Text>
+              <View style={[styles.textInput, { flexDirection: "row", alignItems: "center" }]}>
+                <TextInput
+                    style={{ flex: 1, color: "#4F7A94", fontSize: FontSize.size_base, outlineStyle: "none" }}
+                    value={email}
+                    onChangeText={(val) => { setEmail(val); setEmailVerified(false); setShowEmailOtp(false); setEmailOtpValue(""); }}
+                    placeholder="Email"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!emailVerified}
+                    onFocus={() => { setInfluTypeDropdown(false); setGenderDropdown(false); }}
+                />
+                {emailVerified ? (
+                    <Image style={{ width: 28, height: 28 }} source={require("../../assets/green_tick.png")} />
+                ) : (
+                    <TouchableOpacity onPress={handleSendEmailOtp} disabled={emailOtpLoading}>
+                      {emailOtpLoading ? (
+                          <ActivityIndicator size="small" color="#4A90E2" />
+                      ) : (
+                          <Image style={{ width: 28, height: 28 }} source={require("../../assets/verify_symbol.png")} />
+                      )}
+                    </TouchableOpacity>
+                )}
+              </View>
+              {showEmailOtp && !emailVerified && (
+                  <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <TextInput
+                        style={[styles.textInput, { flex: 1, color: "#4F7A94", fontSize: FontSize.size_base }]}
+                        value={emailOtpValue}
+                        onChangeText={setEmailOtpValue}
+                        placeholder="Enter OTP"
+                        keyboardType="number-pad"
+                        maxLength={6}
+                    />
+                    <TouchableOpacity
+                        onPress={handleVerifyEmailOtp}
+                        disabled={emailOtpLoading}
+                        style={styles.otpVerifyButton}
+                    >
+                      {emailOtpLoading ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                          <Text style={styles.otpVerifyButtonText}>Verify</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
               )}
             </View>
-            {showEmailOtp && !emailVerified && (
-              <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <TextInput
-                  style={[styles.textInput, { flex: 1, color: "#4F7A94", fontSize: FontSize.size_base }]}
-                  value={emailOtpValue}
-                  onChangeText={setEmailOtpValue}
-                  placeholder="Enter OTP"
-                  keyboardType="number-pad"
-                  maxLength={6}
-                />
-                <TouchableOpacity
-                  onPress={handleVerifyEmailOtp}
-                  disabled={emailOtpLoading}
-                  style={styles.otpVerifyButton}
-                >
-                  {emailOtpLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.otpVerifyButtonText}>Verify</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
 
-          {/* Password — only shown after email is verified */}
-          {emailVerified && (
-            <FormField
-              label="Password"
-              value={password}
-              setValue={setPassword}
-              secureTextEntry
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              setInfluTypeDropdown={setInfluTypeDropdown}
-              setGenderDropdown={setGenderDropdown}
-            />
-          )}
-          <View style={styles.fieldContainer}>
-            <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-              <Text style={styles.fieldLabel}>Username</Text>
-              <Text style={styles.madantoryText}>*</Text>
+            {/* Password — only shown after email is verified */}
+            {emailVerified && (
+                <FormField
+                    label="Password"
+                    value={password}
+                    setValue={setPassword}
+                    secureTextEntry
+                    showPassword={showPassword}
+                    setShowPassword={setShowPassword}
+                    setInfluTypeDropdown={setInfluTypeDropdown}
+                    setGenderDropdown={setGenderDropdown}
+                />
+            )}
+            <View style={styles.fieldContainer}>
+              <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+                <Text style={styles.fieldLabel}>Username</Text>
+                <Text style={styles.madantoryText}>*</Text>
+              </View>
+              <TextInput
+                  style={styles.textInput}
+                  value={username}
+                  onChangeText={(val) => { setUsername(val); setUsernameError(""); }}
+                  placeholder="Username"
+                  onBlur={handleUsernameBlur}
+                  onFocus={() => { setInfluTypeDropdown(false); setGenderDropdown(false); }}
+              />
+              {usernameError ? (
+                  <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{usernameError}</Text>
+              ) : null}
             </View>
-            <TextInput
-              style={styles.textInput}
-              value={username}
-              onChangeText={(val) => { setUsername(val); setUsernameError(""); }}
-              placeholder="Username"
-              onBlur={handleUsernameBlur}
-              onFocus={() => { setInfluTypeDropdown(false); setGenderDropdown(false); }}
-            />
-            {usernameError ? (
-              <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{usernameError}</Text>
-            ) : null}
-          </View>
-          <View style={[styles.depth1Frame2, { zIndex: 15 }]}>
-            <View style={[styles.depth2Frame02, styles.frameLayout]}>
-              <View style={styles.frameLayout}>
-                <View style={styles.depth4Frame02}>
-                  <Text style={[styles.email, styles.emailTypo]}>Gender</Text>
-                  <Text style={styles.madantoryText}>*</Text>
-                </View>
-                <View>
+            <View style={[styles.depth1Frame2, { zIndex: 15 }]}>
+              <View style={[styles.depth2Frame02, styles.frameLayout]}>
+                <View style={styles.frameLayout}>
+                  <View style={styles.depth4Frame02}>
+                    <Text style={[styles.email, styles.emailTypo]}>Gender</Text>
+                    <Text style={styles.madantoryText}>*</Text>
+                  </View>
                   <View>
-                    <DropDown
-                      name={gender}
-                      items={genderData}
-                      placeholder={"Gender"}
-                      icon={"none"}
-                      dropDownOptionStyle={{
-                        width: "100%",
-                        paddingVertical: 16,
-                      }}
-                      dropDownContainerStyle={{ width: "100%" }}
-                      dropDownItemsStyle={{ width: "100%" }}
-                      titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
-                      selectedValue={setGender}
-                      showElements={genderDropdown}
-                      setShowElement={setGenderDropdown}
-                    />
+                    <View>
+                      <DropDown
+                          name={gender}
+                          items={genderData}
+                          placeholder={"Gender"}
+                          icon={"none"}
+                          dropDownOptionStyle={{
+                            width: "100%",
+                            paddingVertical: 16,
+                          }}
+                          dropDownContainerStyle={{ width: "100%" }}
+                          dropDownItemsStyle={{ width: "100%" }}
+                          titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
+                          selectedValue={setGender}
+                          showElements={genderDropdown}
+                          setShowElement={setGenderDropdown}
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
-          <View style={[styles.depth1Frame2, { height: "auto" }]}>
-            <View style={[styles.depth2Frame02, styles.frameLayout, { height: "auto" }]}>
-              <View style={[styles.frameLayout, { height: "auto" }]}>
-                <View style={styles.depth4Frame02}>
-                  <Text style={[styles.email, styles.emailTypo]}>
-                    Influencer Type
+            <View style={[styles.depth1Frame2, { height: "auto" }]}>
+              <View style={[styles.depth2Frame02, styles.frameLayout, { height: "auto" }]}>
+                <View style={[styles.frameLayout, { height: "auto" }]}>
+                  <View style={styles.depth4Frame02}>
+                    <Text style={[styles.email, styles.emailTypo]}>
+                      Influencer Type
+                    </Text>
+                    <Text style={styles.madantoryText}>*</Text>
+                  </View>
+                  <View>
+                    <View>
+                      <DropDown
+                          name={selected}
+                          items={data}
+                          placeholder={"Select option"}
+                          icon={"none"}
+                          dropDownOptionStyle={{
+                            width: "100%",
+                            paddingVertical: 16,
+                          }}
+                          dropDownContainerStyle={{ width: "100%" }}
+                          dropDownItemsStyle={{ width: "100%", top: "100%" }}
+                          titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
+                          selectedValue={setSelected}
+                          showElements={influTypeDropdown}
+                          setShowElement={setInfluTypeDropdown}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View style={styles.sectionHeader}>
+              <View>
+                <View style={styles.labelWrapper}>
+                  <Text style={styles.sectionHeaderText}>
+                    Add social profiles
                   </Text>
                   <Text style={styles.madantoryText}>*</Text>
                 </View>
-                <View>
-                  <View>
-                    <DropDown
-                      name={selected}
-                      items={data}
-                      placeholder={"Select option"}
-                      icon={"none"}
-                      dropDownOptionStyle={{
-                        width: "100%",
-                        paddingVertical: 16,
-                      }}
-                      dropDownContainerStyle={{ width: "100%" }}
-                      dropDownItemsStyle={{ width: "100%", top: "100%" }}
-                      titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
-                      selectedValue={setSelected}
-                      showElements={influTypeDropdown}
-                      setShowElement={setInfluTypeDropdown}
-                    />
-                  </View>
-                </View>
+                <Text style={styles.desc}>Atleast one field is mandatory</Text>
               </View>
+              <TouchableOpacity
+                  onPress={() => {
+                    setInfluTypeDropdown(false);
+                    setGenderDropdown(false)
+                    navigation.navigate("InfluencerSocialHandles", {
+                      follower,
+                      photo,
+                      social,
+                      isCompleted,
+                      email,
+                      redirect: "InfluencerRegistrationForm",
+                      ...savedFormParams(),
+                    })
+                  }
+                  }
+              >
+                <Image
+                    style={styles.icon}
+                    contentFit="cover"
+                    source={
+                      isCompleted?.addSocialProfile
+                          ? require(`../../assets/green_tick.png`)
+                          : require(`../../assets/depth-3-frame-11.png`)
+                    }
+                />
+              </TouchableOpacity>
             </View>
-          </View>
-          <View style={styles.sectionHeader}>
-            <View>
+            <View style={styles.sectionHeader}>
               <View style={styles.labelWrapper}>
-                <Text style={styles.sectionHeaderText}>
-                  Add social profiles
-                </Text>
+                <Text style={styles.sectionHeaderText}>Add Profile Photo</Text>
+              </View>
+              <TouchableOpacity
+                  onPress={() => {
+                    setInfluTypeDropdown(false)
+                    setGenderDropdown(false)
+                    navigation.navigate("UserProfilePhoto", {
+                      follower,
+                      social,
+                      photo,
+                      isCompleted,
+                      redirect: "InfluencerRegistrationForm",
+                      ...savedFormParams(),
+                    })
+                  }
+                  }
+              >
+                <Image
+                    style={styles.icon}
+                    contentFit="cover"
+                    source={
+                      isCompleted?.addProfilePhoto
+                          ? require(`../../assets/green_tick.png`)
+                          : require(`../../assets/depth-3-frame-11.png`)
+                    }
+                />
+              </TouchableOpacity>
+            </View>
+            <HeadingDescToggle
+                heading="I agree to the terms of service"
+                desc="You need to agree to the terms of service."
+                toggleOn={agreedToTerms}
+                setToggleOn={setAgreedToTerms}
+                require={true}
+            />
+
+            <View style={[styles.fieldContainer]}>
+              <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+                <Text style={styles.fieldLabel}>Location</Text>
                 <Text style={styles.madantoryText}>*</Text>
               </View>
-              <Text style={styles.desc}>Atleast one field is mandatory</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <TouchableOpacity
+                    onPress={() => setModalVisible(true)}
+                    style={[styles.textInput, { flex: 1, justifyContent: "center" }]}
+                >
+                  <Text style={{ color: location ? "#000" : "#aaa" }}>
+                    {location || "Search for location"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={detectLocation}
+                    disabled={locationLoading}
+                    style={{
+                      backgroundColor: "#4A90E2",
+                      borderRadius: 10,
+                      width: 44,
+                      height: 44,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                >
+                  {locationLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                      <Icon name="crosshairs-gps" size={22} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
             <TouchableOpacity
-              onPress={() => {
-                setInfluTypeDropdown(false);
-                setGenderDropdown(false)
-                navigation.navigate("InfluencerSocialHandles", {
-                  follower,
-                  photo,
-                  social,
-                  isCompleted,
-                  email,
-                  redirect: "InfluencerRegistrationForm",
-                  ...savedFormParams(),
-                })
-              }
-              }
-            >
-              <Image
-                style={styles.icon}
-                contentFit="cover"
-                source={
-                  isCompleted?.addSocialProfile
-                    ? require(`../../assets/green_tick.png`)
-                    : require(`../../assets/depth-3-frame-11.png`)
-                }
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.sectionHeader}>
-            <View style={styles.labelWrapper}>
-              <Text style={styles.sectionHeaderText}>Add Profile Photo</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                setInfluTypeDropdown(false)
-                setGenderDropdown(false)
-                navigation.navigate("UserProfilePhoto", {
-                  follower,
-                  social,
-                  photo,
-                  isCompleted,
-                  redirect: "InfluencerRegistrationForm",
-                  ...savedFormParams(),
-                })
-              }
-              }
-            >
-              <Image
-                style={styles.icon}
-                contentFit="cover"
-                source={
-                  isCompleted?.addProfilePhoto
-                    ? require(`../../assets/green_tick.png`)
-                    : require(`../../assets/depth-3-frame-11.png`)
-                }
-              />
-            </TouchableOpacity>
-          </View>
-          <HeadingDescToggle
-            heading="I agree to the terms of service"
-            desc="You need to agree to the terms of service."
-            toggleOn={agreedToTerms}
-            setToggleOn={setAgreedToTerms}
-            require={true}
-          />
-
-          <View style={[styles.fieldContainer]}>
-            <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-              <Text style={styles.fieldLabel}>Location</Text>
-              <Text style={styles.madantoryText}>*</Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                style={[styles.textInput, { flex: 1, justifyContent: "center" }]}
-              >
-                <Text style={{ color: location ? "#000" : "#aaa" }}>
-                  {location || "Search for location"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={detectLocation}
-                disabled={locationLoading}
-                style={{
-                  backgroundColor: "#4A90E2",
-                  borderRadius: 10,
-                  width: 44,
-                  height: 44,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                {locationLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Icon name="crosshairs-gps" size={22} color="#fff" />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={handleSelectPlan}
-            disabled={!isFormValid}
-            style={[
-              styles.selectPlanButton,
-              !isFormValid && styles.selectPlanButtonDisabled,
-            ]}
-          >
-            <View>
-              <Text
+                onPress={handleSelectPlan}
+                disabled={!isFormValid}
                 style={[
-                  styles.selectPlanButtonText,
-                  !isFormValid && styles.selectPlanButtonDisabledText,
+                  styles.selectPlanButton,
+                  !isFormValid && styles.selectPlanButtonDisabled,
                 ]}
-              >
-                Select Plan
-              </Text>
-            </View>
-          </TouchableOpacity>
-          <View style={styles.loginFrame}>
-            <Text>Already have account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
-              <Text style={styles.loginText}>Login</Text>
+            >
+              <View>
+                <Text
+                    style={[
+                      styles.selectPlanButtonText,
+                      !isFormValid && styles.selectPlanButtonDisabledText,
+                    ]}
+                >
+                  Select Plan
+                </Text>
+              </View>
             </TouchableOpacity>
+            <View style={styles.loginFrame}>
+              <Text>Already have account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
+                <Text style={styles.loginText}>Login</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-      <PlaceSearchBar
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        handlePlaceSelected={handlePlaceSelected}
-      />
-    </View>
+        </ScrollView>
+        <PlaceSearchBar
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            handlePlaceSelected={handlePlaceSelected}
+        />
+      </View>
   );
 };
 

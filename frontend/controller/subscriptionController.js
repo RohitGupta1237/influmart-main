@@ -1,11 +1,10 @@
-//import { API_ENDPOINT } from "@env";
 import axios from "axios";
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 const getSubscriptionPlans = async (payload,showAlert) => {
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/subscriptions/subscription-plans`,
-      { platform:payload.platform, followers:payload.followers }
+        `${API_ENDPOINT}/subscriptions/subscription-plans`,
+        { platform:payload.platform, followers:payload.followers }
     );
     const data = await response.data;
     if (response.status == 200) {

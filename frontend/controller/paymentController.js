@@ -1,10 +1,8 @@
-//import { API_ENDPOINT } from "@env";
 import { Platform } from "react-native";
 import RazorpayCheckout from "react-native-razorpay";
-//import { RAZORPAY_KEY_ID } from "@env";
 import { subscribe, renewSubscription } from "./subscriptionController";
 import { createCollabPost } from "./collabOpenController";
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 const RAZORPAY_KEY_ID = "rzp_test_Sh0EeBoIs61uzZ";
 
 // ─── Create order ─────────────────────────────────────────────────────────────
@@ -77,15 +75,15 @@ export const initiateRefund = async (paymentId, amount, orderId) => {
 
 // ─── Handle payment (signup + collab post) ────────────────────────────────────
 export const handlePayment = async (
-  subscription = { amount: 10, userName: "hemanth" },
-  payload = { price: { currency: { subunits: 100, currency: "USD" } } },
-  navigation,
-  showAlert
+    subscription = { amount: 10, userName: "hemanth" },
+    payload = { price: { currency: { subunits: 100, currency: "USD" } } },
+    navigation,
+    showAlert
 ) => {
   const type     = payload.notSave ? "campaign" : "subscription";
   const metadata = payload.notSave
-    ? { brandId: payload.brandId }
-    : { userName: subscription.userName, plan: subscription.plan };
+      ? { brandId: payload.brandId }
+      : { userName: subscription.userName, plan: subscription.plan };
 
   const order = await createOrder({
     amount:   parseInt(subscription?.amount) * payload?.price?.currency?.subunits,
@@ -151,10 +149,10 @@ export const handleRenewalPayment = async (subscription, payload, navigation, sh
       // renewSubscription failed after payment was captured — refund
       const refunded = await initiateRefund(data.razorpay_payment_id, order.amount, order.id);
       showAlert(
-        "Payment Failed",
-        refunded
-          ? "Something went wrong. Your payment has been refunded automatically."
-          : "Something went wrong. Please contact support for a refund."
+          "Payment Failed",
+          refunded
+              ? "Something went wrong. Your payment has been refunded automatically."
+              : "Something went wrong. Please contact support for a refund."
       );
     }
   };
@@ -174,8 +172,8 @@ export const handleRenewalPayment = async (subscription, payload, navigation, sh
         } catch (e) {
           const refunded = await initiateRefund(response.razorpay_payment_id, order.amount, order.id);
           showAlert("Payment Failed", refunded
-            ? "Something went wrong. Your payment has been refunded automatically."
-            : "Could not process payment. Please contact support.");
+              ? "Something went wrong. Your payment has been refunded automatically."
+              : "Could not process payment. Please contact support.");
         }
       },
     };
@@ -191,16 +189,16 @@ export const handleRenewalPayment = async (subscription, payload, navigation, sh
       theme: { color: "#1A80E5" },
     };
     RazorpayCheckout.open(options)
-      .then(async (data) => {
-        try { await onSuccess(data); }
-        catch (e) {
-          const refunded = await initiateRefund(data.razorpay_payment_id, order.amount, order.id);
-          showAlert("Payment Failed", refunded
-            ? "Something went wrong. Your payment has been refunded automatically."
-            : "Could not process payment. Please contact support.");
-        }
-      })
-      .catch((e) => showAlert("Payment Failed", e));
+        .then(async (data) => {
+          try { await onSuccess(data); }
+          catch (e) {
+            const refunded = await initiateRefund(data.razorpay_payment_id, order.amount, order.id);
+            showAlert("Payment Failed", refunded
+                ? "Something went wrong. Your payment has been refunded automatically."
+                : "Could not process payment. Please contact support.");
+          }
+        })
+        .catch((e) => showAlert("Payment Failed", e));
   }
 };
 
@@ -219,42 +217,42 @@ const handlePaymentMobile = async (order, payload, subscription, navigation, sho
   };
 
   RazorpayCheckout.open(options)
-    .then(async (data) => {
-      const paymentData = {
-        razorpay_order_id:   data.razorpay_order_id,
-        razorpay_payment_id: data.razorpay_payment_id,
-        razorpay_signature:  data.razorpay_signature,
-      };
-      try {
-        await verifyPayment(paymentData);
+      .then(async (data) => {
+        const paymentData = {
+          razorpay_order_id:   data.razorpay_order_id,
+          razorpay_payment_id: data.razorpay_payment_id,
+          razorpay_signature:  data.razorpay_signature,
+        };
+        try {
+          await verifyPayment(paymentData);
 
-        if (subscription?.notSave === true) {
-          await createCollabPost(payload, showAlert, navigation);
-          await markProcessed(order.id);
-        } else {
-          const _subs = {
-            ...subscription,
-            paymentMode: JSON.stringify({
-              razorpay_order_id:   data.razorpay_order_id,
-              razorpay_payment_id: data.razorpay_payment_id,
-            }),
-          };
-          await subscribe(_subs, payload, navigation);
-          await markProcessed(order.id);
+          if (subscription?.notSave === true) {
+            await createCollabPost(payload, showAlert, navigation);
+            await markProcessed(order.id);
+          } else {
+            const _subs = {
+              ...subscription,
+              paymentMode: JSON.stringify({
+                razorpay_order_id:   data.razorpay_order_id,
+                razorpay_payment_id: data.razorpay_payment_id,
+              }),
+            };
+            await subscribe(_subs, payload, navigation);
+            await markProcessed(order.id);
+          }
+          showAlert("Payment Successful", "Your payment has been processed successfully.");
+        } catch (error) {
+          console.error(error);
+          const refunded = await initiateRefund(data.razorpay_payment_id, order.amount, order.id);
+          showAlert("Payment Failed", refunded
+              ? "Something went wrong. Your payment has been refunded automatically."
+              : "Something went wrong. Please contact support for a refund.");
         }
-        showAlert("Payment Successful", "Your payment has been processed successfully.");
-      } catch (error) {
-        console.error(error);
-        const refunded = await initiateRefund(data.razorpay_payment_id, order.amount, order.id);
-        showAlert("Payment Failed", refunded
-          ? "Something went wrong. Your payment has been refunded automatically."
-          : "Something went wrong. Please contact support for a refund.");
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      showAlert("Payment Failed", error);
-    });
+      })
+      .catch((error) => {
+        console.log(error);
+        showAlert("Payment Failed", error);
+      });
 };
 
 // ─── Load Razorpay script (web) ───────────────────────────────────────────────
@@ -309,8 +307,8 @@ const handlePaymentWeb = async (order, payload, subscription, navigation, showAl
         console.log(error);
         const refunded = await initiateRefund(response.razorpay_payment_id, order.amount, order.id);
         showAlert("Payment Failed", refunded
-          ? "Something went wrong. Your payment has been refunded automatically."
-          : "Something went wrong. Please contact support for a refund.");
+            ? "Something went wrong. Your payment has been refunded automatically."
+            : "Something went wrong. Please contact support for a refund.");
       }
     },
   };

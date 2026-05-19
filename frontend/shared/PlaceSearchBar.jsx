@@ -10,19 +10,18 @@ import {
   SafeAreaView,
   Platform,
 } from "react-native";
-//import { GOOGLE_API_KEY, CLIENT_URL } from "@env";
-const CLIENT_URL = "http://192.168.73.76:8081";
 const GOOGLE_API_KEY = "AIzaSyB1VXXbx0lvqZYImnPGhGz3BtjSF1oyFsM";
 import React, { useState, useCallback } from "react";
 import { debounce } from "lodash";
 import { Image } from "expo-image";
 import { Border, Color, Padding } from "../GlobalStyles";
 import axios from "axios";
+import API_ENDPOINT from "../config";
 
 const GooglePlacesInput = ({ setData, setModalVisible }) => {
   const [query, setQuery] = useState("");
   const [predictions, setPredictions] = useState([]);
- 
+
   const fetchPredictions = async (input) => {
     const apiKey = GOOGLE_API_KEY;
     if (Platform.OS == "web") {
@@ -31,7 +30,7 @@ const GooglePlacesInput = ({ setData, setModalVisible }) => {
     } else if (Platform.OS == "android" || Platform.OS == "ios") {
       try {
         const response = await axios.get(
-          `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${input}&key=${apiKey}`
+            `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${input}&key=${apiKey}`
         );
 
         console.log(response);
@@ -53,15 +52,15 @@ const GooglePlacesInput = ({ setData, setModalVisible }) => {
 
   // Debounce the fetchPredictions function
   const debouncedFetchPredictions = useCallback(
-    debounce(fetchPredictions, 300),
-    []
+      debounce(fetchPredictions, 300),
+      []
   );
   const searchPlaces= async (query) => {
-    const response = await axios.get(`http://localhost:3000/places?q=${encodeURIComponent(query)}`);
+    const response = await axios.get(`${API_ENDPOINT}/places?q=${encodeURIComponent(query)}`);
     const results = await response.data;
     console.log('Search Results:', results);
     return results;
-}
+  }
   const handleInputChange = (text) => {
     setQuery(text);
     if (text.length > 1) {
@@ -77,60 +76,60 @@ const GooglePlacesInput = ({ setData, setModalVisible }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={query}
-          onChangeText={handleInputChange}
-          placeholder="Search"
-        />
-        <TouchableOpacity
-          style={styles.closeBtn}
-          onPress={() => {
-            setModalVisible(false);
-          }}
-        >
-          <Image
-            source={require("../assets/depth-4-frame-016.png")}
-            style={styles.closeIcon}
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <TextInput
+              style={styles.textInput}
+              value={query}
+              onChangeText={handleInputChange}
+              placeholder="Search"
           />
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        data={predictions}
-        keyExtractor={(item) => item.place_id}
-        renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.item}
-            onPress={() => handleClick(Platform.OS=="web"?item==""?query:item:item.description==""?query:item.description)}
+              style={styles.closeBtn}
+              onPress={() => {
+                setModalVisible(false);
+              }}
           >
-            <Text>{Platform.OS=="web"? item==""?"+ Add This Place":item:item.description==""?"+ Add This Place":item.description}</Text>
+            <Image
+                source={require("../assets/depth-4-frame-016.png")}
+                style={styles.closeIcon}
+            />
           </TouchableOpacity>
-        )}
-      />
-    </View>
+        </View>
+        <FlatList
+            data={predictions}
+            keyExtractor={(item) => item.place_id}
+            renderItem={({ item }) => (
+                <TouchableOpacity
+                    style={styles.item}
+                    onPress={() => handleClick(Platform.OS=="web"?item==""?query:item:item.description==""?query:item.description)}
+                >
+                  <Text>{Platform.OS=="web"? item==""?"+ Add This Place":item:item.description==""?"+ Add This Place":item.description}</Text>
+                </TouchableOpacity>
+            )}
+        />
+      </View>
   );
 };
 
 const PlaceSearchBar = ({
-  modalVisible,
-  setModalVisible,
-  handlePlaceSelected,
-}) => {
+                          modalVisible,
+                          setModalVisible,
+                          handlePlaceSelected,
+                        }) => {
   return (
-    <SafeAreaView
-      style={[styles.container, { display: modalVisible ? "flex" : "none" }]}
-    >
-      <View style={styles.popup}>
-        <View style={styles.modalContainer}>
-          <GooglePlacesInput
-            setData={handlePlaceSelected}
-            setModalVisible={setModalVisible}
-          />
+      <SafeAreaView
+          style={[styles.container, { display: modalVisible ? "flex" : "none" }]}
+      >
+        <View style={styles.popup}>
+          <View style={styles.modalContainer}>
+            <GooglePlacesInput
+                setData={handlePlaceSelected}
+                setModalVisible={setModalVisible}
+            />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
   );
 };
 

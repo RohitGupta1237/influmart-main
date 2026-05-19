@@ -1,17 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-//import { API_ENDPOINT } from "@env";
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 const getBrandProfile = async (brandId, showAlert) => {
   const token = await AsyncStorage.getItem("token");
   try {
     const response = await axios.get(
-      `${API_ENDPOINT}/brands/profile/${brandId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/brands/profile/${brandId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     const data = await response.data;
     if (response.status == 200) {
@@ -19,12 +18,12 @@ const getBrandProfile = async (brandId, showAlert) => {
         ...data.brand,
         category: JSON.parse(data.brand.category).join(", "),
         profileUrl: data.brand.isSelectedImage
-          ? data.brand.profileUrl
-          : data.brand.profileUrl.includes("uploads")
-          ? `${API_ENDPOINT}/${data.brand.profileUrl
-              .replace(/\\/g, "/")
-              .replace("uploads/", "")}`
-          : null,
+            ? data.brand.profileUrl
+            : data.brand.profileUrl.includes("uploads")
+                ? `${API_ENDPOINT}/${data.brand.profileUrl
+                    .replace(/\\/g, "/")
+                    .replace("uploads/", "")}`
+                : null,
       };
       return brand;
     } else {
@@ -98,12 +97,12 @@ const getAllBrandProfiles = async (showAlert) => {
       return {
         ...brand,
         profileUrl: brand.isSelectedImage
-          ? brand.profileUrl
-          : brand.profileUrl.includes("uploads")
-          ? `${API_ENDPOINT}/${brand.profileUrl
-              .replace(/\\/g, "/")
-              .replace("uploads/", "")}`
-          : null,
+            ? brand.profileUrl
+            : brand.profileUrl.includes("uploads")
+                ? `${API_ENDPOINT}/${brand.profileUrl
+                    .replace(/\\/g, "/")
+                    .replace("uploads/", "")}`
+                : null,
         category: (() => {
           try {
             const categoryArray = JSON.parse(brand.category || "[]");

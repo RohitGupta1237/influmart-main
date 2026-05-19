@@ -1,34 +1,33 @@
 import axios from "axios";
-//import { API_ENDPOINT } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
- const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 const GetInfluencerProfile = async (influencerId, setProfile, showAlert) => {
   const token = await AsyncStorage.getItem('token');
   try {
     const response = await axios.get(
-      `${API_ENDPOINT}/influencers/profile/${influencerId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/influencers/profile/${influencerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     const data = await response.data?.influencer
     if (response.status === 200) {
       let newData = {...data,
         ytData: (() => { try { return data.ytData?.[0] ? JSON.parse(data.ytData[0]) : null; } catch(e) { return null; } })(),
         profileUrl: data.isSelectedImage ? data.profileUrl : data.profileUrl?.includes("uploads")
-          ? `${API_ENDPOINT}/${data.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
-          : data.profileUrl || null,
+            ? `${API_ENDPOINT}/${data.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
+            : data.profileUrl || null,
         category: (() => {
-            try {
-              const categoryArray = JSON.parse(data.category || "[]");
-              return Array.isArray(categoryArray) ? categoryArray.join(", ") : "";
-            } catch (error) {
-              console.error("Failed to parse category JSON:", error.message);
-              return "";
-            }
-          })(),
+          try {
+            const categoryArray = JSON.parse(data.category || "[]");
+            return Array.isArray(categoryArray) ? categoryArray.join(", ") : "";
+          } catch (error) {
+            console.error("Failed to parse category JSON:", error.message);
+            return "";
+          }
+        })(),
         price: (() => {
           try {
             if (!data?.price) return null;
@@ -36,7 +35,7 @@ const GetInfluencerProfile = async (influencerId, setProfile, showAlert) => {
             return Array.isArray(parsed) ? parsed : [parsed];
           } catch (e) { return null; }
         })(),
-        }
+      }
       console.log(newData)
       setProfile(newData);
       return newData
@@ -108,8 +107,8 @@ const GetAllInfluencerProfile = async (setProfile) => {
       const newData = data.map((influencer) => ({
         ...influencer,
         profileUrl: influencer.isSelectedImage? influencer?.profileUrl : influencer.profileUrl && influencer.profileUrl.includes("uploads")
-          ? `${API_ENDPOINT}/${influencer.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
-          : null,
+            ? `${API_ENDPOINT}/${influencer.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
+            : null,
         category: (() => {
           try {
             const categoryArray = JSON.parse(influencer.category || "[]");
@@ -131,12 +130,12 @@ const DeleteInfluencerProfile = async (influencerId, navigation, showAlert) => {
   const token = await AsyncStorage.getItem("token");
   try {
     const response = await axios.delete(
-      `${API_ENDPOINT}/influencers/profile/${influencerId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+        `${API_ENDPOINT}/influencers/profile/${influencerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
     );
     if (response.status === 200) {
       showAlert("Profile Deleted", "Successfully deleted your profile");
@@ -164,8 +163,8 @@ const FilterInfluencerProfile = async (filters, setInfluencerData) => {
       const newData = data.map((influencer) => ({
         ...influencer,
         profileUrl: influencer?.isSelectedImage ? influencer?.profileUrl : influencer?.profileUrl?.includes("uploads")
-          ? `${API_ENDPOINT}/${influencer.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
-          : null,
+            ? `${API_ENDPOINT}/${influencer.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
+            : null,
         category: (() => {
           try {
             const categoryArray = JSON.parse(influencer.category || "[]");
@@ -187,9 +186,9 @@ const UpdateInfluencerDescription = async (influencerId, description, showAlert)
   const token = await AsyncStorage.getItem("token");
   try {
     const response = await axios.patch(
-      `${API_ENDPOINT}/influencers/${influencerId}/description`,
-      { description },
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/influencers/${influencerId}/description`,
+        { description },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.status === 200;
   } catch (error) {
@@ -202,9 +201,9 @@ const UpdateInfluencerHashtags = async (influencerId, hashtags, showAlert) => {
   const token = await AsyncStorage.getItem("token");
   try {
     const response = await axios.patch(
-      `${API_ENDPOINT}/influencers/${influencerId}/hashtags`,
-      { hashtags },
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/influencers/${influencerId}/hashtags`,
+        { hashtags },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.status === 200;
   } catch (error) {
@@ -217,9 +216,9 @@ const UpdateInfluencerPrice = async (influencerId, price, showAlert) => {
   const token = await AsyncStorage.getItem("token");
   try {
     const response = await axios.patch(
-      `${API_ENDPOINT}/influencers/${influencerId}/price`,
-      { price },
-      { headers: { Authorization: `Bearer ${token}` } }
+        `${API_ENDPOINT}/influencers/${influencerId}/price`,
+        { price },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.status === 200;
   } catch (error) {

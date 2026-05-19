@@ -1,8 +1,7 @@
-//import { API_ENDPOINT } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Platform } from "react-native";
-const API_ENDPOINT = "http://localhost:3000";
+import API_ENDPOINT from "../config";
 const SendOtp = async (payload, navigation, showAlert) => {
   const { email, name } = payload;
   try {
@@ -149,13 +148,13 @@ const InfluencerSignUp = async (payload, navigation, showAlert) => {
   }
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/influencers/signup`,
-      data,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+        `${API_ENDPOINT}/influencers/signup`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
     );
     const _data = await response.data;
     if (response.status === 201) {
@@ -168,8 +167,8 @@ const InfluencerSignUp = async (payload, navigation, showAlert) => {
   } catch (error) {
     console.log(error);
     showAlert(
-      "Influencer SignUp Error",
-      error?.response?.data?.message || "Something went wrong"
+        "Influencer SignUp Error",
+        error?.response?.data?.message || "Something went wrong"
     );
     navigation.navigate("InfluencerRegistrationForm");
   }
@@ -178,8 +177,8 @@ const InfluencerSignUp = async (payload, navigation, showAlert) => {
 const InfluencerVerify = async (payload, navigation, showAlert) => {
   try {
     const response = await axios.post(
-      `${API_ENDPOINT}/influencers/verifyUser`,
-      { userName: payload.userName, email: payload.email }
+        `${API_ENDPOINT}/influencers/verifyUser`,
+        { userName: payload.userName, email: payload.email }
     );
     const data = await response.data;
     if (response.status === 200) {
