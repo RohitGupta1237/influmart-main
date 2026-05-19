@@ -11,16 +11,17 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 const crypto = require("crypto");
 
-const TWITTER_REDIRECT_URI = "http://127.0.0.1:3000/auth/twitter/callback";
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const TWITTER_REDIRECT_URI = `${BASE_URL}/auth/twitter/callback`;
 // In-memory store for PKCE verifiers keyed by state (expires after 10 minutes)
 const twitterStateMap = new Map();
 
-const YOUTUBE_REDIRECT_URI = "http://127.0.0.1:3000/auth/youtube/callback";
+const YOUTUBE_REDIRECT_URI = `${BASE_URL}/auth/youtube/callback`;
 
 const FB_APP_ID = process.env.FACEBOOK_APP_ID;
 const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
-const FACEBOOK_REDIRECT_URI = "http://localhost:3000/auth/facebook/callback";
-const INSTAGRAM_REDIRECT_URI = "https://colorado-phoenix-fifty-icon.trycloudflare.com/auth/instagram/callback";
+const FACEBOOK_REDIRECT_URI = `${BASE_URL}/auth/facebook/callback`;
+const INSTAGRAM_REDIRECT_URI = `${BASE_URL}/auth/instagram/callback`;
 const facebookStateMap = new Map();
 const instagramStateMap = new Map();
 // In-memory store: state → { influencerId } for YouTube OAuth
