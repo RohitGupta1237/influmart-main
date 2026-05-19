@@ -10,14 +10,14 @@ app.use(express.static("uploads"));
 
 // CORS
 const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",").map(o => o.trim())
-  : ["http://localhost:8081"];
+    ? process.env.CLIENT_URL.split(",").map(o => o.trim())
+    : ["http://localhost:8081"];
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+        callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
 }));
 
 // Body Parser
@@ -40,19 +40,10 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const authRoutes = require("./routes/authRoutes");
 const Message = require("./model/Message");
 const collabOpenRoutes = require("./routes/collabOpenRoutes");
-const places = require('./constant/data'); // Replace with your data loading logic
-const places1 = require("./constant/data1");
-const places2 = require("./constant/data2");
-const places3 = require("./constant/data3");
-const places4 = require("./constant/data4");
-const places5 = require("./constant/data5");
-const places6 = require("./constant/data6");
-
-const placesData = [...places,...places1,...places2,...places3,...places4,...places5,...places6]
 
 app.use((req, res, next) => {
-  req.io = io;
-  next();
+    req.io = io;
+    next();
 });
 // Auth/OAuth routes — mounted at root so redirect URIs match (e.g. /auth/facebook/callback)
 app.use("/", authRoutes);
@@ -83,18 +74,29 @@ app.use("/api", collaborationRoutes);
 // Mount the connect routes on a specific path
 app.use("/connection", connectRouter);
 
-// Endpoint to search places
-app.get('/places', (req, res) => {
-    const query = req.query.q.toLowerCase();
-    const results = placesData.filter(place => place.toLowerCase().includes(query));
-    res.json(results);
+// Endpoint to search places (via OpenStreetMap Nominatim — free, no API key)
+app.get('/places', async (req, res) => {
+    const query = req.query.q;
+    if (!query) return res.json([]);
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=10&addressdetails=0`;
+        const response = await fetch(url, {
+            headers: { "User-Agent": "Influmart/1.0 (influmart-app)" },
+        });
+        const data = await response.json();
+        const results = data.map((item) => item.display_name);
+        res.json(results);
+    } catch (err) {
+        console.error("Places search error:", err.message);
+        res.json([]);
+    }
 });
 
 // Home route
 app.get("/", (_req, res) => {
-  res
-    .status(200)
-    .json({ message: "Hello There!! You are at the backend server!" });
+    res
+        .status(200)
+        .json({ message: "Hello There!! You are at the backend server!" });
 });
 
 // Start YouTube analytics cron job
@@ -108,15 +110,15 @@ startIgFbAnalyticsCron();
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(
-  PORT,
-  console.log(
-    `Server running in ${process.env.ENV || "development"} mode on port ${PORT}`
-  )
+    PORT,
+    console.log(
+        `Server running in ${process.env.ENV || "development"} mode on port ${PORT}`
+    )
 );
 
 // handle the error safely
 process.on("uncaughtException", (err) => {
-  console.log(err);
+    console.log(err);
 });
 
 module.exports = app;

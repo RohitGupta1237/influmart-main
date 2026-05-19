@@ -30,3 +30,12 @@ build/
 # Uploads (user files, not code)
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# Large place data files (replaced by Nominatim API)
+backend/constant/data.js
+backend/constant/data1.js
+backend/constant/data2.js
+backend/constant/data3.js
+backend/constant/data4.js
+backend/constant/data5.js
+backend/constant/data6.js
