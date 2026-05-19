@@ -31,6 +31,9 @@ const InfluencerManageAccount = ({ route, navigation }) => {
     category: [],
     image: null,
     isSelectedImage: false,
+    priceYoutube: "",
+    priceInstagram: "",
+    priceTiktok: "",
   });
   const [editFields, setEditFields] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -50,6 +53,7 @@ const InfluencerManageAccount = ({ route, navigation }) => {
         showAlert
       );
       if (data) {
+        const price = data?.price?.[0] || {};
         setProfileData({
           name: data?.userName || "",
           email: data?.email || "",
@@ -57,6 +61,9 @@ const InfluencerManageAccount = ({ route, navigation }) => {
           category: data?.category?.split(",") || [],
           image: data?.profileUrl || null,
           isSelectedImage: data?.isSelectedImage,
+          priceYoutube: price?.yt ? price.yt.toString() : "",
+          priceInstagram: price?.ig ? price.ig.toString() : "",
+          priceTiktok: price?.tt ? price.tt.toString() : "",
         });
       }
     };
@@ -305,14 +312,19 @@ const InfluencerManageAccount = ({ route, navigation }) => {
           <MultiDropDown
             name={profileData.category.join(",")}
             items={[
-              { key: "grocery", value: "Grocery" },
-              { key: "electronics", value: "Electronics" },
-              { key: "fashion", value: "Fashion" },
-              { key: "toys", value: "Toys" },
-              { key: "beauty", value: "Beauty" },
-              { key: "home-decoration", value: "Home Decoration" },
-              { key: "fitness", value: "Fitness" },
-              { key: "education", value: "Education" },
+              { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
+              { key: "fashion-beauty", value: "Fashion & Beauty" },
+              { key: "food-cooking", value: "Food & Cooking" },
+              { key: "fitness-health", value: "Fitness & Health" },
+              { key: "travel-exploration", value: "Travel & Exploration" },
+              { key: "tech-gaming", value: "Tech & Gaming" },
+              { key: "education-knowledge", value: "Education & Knowledge" },
+              { key: "entertainment-comedy", value: "Entertainment & Comedy" },
+              { key: "business-entrepreneurship", value: "Business & Entrepreneurship" },
+              { key: "art-creativity", value: "Art & Creativity" },
+              { key: "parenting-family", value: "Parenting & Family" },
+              { key: "regional-local-culture", value: "Regional/Local Culture Creators" },
+              { key: "home-decor-interior", value: "Home Decor / Interior Creators" },
               { key: "others", value: "Others" },
             ]}
             placeholder="Select option"
@@ -333,7 +345,71 @@ const InfluencerManageAccount = ({ route, navigation }) => {
           />
         </View>
 
-        {/* Add similar fields for location, website, and description */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>YouTube Price Per Post (₹)</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={profileData.priceYoutube}
+              editable={editFields.priceYoutube}
+              keyboardType="numeric"
+              placeholder="Enter price"
+              onChangeText={(text) =>
+                setProfileData((prev) => ({ ...prev, priceYoutube: text }))
+              }
+            />
+            <TouchableOpacity
+              style={styles.editIcon}
+              onPress={() => toggleEditField("priceYoutube")}
+            >
+              <Icon name="pencil" size={20} color="gray" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Instagram Price Per Post (₹)</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={profileData.priceInstagram}
+              editable={editFields.priceInstagram}
+              keyboardType="numeric"
+              placeholder="Enter price"
+              onChangeText={(text) =>
+                setProfileData((prev) => ({ ...prev, priceInstagram: text }))
+              }
+            />
+            <TouchableOpacity
+              style={styles.editIcon}
+              onPress={() => toggleEditField("priceInstagram")}
+            >
+              <Icon name="pencil" size={20} color="gray" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>TikTok Price Per Post (₹)</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={profileData.priceTiktok}
+              editable={editFields.priceTiktok}
+              keyboardType="numeric"
+              placeholder="Enter price"
+              onChangeText={(text) =>
+                setProfileData((prev) => ({ ...prev, priceTiktok: text }))
+              }
+            />
+            <TouchableOpacity
+              style={styles.editIcon}
+              onPress={() => toggleEditField("priceTiktok")}
+            >
+              <Icon name="pencil" size={20} color="gray" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitButtonText}>Update Profile</Text>

@@ -66,6 +66,125 @@ const InstagramData = async (instagramId) => {
   }
 };
 
+// Fetch Instagram analytics directly from Instagram Graph API
+// Works only for Business/Creator accounts linked to a Facebook Page
+// igAccountId = the numeric Instagram Business Account ID (from Graph API)
+// accessToken = long-lived user access token
+const InstagramGraphData = async (igAccountId, accessToken) => {
+  try {
+    const track = trackingData();
+
+    // 1. Basic profile — followers, media count
+    const profileRes = await axios.get(`https://graph.instagram.com/v19.0/me`, {
+      params: { fields: "username,followers_count,media_count,biography", access_token: accessToken },
+    });
+    const profile = profileRes.data;
+    const followers = profile.followers_count || 0;
+
+    // 2. Recent media — calculate avg likes, comments, ER
+    let avgLikes = 0, avgComments = 0, avgInteractions = 0, avgER = 0, lastPosts = [];
+    try {
+      const mediaRes = await axios.get(`https://graph.instagram.com/v19.0/me/media`, {
+        params: {
+          fields: "like_count,comments_count,timestamp,media_url,thumbnail_url,permalink,caption",
+          limit: 20,
+          access_token: accessToken,
+        },
+      });
+      const posts = mediaRes.data?.data || [];
+      if (posts.length > 0) {
+        const totalLikes = posts.reduce((s, p) => s + (p.like_count || 0), 0);
+        const totalComments = posts.reduce((s, p) => s + (p.comments_count || 0), 0);
+        avgLikes = Math.round(totalLikes / posts.length);
+        avgComments = Math.round(totalComments / posts.length);
+        avgInteractions = avgLikes + avgComments;
+        avgER = followers > 0 ? parseFloat(((avgInteractions / followers) * 100).toFixed(2)) : 0;
+        lastPosts = posts.slice(0, 5).map((p) => ({
+          url: p.permalink,
+          thumbnail: p.thumbnail_url || p.media_url,
+          caption: p.caption?.slice(0, 100),
+          likes: p.like_count,
+          comments: p.comments_count,
+          timestamp: p.timestamp,
+        }));
+      }
+    } catch (e) {
+      console.warn("[InstagramGraphData] Media fetch failed:", e.message);
+    }
+
+    // 3. Audience demographics — requires instagram_manage_insights + 100+ followers
+    let memberCities = null, genders = null, ages = null;
+    try {
+      const insightsRes = await axios.get(`https://graph.instagram.com/v19.0/me/insights`, {
+        params: { metric: "audience_city,audience_gender_age", period: "lifetime", access_token: accessToken },
+      });
+      const insightData = insightsRes.data?.data || [];
+
+      const cityData = insightData.find((d) => d.name === "audience_city");
+      const genderAgeData = insightData.find((d) => d.name === "audience_gender_age");
+
+      if (cityData?.values?.[0]?.value) {
+        const cityObj = cityData.values[0].value;
+        const total = Object.values(cityObj).reduce((s, v) => s + v, 0);
+        memberCities = Object.entries(cityObj)
+          .map(([city, count]) => ({
+            city,
+            percent: total > 0 ? parseFloat(((count / total) * 100).toFixed(1)) : 0,
+          }))
+          .sort((a, b) => b.percent - a.percent)
+          .slice(0, 10);
+      }
+
+      if (genderAgeData?.values?.[0]?.value) {
+        const gaObj = genderAgeData.values[0].value;
+        const total = Object.values(gaObj).reduce((s, v) => s + v, 0);
+        let femaleTotal = 0, maleTotal = 0;
+        const ageGroups = {};
+        Object.entries(gaObj).forEach(([key, count]) => {
+          const [gender, ageRange] = key.split(".");
+          if (gender === "F") femaleTotal += count;
+          if (gender === "M") maleTotal += count;
+          if (!ageGroups[ageRange]) ageGroups[ageRange] = 0;
+          ageGroups[ageRange] += count;
+        });
+        genders = {
+          female: total > 0 ? parseFloat(((femaleTotal / total) * 100).toFixed(1)) : 0,
+          male: total > 0 ? parseFloat(((maleTotal / total) * 100).toFixed(1)) : 0,
+        };
+        ages = Object.entries(ageGroups)
+          .map(([range, count]) => ({
+            range,
+            percent: total > 0 ? parseFloat(((count / total) * 100).toFixed(1)) : 0,
+          }))
+          .sort((a, b) => b.percent - a.percent);
+      }
+    } catch (e) {
+      console.warn("[InstagramGraphData] Audience insights failed:", e.response?.data?.error?.message || e.message);
+    }
+
+    console.log(`[InstagramGraphData] igId=${igAccountId} followers=${followers} avgLikes=${avgLikes} avgComments=${avgComments} cities=${memberCities?.length || 0}`);
+
+    return {
+      followers,
+      avgER,
+      avgInteractions,
+      avgLikes,
+      avgComments,
+      memberCities,
+      ages,
+      genders,
+      lastPosts,
+      membersReachability: null,
+      tags: null,
+      trackingDate: track,
+      source: "graph_api",
+    };
+  } catch (err) {
+    console.error("[InstagramGraphData] Error:", err.response?.data || err.message);
+    return null;
+  }
+};
+
 //InstagramData("mrbeast");
 
 // //yt-api
@@ -217,16 +336,17 @@ const facebookData = async (facebookUrl) => {
         avgPostShares = Math.round(totS / posts.length);
       }
 
-      // Reels averages
+      // Reels averages (last 10 only)
       if (reels.length > 0) {
-        const totR = reels.reduce((s, r) => s + (r.reactions_count || 0), 0);
-        const totC = reels.reduce((s, r) => s + (r.comments_count || 0), 0);
-        const totS = reels.reduce((s, r) => s + (r.reshare_count || 0), 0);
-        const totP = reels.reduce((s, r) => s + (r.play_count || 0), 0);
-        avgReelReactions = Math.round(totR / reels.length);
-        avgReelComments = Math.round(totC / reels.length);
-        avgReelShares = Math.round(totS / reels.length);
-        avgReelPlayCount = Math.round(totP / reels.length);
+        const last10 = reels.slice(0, 10);
+        const totR = last10.reduce((s, r) => s + (r.reactions_count || 0), 0);
+        const totC = last10.reduce((s, r) => s + (r.comments_count || 0), 0);
+        const totS = last10.reduce((s, r) => s + (r.reshare_count || 0), 0);
+        const totP = last10.reduce((s, r) => s + (r.play_count || 0), 0);
+        avgReelReactions = Math.round(totR / last10.length);
+        avgReelComments = Math.round(totC / last10.length);
+        avgReelShares = Math.round(totS / last10.length);
+        avgReelPlayCount = Math.round(totP / last10.length);
       }
 
       // Overall ER across both
@@ -274,7 +394,7 @@ const facebookData = async (facebookUrl) => {
 
 //facebookData("https://www.facebook.com/MrBeast6000");
 
-module.exports = {facebookData,InstagramData,trackingData}
+module.exports = {facebookData,InstagramData,InstagramGraphData,trackingData}
 
 
 // Facebook

@@ -9,6 +9,7 @@ const postCollabOpen = async (req, res) => {
     try {
       const {
         brandId,
+        campaignTitle,
         campaignType,
         earningCapacity,
         campaignTimelines,
@@ -20,9 +21,10 @@ const postCollabOpen = async (req, res) => {
         numberOfInfluencers,
         brandDescription
       } = req.body;
-  
+
       const collabOpening = new CollabOpening({
-        brand: brandId, 
+        brand: brandId,
+        campaignTitle: campaignTitle || "",
         campaignType,
         earningCapacity,
         campaignTimelines,
@@ -57,13 +59,15 @@ const getAllCollabOpen =  async (req, res) => {
         }
       }
 
-      // Fetch all openings, excluding only the specific posts the influencer applied to
-      const collabOpenings = await CollabOpening.find(
-        appliedPostIds.length > 0 ? { _id: { $nin: appliedPostIds } } : {}
-      ).populate({
+      // Fetch all openings, excluding applied posts and non-active campaigns
+      const baseFilter = {
+        $or: [{ status: 'active' }, { status: { $exists: false } }],
+        ...(appliedPostIds.length > 0 ? { _id: { $nin: appliedPostIds } } : {}),
+      };
+      const collabOpenings = await CollabOpening.find(baseFilter).populate({
         path: 'brand',
         model: 'Brand',
-        select: 'brandName category'
+        select: 'brandName category profileUrl isSelectedImage'
       });
 
       res.status(200).json({ collabOpenings });
@@ -101,11 +105,18 @@ const allCollabOpenRequests = async (req, res) => {
   const user = await Brand.findById(userId).populate({
     path: "notifications",
     match: { status: 'pending' },
-    populate: {
-      path: "sender",
-      model: "influencer",
-      options: { select: "influencerName category profileUrl isSelectedImage" }
-    },
+    populate: [
+      {
+        path: "sender",
+        model: "influencer",
+        select: "influencerName category profileUrl isSelectedImage"
+      },
+      {
+        path: "collabOpeningId",
+        model: "CollabOpening",
+        select: "campaignTitle campaignType"
+      }
+    ],
   });
   res.status(200).json({ user: user?.notifications?.filter(n => n !== null) });
 };
@@ -167,10 +178,13 @@ const getAppliedCollabPosts = async (req, res) => {
     const influencer = await InfluencerSignupRequest.findById(influencerId, 'appliedCollabPosts');
     const appliedIds = influencer?.appliedCollabPosts || [];
 
-    const collabOpenings = await CollabOpening.find({ _id: { $in: appliedIds } }).populate({
+    const collabOpenings = await CollabOpening.find({
+      _id: { $in: appliedIds },
+      $or: [{ status: 'active' }, { status: { $exists: false } }],
+    }).populate({
       path: 'brand',
       model: 'Brand',
-      select: 'brandName category'
+      select: 'brandName category profileUrl isSelectedImage'
     });
 
     res.status(200).json({ collabOpenings });
@@ -189,4 +203,60 @@ const getBrandCollabOpenCount = async (req, res) => {
   }
 };
 
-module.exports = { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount };
+const addCollaboratedInfluencer = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const { username } = req.body;
+    if (!username || !username.trim()) {
+      return res.status(400).json({ message: 'Username is required' });
+    }
+    const campaign = await CollabOpening.findById(campaignId);
+    if (!campaign || campaign.status !== 'successfully_closed') {
+      return res.status(400).json({ message: 'Campaign not found or not successfully closed' });
+    }
+    // Validate influencer exists with this username
+    const influencer = await InfluencerSignupRequest.findOne({ userName: username.trim() });
+    if (!influencer) {
+      return res.status(404).json({ message: `No influencer found with username "${username.trim()}"` });
+    }
+    await CollabOpening.findByIdAndUpdate(campaignId, {
+      $addToSet: { collaboratedInfluencers: username.trim() }
+    });
+    res.status(200).json({ message: 'Influencer added' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to add influencer', error });
+  }
+};
+
+const getBrandCampaigns = async (req, res) => {
+  try {
+    const { brandId } = req.params;
+    const collabOpenings = await CollabOpening.find({ brand: brandId })
+      .populate({ path: 'brand', model: 'Brand', select: 'brandName category profileUrl isSelectedImage' })
+      .sort({ createdAt: -1 });
+    res.status(200).json({ collabOpenings });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch brand campaigns', error });
+  }
+};
+
+const updateCampaignStatus = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const { status } = req.body;
+    if (!['successfully_closed', 'cancelled'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    await CollabOpening.findByIdAndUpdate(campaignId, { status });
+    // Remove this campaign from all influencers' applied lists
+    await InfluencerSignupRequest.updateMany(
+      { appliedCollabPosts: campaignId },
+      { $pull: { appliedCollabPosts: campaignId } }
+    );
+    res.status(200).json({ message: `Campaign marked as ${status}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update campaign status', error });
+  }
+};
+
+module.exports = { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount, getBrandCampaigns, updateCampaignStatus, addCollaboratedInfluencer };

@@ -23,6 +23,18 @@ const UserProfilePhoto = ({ route, navigation }) => {
   const price = route.params?.price;
   const isCompleted = route.params?.isCompleted
   const redirect = route.params?.redirect
+  const savedFormParams = {
+    savedName: route.params?.savedName,
+    savedEmail: route.params?.savedEmail,
+    savedUsername: route.params?.savedUsername,
+    savedGender: route.params?.savedGender,
+    savedMobileNumber: route.params?.savedMobileNumber,
+    savedSelected: route.params?.savedSelected,
+    savedLocation: route.params?.savedLocation,
+    savedCountryCode: route.params?.savedCountryCode,
+    savedAgreedToTerms: route.params?.savedAgreedToTerms,
+    savedEmailVerified: route.params?.savedEmailVerified,
+  }
   const [photo, setPhoto] = useState(null);
   const [selectedAvatarIndex, setSelectedAvatarIndex] = useState("")
 
@@ -98,6 +110,7 @@ const UserProfilePhoto = ({ route, navigation }) => {
               social,
               price,
               follower,
+              ...savedFormParams,
             })
           }
         >
@@ -149,7 +162,12 @@ const UserProfilePhoto = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.confirmButtonContainer}>
-        <TouchableOpacity style={styles.confirmButton} onPress={() => navigation.navigate(redirect, { social, price, follower, photo, isCompleted: { ...isCompleted, addProfilePhoto: true } })}>
+        <TouchableOpacity
+          style={styles.confirmButton}
+          onPress={() => {
+            navigation.navigate(redirect, { social, price, follower, photo, isCompleted: { ...isCompleted, addProfilePhoto: !!(photo || selectedImage) }, ...savedFormParams });
+          }}
+        >
           <Text style={styles.confirmButtonText}>Confirm</Text>
         </TouchableOpacity>
       </View>

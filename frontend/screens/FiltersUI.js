@@ -51,14 +51,19 @@ const FiltersUI = () => {
   ]
 
   const categoriedData = [
-    { key: "grocery", value: "Grocery" },
-    { key: "electronics", value: "Electronics" },
-    { key: "fashion", value: "Fashion" },
-    { key: "toys", value: "Toys" },
-    { key: "beauty", value: "Beauty" },
-    { key: "home-decoration", value: "Home Decoration" },
-    { key: "fitness", value: "Fitness" },
-    { key: "education", value: "Education" },
+    { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
+    { key: "fashion-beauty", value: "Fashion & Beauty" },
+    { key: "food-cooking", value: "Food & Cooking" },
+    { key: "fitness-health", value: "Fitness & Health" },
+    { key: "travel-exploration", value: "Travel & Exploration" },
+    { key: "tech-gaming", value: "Tech & Gaming" },
+    { key: "education-knowledge", value: "Education & Knowledge" },
+    { key: "entertainment-comedy", value: "Entertainment & Comedy" },
+    { key: "business-entrepreneurship", value: "Business & Entrepreneurship" },
+    { key: "art-creativity", value: "Art & Creativity" },
+    { key: "parenting-family", value: "Parenting & Family" },
+    { key: "regional-local-culture", value: "Regional/Local Culture Creators" },
+    { key: "home-decor-interior", value: "Home Decor / Interior Creators" },
     { key: "others", value: "Others" },
   ];
 

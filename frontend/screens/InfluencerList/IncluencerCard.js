@@ -48,206 +48,117 @@ const InfluencerCard = ({
     }
   }
   return (
-    <View>
-      <TouchableOpacity onPress={() => { handleClick() }}>
-        <View style={styles.depth2FrameLayout}>
-          <Text style={styles.google}>
+    <TouchableOpacity onPress={() => { handleClick() }} activeOpacity={0.85}>
+      <View style={styles.card}>
+        <ImageWithFallback image={depth5Frame0} imageStyle={styles.image} isSelectedImage={isSelectedImage} />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.92)']}
+          style={styles.gradient}
+        >
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryBadgeText} numberOfLines={1}>{beauty}</Text>
+          </View>
+          <Text style={styles.nameText} numberOfLines={1}>
             {kylieCosmetics
               ? kylieCosmetics.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
               : ""}
           </Text>
-          <View style={styles.profileTop}>
-            <Text style={styles.userNameText}>@ {userName}</Text>
-            <Text style={styles.insightText}>{beauty}</Text>
-          </View>
-          <ImageWithFallback image={depth5Frame0} imageStyle={styles.image} isSelectedImage={isSelectedImage} />
-          <View style={styles.profileBottomContainer}>
-            <View style={styles.profileBottomChip}>
-              <Image style={{ width: 16, height: 16 }} source={require('../../assets/instagram-logo.png')} />
-              <Text style={styles.collaborationCount}>{formatNumber(statistics.instaData)}</Text>
+          <Text style={styles.userNameText} numberOfLines={1}>@{userName}</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statChip}>
+              <Image style={styles.platformIcon} source={require('../../assets/instagram-logo.png')} />
+              <Text style={styles.statText}>{formatNumber(statistics.instaData)}</Text>
             </View>
-            <View style={styles.profileBottomChip}>
-              <Image style={{ width: 16, height: 16 }} source={require('../../assets/tiktok-logo.png')} />
-              <Text style={styles.collaborationCount}>{formatNumber(statistics.fbData)}</Text>
+            <View style={styles.statChip}>
+              <Image style={styles.platformIcon} source={require('../../assets/tiktok-logo.png')} />
+              <Text style={styles.statText}>{formatNumber(statistics.fbData)}</Text>
             </View>
-            <View style={styles.profileBottomChip}>
-              <Image style={{ width: 16, height: 16 }} source={require('../../assets/youtube-logo.png')} />
-              <Text style={styles.collaborationCount}>{formatNumber(statistics.ytData)}</Text>
+            <View style={styles.statChip}>
+              <Image style={styles.platformIcon} source={require('../../assets/youtube-logo.png')} />
+              <Text style={styles.statText}>{formatNumber(statistics.ytData)}</Text>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
-      <View style={styles.divider}></View>
-    </View>
-
+        </LinearGradient>
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  cardContainer: {
-    height: "auto",
-    width: 280,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: Color.colorWhite,
-    paddingTop: 16
-  },
-  cardContent: {
-    height: "100%",
-    width: "100%"
-  },
-  imageContainer: {
-    height: 420,
-    width: 280,
-    borderRadius: Border.br_xs,
+  card: {
+    width: 260,
+    height: 360,
+    borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#0C0B0B"
+    backgroundColor: "#1a1a2e",
   },
   image: {
-    height: 350,
-    width: 280,
-    borderRadius: Border.br_xs,
-  },
-  textContainer: {
-    height: 83,
-    width: 358,
-    justifyContent: "center",
-    paddingVertical: Padding.p_base,
-  },
-  titleContainer: {
-    height: 23,
-    width: 358,
-  },
-  title: {
-    fontSize: FontSize.size_lg,
-    lineHeight: 23,
-    fontWeight: "700",
-    fontFamily: FontFamily.beVietnamProBold,
-    color: Color.colorWhite,
-    textAlign: "left",
-  },
-  categoryContainer: {
-    height: 24,
-    width: 358,
-    marginTop: 4,
-    alignItems: "flex-end",
-    justifyContent: "flex-start",
-    flexDirection: "row",
-  },
-  category: {
-    fontSize: FontSize.size_base,
-    lineHeight: 24,
-    fontFamily: FontFamily.beVietnamProRegular,
-    color: "#ccc",
-    textAlign: "left",
-  },
-  overlayContainer: {
-    width: 280,
-    height: 350,
+    width: 260,
+    height: 360,
     position: "absolute",
     top: 0,
-    overflow: "hidden"
+    left: 0,
   },
-  overlay: {
-    height: "100%",
+  gradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 14,
+    paddingBottom: 16,
+    paddingTop: 60,
     display: "flex",
     flexDirection: "column",
-    justifyContent: "flex-end",
-    padding: Padding.p_base,
-    gap: 3
+    gap: 4,
   },
-  insightText: {
-    fontSize: FontSize.size_xs,
-    fontFamily: FontFamily.plusJakartaSansBold,
-    color: Color.colorSlategray_300,
-  },
-  google: {
-    fontSize: FontSize.size_base,
-    lineHeight: 24,
-    fontFamily: FontFamily.interBold,
-    fontWeight: "500",
-    textAlign: "left",
-    color: Color.colorBlack,
-    alignSelf: "stretch",
+  categoryBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     marginBottom: 4,
   },
-  categoryText: {
-    fontSize: FontSize.size_smi,
-    lineHeight: 24,
-    fontFamily: FontFamily.interMedium,
-    fontWeight: "500",
-    color: Color.colorSlategray_100,
+  categoryBadgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontFamily: FontFamily.plusJakartaSansBold,
+    letterSpacing: 0.5,
   },
-  statisticsContainer: {
-    width: "100%",
-    height: "auto",
-    paddingHorizontal: Padding.p_base,
-    paddingVertical: Padding.p_xs,
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-evenly"
-  },
-  statistics: {
-    width: 80,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4
-  },
-  depth2FrameLayout: {
-    height: "auto",
-    width: 280,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: Color.colorWhite,
-    paddingTop: 16
-  },
-  profileTop: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
+  nameText: {
+    fontSize: 17,
+    fontFamily: FontFamily.interBold,
+    fontWeight: "700",
+    color: "#fff",
   },
   userNameText: {
-    fontSize: FontSize.size_sm,
+    fontSize: 12,
     fontFamily: FontFamily.plusJakartaSansBold,
-    color: Color.colorBlack,
+    color: "rgba(255,255,255,0.65)",
+    marginBottom: 8,
   },
-  profileBottomContainer: {
-    width: "100%",
-    display: "flex",
+  statsRow: {
     flexDirection: "row",
-    justifyContent:"space-between",
-    marginTop: 10,
+    gap: 6,
   },
-  profileBottomChip: {
-    display: "flex",
+  statChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    paddingHorizontal: Padding.p_xs,
-    paddingVertical: 6,
-    borderRadius: Border.br_base
+    gap: 5,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  collabrationText: {
+  platformIcon: {
+    width: 14,
+    height: 14,
+  },
+  statText: {
+    color: "#fff",
+    fontSize: 11,
     fontFamily: FontFamily.plusJakartaSansBold,
-    fontSize: FontSize.size_xs
   },
-  collaborationCount: {
-    fontFamily: FontFamily.plusJakartaSansBold,
-    fontSize:FontSize.size_xs
-  },
-  divider: {
-    width: "100%",
-    borderWidth: 0.5,
-    borderColor: "#ccc",
-    marginTop: 30
-  }
 });
 
 export default InfluencerCard;

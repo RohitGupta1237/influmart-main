@@ -40,7 +40,7 @@ const PlanBox = ({ duration, select, plan, suggested = false, setSelect, price }
   return (
     <TouchableOpacity onPress={handleCheckout}>
       <View style={[styles.container, select?.duration == duration && styles.activeContainer]}>
-        <PlanDetails duration={duration} price={`$ ${price}`} suggested={suggested} />
+        <PlanDetails duration={duration} price={`₹ ${price}`} suggested={suggested} />
         <CheckoutButton/>
       </View>
     </TouchableOpacity>

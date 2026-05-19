@@ -4,9 +4,9 @@ import { Color, Padding, FontFamily, FontSize, Border } from "../../GlobalStyles
 export const inboxStyles = {
   scrollViewContent: {
     flexGrow: 1,
+    backgroundColor: Color.colorWhite,
   },
   inboxContainer: {
-    flex: 1,
     width: "100%",
     backgroundColor: Color.colorWhite,
   },
@@ -70,6 +70,15 @@ export const inboxStyles = {
     color: Color.colorGray_500,
     marginLeft: 12,
   },
+  conversationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Padding.p_base,
+    paddingVertical: 12,
+    backgroundColor: Color.colorWhite,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
   messageContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -78,39 +87,46 @@ export const inboxStyles = {
     backgroundColor: Color.colorWhite,
   },
   messageImage: {
-    width: 56,
-    height: 56,
-    borderRadius: Border.br_9xl,
-    backgroundColor: Color.colorWhite,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Color.colorWhitesmoke_300,
+    flexShrink: 0,
   },
   messageContent: {
-    marginLeft: 16,
+    flex: 1,
+    marginLeft: 14,
+    overflow: "hidden",
+  },
+  messageTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 3,
   },
   messageTitle: {
-    fontWeight: "500",
-    fontFamily: FontFamily.beVietnamProMedium,
+    fontWeight: "700",
+    fontFamily: FontFamily.beVietnamProBold,
     fontSize: FontSize.size_base,
-    color: Color.colorGray_500,
+    color: Color.colorGray_400,
+    flex: 1,
+    marginRight: 8,
+  },
+  messageTime: {
+    fontSize: 12,
+    color: Color.colorSlategray_200,
+    fontFamily: FontFamily.beVietnamProRegular,
+    flexShrink: 0,
   },
   messageStatus: {
     fontSize: FontSize.size_sm,
     color: Color.colorSlategray_200,
     fontFamily: FontFamily.beVietnamProRegular,
   },
-  messagePreviewContainer: {
-    marginHorizontal: Padding.p_base,
-    paddingTop: Padding.p_9xs,
-    paddingBottom: Padding.p_base,
-    backgroundColor: Color.colorWhite,
-    borderBottomWidth:1,
-    borderColor:"#ccc",
-  },
   messagePreview: {
     fontFamily: FontFamily.beVietnamProRegular,
-    fontSize: FontSize.size_base,
-    color: Color.colorGray_500,
-    marginLeft:56,
-    paddingLeft:Padding.p_base
+    fontSize: FontSize.size_sm,
+    color: Color.colorSlategray_200,
   },
   spacer: {
     height: 20,

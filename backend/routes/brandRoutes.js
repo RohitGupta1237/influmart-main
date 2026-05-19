@@ -30,7 +30,7 @@ const store = multer.diskStorage({
 
 const upload = multer({ storage: store });
 // Signup a brand
-router.post("/signup", upload.single("image"), brandSignUpValidate, signup);
+router.post("/signup", upload.fields([{ name: "image", maxCount: 1 }, { name: "document", maxCount: 1 }]), brandSignUpValidate, signup);
 
 // Login as a brand
 router.post("/login", login);

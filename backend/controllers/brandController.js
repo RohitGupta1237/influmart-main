@@ -1,4 +1,4 @@
-const { JWT_SECRET_KEY, JWT_EXPIRES_IN } = require("../config/configs");
+const { JWT_SECRET_KEY, JWT_EXPIRES_IN, OTP_MAIL, PASSWORD, SMTP_HOST } = require("../config/configs");
 const { DOESNT_EXIST } = require("../constant/constants");
 const Brand = require("../model/brandDbRequestModel");
 const bcrypt = require("bcrypt"); // For password hashing
@@ -6,6 +6,19 @@ const jwt = require("jsonwebtoken");
 const cron = require("node-cron");
 const OTP = require("../model/otp");
 const Collaboration = require("../model/collaboration");
+const CollabOpening = require("../model/CollabOpening");
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
+
+const ADMIN_EMAIL = "rohitgupta12371380@gmail.com";
+
+const mailer = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: 465,
+  secure: true,
+  auth: { user: OTP_MAIL, pass: PASSWORD },
+});
 
 // Signup a brand
 exports.signup = async (req, res) => {
@@ -19,24 +32,50 @@ exports.signup = async (req, res) => {
     profileUrl,
   } = req.body;
 
+  const imageFile = req.files?.image?.[0];
+  const documentFile = req.files?.document?.[0];
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const brand = new Brand({
     name,
     email,
     password: hashedPassword,
     category,
-    profileUrl: isSelectedImage ? profileUrl : req.file?.path,
+    profileUrl: isSelectedImage ? profileUrl : imageFile?.path,
     brandName,
     isSelectedImage,
   });
-  brand
-    .save()
-    .then(() => {
-      res.status(201).json({ message: "Brand signed up successfully" });
-    })
-    .catch((err) => {
-      res.status(500).json({ message: "An error occurred", error: err });
-    });
+
+  try {
+    await brand.save();
+
+    // Email document to admin if uploaded
+    if (documentFile) {
+      try {
+        await mailer.sendMail({
+          from: OTP_MAIL,
+          to: ADMIN_EMAIL,
+          subject: `New Brand Registration - Business Document: ${brandName || name}`,
+          html: `<p>A new brand has registered on Influmart.</p>
+                 <p><strong>Brand Name:</strong> ${brandName || name}</p>
+                 <p><strong>Email:</strong> ${email}</p>
+                 <p>Please find the business verification document attached.</p>`,
+          attachments: [
+            {
+              filename: documentFile.originalname || path.basename(documentFile.path),
+              path: documentFile.path,
+            },
+          ],
+        });
+      } catch (mailErr) {
+        console.error("[Brand signup] Failed to email document:", mailErr.message);
+      }
+    }
+
+    res.status(201).json({ message: "Brand signed up successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "An error occurred", error: err });
+  }
 };
 
 // Login as a brand (basic example, should be replaced with authentication logic)
@@ -187,11 +226,11 @@ exports.getAllBrands = async (req, res) => {
     // Fetch all brands excluding the password field
     const brands = await Brand.find({}, "-password");
 
-    // Get collaboration counts for each brand
-    const collaborationCounts = await Collaboration.aggregate([
+    // Get campaign post counts for each brand from CollabOpening (same source as BrandProfile)
+    const collaborationCounts = await CollabOpening.aggregate([
       {
         $group: {
-          _id: "$brandId",
+          _id: "$brand",
           count: { $sum: 1 },
         },
       },

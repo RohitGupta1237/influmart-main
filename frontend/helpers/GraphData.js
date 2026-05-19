@@ -169,13 +169,8 @@ function formatNumber(num) {
 }
 
 function timeStampFormatter(timestamp){
-  var milliSeconds=(new Date() - new Date(timestamp))
-  if(milliSeconds>=86400000)
-      return `${Math.floor(milliSeconds/(24*60*60*1000))} days ago`
-  else if(milliSeconds>=3600000)
-      return `${Math.floor(milliSeconds/(60*60*1000))} hour ago`
-  else
-      return `${Math.floor(milliSeconds/(60*1000))} mins ago`
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 

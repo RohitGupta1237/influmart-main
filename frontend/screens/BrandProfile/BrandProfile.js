@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -38,6 +39,7 @@ const BrandProfile = ({ route, navigation }) => {
   const [brand, setBrand] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState(null);
+  const [premiumModal, setPremiumModal] = useState(false);
   const isFocused = useIsFocused();
   useEffect(() => {
     const fetchUserData = async () => {
@@ -88,7 +90,7 @@ const BrandProfile = ({ route, navigation }) => {
   }, [brandId, token, clickedId,isFocused]);
 
   return (
-    <View style={{ width: "100%", height: "100%" }}>
+    <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
       {loading && <Loader loading={loading} />}
       <ScrollView style={styles.container}>
         <View style={styles.container}>
@@ -115,7 +117,7 @@ const BrandProfile = ({ route, navigation }) => {
                 )}
               </View>
               <View style={styles.profileInfoContainer}>
-                <Text style={styles.brandName}>{brand?.brandName}</Text>
+                <Text style={styles.brandName}>{brand?.brandName ? brand.brandName.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : ""}</Text>
                 <Text style={styles.brandDetails}>
                   {brand?.category || "N/A"}
                 </Text>
@@ -148,9 +150,9 @@ const BrandProfile = ({ route, navigation }) => {
           </View>
           {requests && requests.length > 0 ? (
             <ScrollView
-              style={{ flexGrow: 0, maxHeight: 320 }}
-              contentContainerStyle={{ flexGrow: 0 }}
-              nestedScrollEnabled
+            style={{ width: "100%", maxHeight: 320 }}
+            contentContainerStyle={{ width: "100%" }}
+            nestedScrollEnabled
               showsVerticalScrollIndicator={false}
             >
               {requests?.map((item, index) => (
@@ -161,6 +163,7 @@ const BrandProfile = ({ route, navigation }) => {
                   postTitle={item?.postTitle}
                   postDate={item?.postDate}
                   productName={item?.productName}
+                  campaignTitle={item?.campaignTitle}
                   id={item?.requestId}
                   cardWidth="100%"
                   postTitleWidth="auto"
@@ -176,64 +179,61 @@ const BrandProfile = ({ route, navigation }) => {
             </View>
           )}
 
+          {/* Premium Modal */}
+          <Modal transparent visible={premiumModal} animationType="fade" onRequestClose={() => setPremiumModal(false)}>
+            <View style={premiumStyles.overlay}>
+              <View style={premiumStyles.card}>
+                <Text style={premiumStyles.crown}>♛</Text>
+                <Text style={premiumStyles.title}>Premium Feature</Text>
+                <Text style={premiumStyles.subtitle}>Campaign Insights are available exclusively for premium members. Upgrade your plan to unlock detailed engagement, post frequency, and growth analytics.</Text>
+                <TouchableOpacity style={premiumStyles.closeBtn} onPress={() => setPremiumModal(false)}>
+                  <Text style={premiumStyles.closeBtnText}>Got it</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Campaign Insights</Text>
-            <View style={styles.insightContainer}>
-              <View style={styles.iconBg}>
-                <Image
-                  style={styles.insightIcon}
-                  resizeMode="cover"
-                  source={require("../../assets/growth.png")}
-                />
-              </View>
-              <View style={styles.insightDetails}>
-                <Text style={styles.insightTitle}>Engagement Rate</Text>
-                <Text style={styles.insightText}>Higher than average</Text>
-                <Text style={styles.insightText}>
-                  {analytics?.averageEngagementRate
-                    ? `${analytics?.averageEngagementRate} %`
-                    : "N/A"}
-                </Text>
-              </View>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text style={styles.sectionTitle}>Campaign Insights</Text>
+              <TouchableOpacity onPress={() => setPremiumModal(true)} style={premiumStyles.badge}>
+                <Text style={premiumStyles.badgeText}>👑 Premium</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.insightContainer}>
-              <View style={styles.iconBg}>
-                <Image
-                  style={styles.insightIcon}
-                  resizeMode="cover"
-                  source={require("../../assets/growth.png")}
-                />
+            <TouchableOpacity activeOpacity={1} onPress={() => setPremiumModal(true)}>
+              <View style={{ opacity: 0.45 }} pointerEvents="none">
+                <View style={premiumStyles.insightCard}>
+                  <View style={styles.insightContainer}>
+                    <View style={styles.iconBg}>
+                      <Image style={styles.insightIcon} resizeMode="cover" source={require("../../assets/growth.png")} />
+                    </View>
+                    <View style={styles.insightDetails}>
+                      <Text style={styles.insightTitle}>Engagement Rate</Text>
+                      <Text style={styles.insightText}>Upgrade plan to get insights</Text>
+                    </View>
+                  </View>
+                  <View style={styles.insightContainer}>
+                    <View style={styles.iconBg}>
+                      <Image style={styles.insightIcon} resizeMode="cover" source={require("../../assets/growth.png")} />
+                    </View>
+                    <View style={styles.insightDetails}>
+                      <Text style={styles.insightTitle}>Post Frequency</Text>
+                      <Text style={styles.insightText}>Upgrade plan to get insights</Text>
+                    </View>
+                  </View>
+                  <View style={styles.insightContainer}>
+                    <View style={styles.iconBg}>
+                      <Image style={styles.insightIcon} resizeMode="cover" source={require("../../assets/growth.png")} />
+                    </View>
+                    <View style={styles.insightDetails}>
+                      <Text style={styles.insightTitle}>Follower Growth</Text>
+                      <Text style={styles.insightText}>Upgrade plan to get insights</Text>
+                    </View>
+                  </View>
+                </View>
               </View>
-              <View style={styles.insightDetails}>
-                <Text style={styles.insightTitle}>Post Frequency</Text>
-                <Text style={styles.insightText}>Average</Text>
-                <Text style={styles.insightText}>
-                  {analytics?.averagePostFrequency
-                    ? `${formatNumber(
-                        analytics?.averagePostFrequency
-                      )} posts per week`
-                    : "N/A"}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.insightContainer}>
-              <View style={styles.iconBg}>
-                <Image
-                  style={styles.insightIcon}
-                  resizeMode="cover"
-                  source={require("../../assets/growth.png")}
-                />
-              </View>
-              <View style={styles.insightDetails}>
-                <Text style={styles.insightTitle}>Follower Growth</Text>
-                <Text style={styles.insightText}>Higher than average</Text>
-                <Text style={styles.insightText}>
-                  {analytics?.averageGrowthValue
-                    ? `${analytics?.averageGrowthValue} %`
-                    : "N/A"}
-                </Text>
-              </View>
-            </View>
+              <Text style={[styles.insightText, { textAlign: "right", fontStyle: "italic" }]}>& many more...</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
@@ -330,5 +330,46 @@ const BrandProfile = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create(BrandProfileStyles);
+
+const premiumStyles = StyleSheet.create({
+  overlay: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center", alignItems: "center",
+  },
+  card: {
+    backgroundColor: "#fff", borderRadius: 16,
+    padding: 28, marginHorizontal: 32, alignItems: "center",
+    shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
+  },
+  crown: { fontSize: 40, marginBottom: 10 },
+  title: { fontSize: 20, fontWeight: "800", color: "#111", marginBottom: 8 },
+  subtitle: {
+    fontSize: 14, color: "#555", textAlign: "center",
+    lineHeight: 20, marginBottom: 20,
+  },
+  closeBtn: {
+    backgroundColor: "#111", borderRadius: 10,
+    paddingVertical: 12, paddingHorizontal: 32,
+  },
+  closeBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  badge: {
+    backgroundColor: "#FFF8E1", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: "#FFD700",
+  },
+  badgeText: { fontSize: 12, fontWeight: "700", color: "#B8860B" },
+  manyMore: { fontSize: 12, fontWeight: "600", color: "#888", alignSelf: "flex-end", marginTop: 4 },
+  insightCard: {
+    backgroundColor: "#F8F8F8",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+});
 
 export default BrandProfile;

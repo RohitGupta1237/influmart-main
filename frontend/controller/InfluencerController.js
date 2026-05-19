@@ -29,7 +29,13 @@ const GetInfluencerProfile = async (influencerId, setProfile, showAlert) => {
               return "";
             }
           })(),
-        price: data?.price && JSON.parse(data.price),
+        price: (() => {
+          try {
+            if (!data?.price) return null;
+            const parsed = JSON.parse(data.price);
+            return Array.isArray(parsed) ? parsed : [parsed];
+          } catch (e) { return null; }
+        })(),
         }
       console.log(newData)
       setProfile(newData);
@@ -49,6 +55,12 @@ const InfluencerUpdate = async (influencerId, payload, navigation, showAlert) =>
   data.append("email", payload?.email);
   data.append("influencerName", payload?.brandName);
   data.append("category", JSON.stringify(payload?.category));
+  data.append("price", JSON.stringify([{
+    yt: payload?.priceYoutube || "0",
+    ig: payload?.priceInstagram || "0",
+    tt: payload?.priceTiktok || "0",
+    tr: "0",
+  }]));
 
   if (payload.image && payload.image.uri) {
     if (payload?.image?.isSelected) {
@@ -138,7 +150,7 @@ const DeleteInfluencerProfile = async (influencerId, navigation, showAlert) => {
   }
 };
 
-const FilterInfluencerProfile = async (filters,navigation) => {
+const FilterInfluencerProfile = async (filters, setInfluencerData) => {
   try {
     const response = await fetch(`${API_ENDPOINT}/influencers/search-influencers`, {
       method: 'POST',
@@ -164,17 +176,65 @@ const FilterInfluencerProfile = async (filters,navigation) => {
           }
         })(),
       }));
-      navigation.navigate("InfluencersList",{newData})
+      setInfluencerData(newData);
     }
   } catch (error) {
     console.error('Error fetching influencers:', error);
   }
 }
 
+const UpdateInfluencerDescription = async (influencerId, description, showAlert) => {
+  const token = await AsyncStorage.getItem("token");
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/influencers/${influencerId}/description`,
+      { description },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    showAlert("Error", "Failed to update description");
+    return false;
+  }
+};
+
+const UpdateInfluencerHashtags = async (influencerId, hashtags, showAlert) => {
+  const token = await AsyncStorage.getItem("token");
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/influencers/${influencerId}/hashtags`,
+      { hashtags },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    showAlert("Error", "Failed to update hashtags");
+    return false;
+  }
+};
+
+const UpdateInfluencerPrice = async (influencerId, price, showAlert) => {
+  const token = await AsyncStorage.getItem("token");
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/influencers/${influencerId}/price`,
+      { price },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    showAlert("Error", "Failed to update price");
+    return false;
+  }
+};
+
 export {
   GetInfluencerProfile,
   GetAllInfluencerProfile,
   DeleteInfluencerProfile,
   FilterInfluencerProfile,
-  InfluencerUpdate
+  InfluencerUpdate,
+  UpdateInfluencerDescription,
+  UpdateInfluencerHashtags,
+  UpdateInfluencerPrice,
 };

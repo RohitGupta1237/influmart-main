@@ -5,6 +5,7 @@ export const BrandProfileStyles = {
     flex: 1,
     backgroundColor: Color.colorWhitesmoke_100,
     marginBottom: 40,
+    overflow: "hidden",
   },
   header: {
     paddingTop: 24,
@@ -35,6 +36,7 @@ export const BrandProfileStyles = {
   },
   profileImageContainer: {
     width: "100%",
+    alignItems: "center",
   },
   profileImage: {
     width: 128,
@@ -44,16 +46,19 @@ export const BrandProfileStyles = {
   profileInfoContainer: {
     width: "100%",
     flex: 1,
+    alignItems: "center",
   },
   brandName: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
     marginTop: 20,
+    textAlign: "center",
   },
   brandDetails: {
     color: "#4A709C",
     marginTop: 5,
+    textAlign: "center",
   },
   actionButtons: {
     width: "100%",
@@ -168,7 +173,7 @@ export const BrandProfileStyles = {
   },
   depth1FrameSpaceBlock: {
     paddingHorizontal: Padding.p_base,
-    width: 390,
+    width: "100%",
   },
   depth2Frame01: {
     width: "auto",

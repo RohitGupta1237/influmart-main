@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Image, StyleSheet } from "react-native";
 
-const ImageWithFallback = ({ image, imageStyle, isSelectedImage }) => {
+const ImageWithFallback = ({ image, imageStyle, isSelectedImage, fallback }) => {
   const [imageSource, setImageSource] = useState({ uri: image });
   const [imageLoaded, setImageLoaded] = useState(true);
   const selectedImage = {
@@ -59,8 +59,9 @@ const ImageWithFallback = ({ image, imageStyle, isSelectedImage }) => {
   }, [image]);
 
   const handleError = () => {
-    const randomFallbackImage =
-      fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+    const randomFallbackImage = fallback !== undefined
+      ? fallback
+      : fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
     setImageSource(randomFallbackImage);
     setImageLoaded(false);
   };

@@ -18,34 +18,38 @@ const calculateCharges = (followers) => {
 
 const postSubscription = async (req, res) => {
   try {
-    const {
-      userName,
-      plan,
-      startDate,
-      endDate,
-      isFree,
-      amount,
-      paymentMode,
-      transactionDate,
-    } = req.body;
+    const { userName, plan, isFree, amount, paymentMode } = req.body;
+
+    // Calculate dates on backend — never trust frontend dates
+    const now = new Date();
+    let startDate, endDate, transactionDate;
+
+    if (isFree || !plan || !PLAN_DURATIONS[plan]) {
+      startDate = now;
+      endDate = addDuration(now, { months: 3 }); // free tier: 3 months
+      transactionDate = null;
+    } else {
+      startDate = now;
+      endDate = addDuration(now, PLAN_DURATIONS[plan]);
+      transactionDate = now;
+    }
+
     const newSubscription = new Subscription({
       userName,
       plan,
       startDate,
       endDate,
-      isFree,
-      amount: isFree ? null : amount, // Set amount to null if it's a free subscription
-      paymentMode: isFree ? null : paymentMode, // Set paymentMode to null if it's a free subscription
-      transactionDate: isFree ? null : transactionDate, // Set transactionDate to null if it's a free subscription
+      isFree: isFree || false,
+      amount:          isFree ? null : amount,
+      paymentMode:     isFree ? null : paymentMode,
+      transactionDate: isFree ? null : transactionDate,
     });
     await newSubscription.save();
     console.log("Subscription created successfully");
     res.status(201).json({ message: "Subscription created successfully", newSubscription });
   } catch (error) {
-    console.log(error)
-    res
-      .status(400)
-      .json({ message: "Error creating subscription", error: error });
+    console.log(error);
+    res.status(400).json({ message: "Error creating subscription", error: error });
   }
 };
 
@@ -104,4 +108,54 @@ const subscriptionPlans = (req, res) => {
 
 
 
-module.exports = { postSubscription, getSubscription, getPayment, subscriptionPlans, deleteSubscription };
+const PLAN_DURATIONS = {
+  quarterly: { months: 3 },
+  halfYearly: { months: 6 },
+  annually: { years: 1 },
+};
+
+const addDuration = (date, duration) => {
+  const d = new Date(date);
+  if (duration.months) d.setMonth(d.getMonth() + duration.months);
+  if (duration.years) d.setFullYear(d.getFullYear() + duration.years);
+  return d;
+};
+
+const renewSubscription = async (req, res) => {
+  try {
+    const { userName, plan, amount, paymentMode } = req.body;
+
+    if (!PLAN_DURATIONS[plan]) {
+      return res.status(400).json({ message: "Invalid plan" });
+    }
+
+    const existing = await Subscription.findOne({ userName });
+    if (!existing) {
+      return res.status(404).json({ message: "Subscription not found for this user" });
+    }
+
+    const now = new Date();
+    const transactionDate = now;
+
+    // If subscription is still active, extend from its current endDate; else from today
+    const baseDate = existing.endDate && new Date(existing.endDate) > now
+      ? new Date(existing.endDate)
+      : now;
+
+    const startDate = baseDate;
+    const endDate = addDuration(baseDate, PLAN_DURATIONS[plan]);
+
+    const updated = await Subscription.findOneAndUpdate(
+      { userName },
+      { plan, startDate, endDate, amount, paymentMode, transactionDate, isFree: false },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Subscription renewed successfully", subscription: updated });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Error renewing subscription", error });
+  }
+};
+
+module.exports = { postSubscription, getSubscription, getPayment, subscriptionPlans, deleteSubscription, renewSubscription, PLAN_DURATIONS, addDuration };

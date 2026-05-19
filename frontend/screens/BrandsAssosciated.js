@@ -9,6 +9,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageWithFallback from "../util/ImageWithFallback";
 import { formatNumber } from "../helpers/GraphData";
 import Loader from '../shared/Loader'
+import { LinearGradient } from 'expo-linear-gradient'
+import ThemeToggle from '../shared/ThemeToggle'
+import { useTheme } from '../util/ThemeContext'
 
 
 const BrandAssosciated = ({ active }) => {
@@ -18,6 +21,7 @@ const BrandAssosciated = ({ active }) => {
   const [searchValue, setSearchValue] = React.useState("")
   const [brands, setBrands] = React.useState([])
   const [loading, setLoading] = React.useState(false)
+  const { theme } = useTheme()
   React.useEffect(() => {
     async function fetchData() {
       const res = await getAllBrandProfiles(showAlert)
@@ -53,418 +57,213 @@ const BrandAssosciated = ({ active }) => {
   });
 
   return (
-    <View style={styles.galileoDesign}>
+    <View style={[styles.galileoDesign, { backgroundColor: theme.bg }]}>
       {loading && <Loader loading={loading} />}
-      <View style={[styles.depth0Frame0, styles.frameBg]}>
-        <View style={[styles.depth1Frame0, styles.depth1FrameSpaceBlock]}>
-          <View style={{ width: "100%", height: "auto" }}>
-            <View style={styles.depth2Frame0}>
-
-              <TouchableOpacity style={styles.depth3Frame0} onPress={() => handleBack()}>
-                <Image
-                  style={styles.depth4Frame0}
-                  contentFit="cover"
-                  source={require("../assets/depth-4-frame-010.png")}
-                />
-              </TouchableOpacity>
-              {
-                isSearchBarOpen ?
-                  <TextInput
-                    onChangeText={(text) => setSearchValue(text)}
-                    style={styles.SearchBar}
-                    placeholder="Search anything"
-                  />
-                  :
-                  <View style={styles.depth3Frame1}>
-                    <View style={styles.depth4Frame01}>
-                      <View style={styles.depth5Frame0}>
-                        <Text style={styles.allPartners}>Brands</Text>
-                      </View>
-                    </View>
-                  </View>
-              }
-              <View style={styles.depth3Frame2}>
-                <TouchableOpacity onPress={handleSearch}>
-                  <Image style={{ width: 24, height: 24 }} source={require('../assets/depth-5-frame-0.png')} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+      <View style={styles.depth0Frame0}>
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: theme.headerBg, borderBottomColor: theme.headerBorder }]}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => handleBack()}>
+            <Image
+              style={{ height: 24, width: 24 }}
+              contentFit="cover"
+              tintColor={theme.iconTint}
+              source={require("../assets/depth-4-frame-010.png")}
+            />
+          </TouchableOpacity>
+          {isSearchBarOpen ? (
+            <TextInput
+              onChangeText={(text) => setSearchValue(text)}
+              style={[styles.SearchBar, { color: theme.searchText, backgroundColor: theme.searchBg, borderColor: theme.searchBorder }]}
+              placeholder="Search brands..."
+              placeholderTextColor={theme.placeholder}
+              autoFocus
+            />
+          ) : (
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Brands</Text>
+          )}
+          <TouchableOpacity style={styles.headerBtn} onPress={handleSearch}>
+            <Image style={{ width: 24, height: 24 }} tintColor={theme.iconTint} source={require('../assets/depth-5-frame-0.png')} />
+          </TouchableOpacity>
         </View>
-        <ScrollView style={{ width: '100%' }}>
-          <View style={styles.depth1Frame1}>
-            {filteredBrands.length > 0 ?
-              filteredBrands.map((brand, index) => {
-                return (
-                  <View>
-                    <TouchableOpacity key={index} onPress={() => { console.log(brand?.profileUrl) }}>
-                      <View style={styles.depth2FrameLayout}>
-                        <View style={styles.profileTop}>
-                          <Text style={styles.userNameText}>@ {brand?.name}</Text>
-                          <Text style={styles.insightText}>{brand?.category}</Text>
-                        </View>
-                        <Text style={styles.google}>{brand?.brandName}</Text>
-                        <ImageWithFallback imageStyle={styles.depth4Frame03} image={brand?.profileUrl} isSelectedImage={brand?.isSelectedImage} />
-                        <View style={styles.profileBottomContainer}>
-                          <View style={styles.profileBottomChip}>
-                            <Text style={styles.collabrationText}>Collaborations</Text>
-                            <Text style={styles.collaborationCount}>{brand?.collaborationCount ? formatNumber(brand?.collaborationCount) : "N/A"}</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                    <View style={styles.divider}></View>
-                  </View>
-                )
-              })
-              :
-              <View>
-                <Text style={{ color: "#ccc", fontSize: FontSize.size_base }}>No Brands found</Text>
-              </View>
-            }
 
-          </View>
+        <ScrollView style={{ width: '100%', backgroundColor: theme.bg }} contentContainerStyle={styles.scrollContent}>
+          {filteredBrands.length > 0 ?
+            filteredBrands.map((brand, index) => (
+              <BrandCard key={index} brand={brand} />
+            ))
+            :
+            <View style={styles.emptyState}>
+              <Text style={[styles.emptyText, { color: theme.emptyText }]}>No Brands found</Text>
+            </View>
+          }
         </ScrollView>
+        <ThemeToggle />
       </View>
     </View>
   );
 };
 
+const BrandCard = ({ brand }) => {
+  return (
+    <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+      <ImageWithFallback imageStyle={styles.cardImage} image={brand?.profileUrl} isSelectedImage={brand?.isSelectedImage} />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.92)']}
+        style={styles.gradient}
+      >
+        <View style={styles.categoryBadge}>
+          <Text style={styles.categoryBadgeText} numberOfLines={1}>{brand?.category}</Text>
+        </View>
+        <Text style={styles.brandName} numberOfLines={1}>{brand?.brandName}</Text>
+        <Text style={styles.userNameText} numberOfLines={1}>@{brand?.name}</Text>
+        <View style={styles.statsRow}>
+          <View style={styles.statChip}>
+            <Text style={styles.statLabel}>Collaborations</Text>
+            <Text style={styles.statValue}>
+              {brand?.collaborationCount != null ? formatNumber(brand?.collaborationCount) : "0"}
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
-  frameBg: {
-    backgroundColor: Color.colorWhite,
+  galileoDesign: {
+    flex: 1,
     width: "100%",
-    height: "100%"
-  },
-  depth1FrameSpaceBlock: {
-    paddingHorizontal: Padding.p_base,
-    width: "100%",
-    backgroundColor: Color.colorWhite,
-    height: "auto"
-  },
-  depth2FrameLayout: {
-    height: "auto",
-    width: 280,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: Color.colorWhite,
-    paddingTop: 16
-  },
-  frameLayout: {
-    height: 173,
-    width: 173,
-  },
-  depth2FramePosition2: {
-    top: 249,
-    height: 221,
-    width: 173,
-    position: "absolute",
-  },
-  depth2FramePosition1: {
-    top: 482,
-    height: 221,
-    width: 173,
-    position: "absolute",
-  },
-  depth2FramePosition: {
-    top: 715,
-    height: 221,
-    width: 173,
-    position: "absolute",
-  },
-  depth4FrameFlexBox: {
-    height: 32,
-    alignItems: "center",
-    flexDirection: "row",
-  },
-  depth4FrameSpaceBlock: {
-    marginTop: 4,
-    height: 18,
-    alignItems: "center",
-  },
-  homeTypo: {
-    textAlign: "center",
-    lineHeight: 18,
-    fontSize: FontSize.size_xs,
-    fontFamily: FontFamily.interMedium,
-    fontWeight: "500",
-    letterSpacing: 0,
-  },
-  depth3FrameLayout: {
-    width: "auto",
-    height: 54,
-    alignItems: "center",
-  },
-  depth4Frame0: {
-    height: 24,
-    width: 24,
-  },
-  depth3Frame0: {
-    width: 32,
-    alignItems: "center",
-    flexDirection: "row",
-    height: 48,
-  },
-  allPartners: {
-    fontSize: 18,
-    lineHeight: 23,
-    fontWeight: "700",
-    fontFamily: FontFamily.interBold,
-    textAlign: "left",
-    letterSpacing: 0,
-    color: Color.colorBlack,
-  },
-  depth5Frame0: {
-    alignSelf: "stretch",
-  },
-  depth4Frame01: {
-    width: 'auto',
-    height: 23,
-    overflow: "hidden",
-  },
-  depth3Frame1: {
-    width: "auto",
-    justifyContent: "center",
-    height: 23,
-    alignItems: "center",
-    flexDirection: "row",
-  },
-  depth4Frame02: {
-    justifyContent: "flex-end",
-    width: 48,
-    alignItems: "center",
-    height: 48,
-  },
-  depth3Frame2: {
-    width: 48,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 48,
-  },
-  depth2Frame0: {
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
-    height: "auto",
-    width: "100%",
-  },
-  depth1Frame0: {
-    paddingVertical: 16,
-    position: "relative",
-    top: 0,
-    zIndex: 10
-  },
-  depth4Frame03: {
-    borderRadius: Border.br_xs,
-    overflow: "hidden",
-    width: 280,
-    height: 350
-  },
-  google: {
-    fontSize: FontSize.size_base,
-    lineHeight: 24,
-    fontFamily: FontFamily.interBold,
-    fontWeight: "500",
-    textAlign: "left",
-    color: Color.colorBlack,
-    alignSelf: "stretch",
-    marginVertical: Padding.p_xs
-  },
-  depth4Frame04: {
-    width: 173,
-    height: "auto",
-  },
-  depth3Frame11: {
-    height: "auto",
-    marginTop: 12,
-    paddingBottom: Padding.p_xs,
-    width: "100%",
-  },
-  depth2Frame01: {
-    left: 16,
-  },
-  depth2Frame1: {
-    left: 201,
-  },
-  depth2Frame2: {
-    left: 16,
-  },
-  depth2Frame3: {
-    left: 201,
-  },
-  depth2Frame4: {
-    left: 16,
-  },
-  depth2Frame5: {
-    left: 201,
-  },
-  depth2Frame6: {
-    left: 16,
-  },
-  depth2Frame7: {
-    left: 201,
-  },
-  depth1Frame1: {
     height: "100%",
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 48,
-    justifyContent: "center",
-    marginBottom: 60
-  },
-  depth4Frame019: {
-    paddingHorizontal: 0,
-    paddingVertical: Padding.p_9xs,
-    width: "auto",
-  },
-  home: {
-    color: Color.colorSteelblue_200,
-  },
-  depth5Frame02: {
-    alignSelf: "stretch",
-    alignItems: "center",
-  },
-  depth4Frame1: {
-    width: 'auto',
-  },
-  depth4Frame020: {
-    borderRadius: 16,
-    justifyContent: "center",
-    width: 48,
-  },
-  partners: {
-    color: Color.colorGray_400,
-    textAlign: "center",
-    lineHeight: 18,
-    fontSize: FontSize.size_xs,
-  },
-  depth4Frame11: {
-    width: 'auto',
-  },
-  depth3Frame19: {
-    marginLeft: 8,
-  },
-  depth4Frame12: {
-    width: 'auto',
-  },
-  depth4Frame13: {
-    width: 'auto',
-  },
-  depth2Frame02: {
-    height: 54,
-    flexDirection: "row",
-    display: "flex",
-    justifyContent: "space-evenly",
-    width: "100%",
-    gap: 40
-  },
-  depth1Frame3: {
-    borderStyle: "solid",
-    borderColor: "#e8edf5",
-    borderTopWidth: 1,
-    height: "10%",
-    width: "100%",
-    paddingTop: Padding.p_5xs,
-    paddingBottom: Padding.p_xs,
-    position: "relative",
-    bottom: 0,
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "center"
-  },
-  depth1Frame4: {
-    height: 20,
-    width: 390,
   },
   depth0Frame0: {
     height: "100%",
-    overflow: "hidden",
     width: "100%",
-    display: "flex",
-    flexDirection: "column"
-  },
-  galileoDesign: {
-    backgroundColor: Color.colorBlack,
-    flex: 1,
-    width: "100%",
-    height: "100%"
-  },
-  SearchBar: {
-    width: "80%",
-    paddingVertical: Padding.p_smi,
-    paddingHorizontal: Padding.p_base,
-    fontSize: FontSize.size_base,
-    color: Color.colorBlack,
-    backgroundColor: Color.colorWhitesmoke_300,
-    outlineStyle: "none",
-    borderRadius: Border.br_xs,
-  },
-  overlayContainer: {
-    width: 280,
-    height: 350,
-    position: "absolute",
-    top: 0,
-    overflow: "hidden"
-  },
-  overlay: {
-    height: "100%",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "flex-end",
-    padding: Padding.p_base,
-    gap: 3
+    overflow: "hidden",
   },
-  insightText: {
-    fontSize: FontSize.size_xs,
-    fontFamily: FontFamily.plusJakartaSansBold,
-    color: Color.colorSlategray_300,
-  },
-  userNameText: {
-    fontSize: FontSize.size_sm,
-    fontFamily: FontFamily.plusJakartaSansBold,
-    color: Color.colorBlack,
-  },
-  profileTop: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  profileBottomContainer: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    gap: 20,
-    marginTop: Padding.p_xs
-  },
-  profileBottomChip: {
-    display: "flex",
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    borderColor: "#ccc",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: FontFamily.interBold,
+    fontWeight: "700",
+  },
+  SearchBar: {
+    flex: 1,
+    marginHorizontal: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    fontSize: FontSize.size_base,
+    borderRadius: Border.br_xs,
     borderWidth: 1,
-    paddingHorizontal: Padding.p_xs,
-    paddingVertical: 5,
-    borderRadius: Border.br_base
+    outlineStyle: "none",
   },
-  collabrationText: {
+  scrollContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 16,
+    paddingHorizontal: 12,
+    paddingTop: 16,
+    paddingBottom: 80,
+  },
+  card: {
+    width: 260,
+    height: 360,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#1a1a2e",
+  },
+  cardImage: {
+    width: 260,
+    height: 360,
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+  gradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 14,
+    paddingBottom: 16,
+    paddingTop: 60,
+    flexDirection: "column",
+    gap: 4,
+  },
+  categoryBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginBottom: 4,
+  },
+  categoryBadgeText: {
+    color: "#fff",
+    fontSize: 11,
     fontFamily: FontFamily.plusJakartaSansBold,
-    fontSize: FontSize.size_xs
+    letterSpacing: 0.5,
   },
-  collaborationCount: {
+  brandName: {
+    fontSize: 17,
+    fontFamily: FontFamily.interBold,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  userNameText: {
+    fontSize: 12,
+    fontFamily: FontFamily.plusJakartaSansBold,
+    color: "rgba(255,255,255,0.65)",
+    marginBottom: 8,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  statChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  statLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 11,
     fontFamily: FontFamily.plusJakartaSansBold,
   },
-  divider:{
-    width:"100%",
-    borderWidth:0.5,
-    borderColor:"#ccc",
-    marginTop:30
-  }
+  statValue: {
+    color: "#fff",
+    fontSize: 11,
+    fontFamily: FontFamily.plusJakartaSansBold,
+    fontWeight: "700",
+  },
+  emptyState: {
+    width: "100%",
+    paddingTop: 60,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: FontSize.size_base,
+    fontFamily: FontFamily.interBold,
+  },
 });
 
 export default BrandAssosciated;

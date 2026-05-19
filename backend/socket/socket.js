@@ -8,7 +8,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
 	cors: {
-		origin: "*",
+		origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",").map(o => o.trim()) : ["http://localhost:8081"],
+		credentials: true,
 	},
 });
 

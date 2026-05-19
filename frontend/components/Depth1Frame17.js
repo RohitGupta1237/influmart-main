@@ -1,154 +1,175 @@
 import * as React from "react";
-import { Image } from "expo-image";
-import { StyleSheet, View, Text , TouchableOpacity} from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
 import ImageWithFallback from "../util/ImageWithFallback";
+import { formatNumber } from "../helpers/GraphData";
 
-const Depth1Frame17 = ({image,username,category,isSelectedImage}) => {
+const toTitleCase = (str) =>
+  str ? str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : str;
+
+const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollowers, ytFollowers, fbFollowers }) => {
   const navigation = useNavigation();
 
+  const categories = category
+    ? category.split(",").map(c => c.trim()).filter(Boolean)
+    : [];
+
+  const socials = [
+    { label: "Instagram", count: instaFollowers },
+    { label: "YouTube",   count: ytFollowers   },
+    { label: "Facebook",  count: fbFollowers   },
+  ];
+
   return (
-    <View style={styles.depth1Frame1}>
-      <View style={styles.depth2Frame0}>
-        <View style={styles.depth3Frame0}>
-          <View style={styles.depth4Frame0}>
-            <ImageWithFallback imageStyle={styles.depth5Frame0} image={image} isSelectedImage={isSelectedImage} />
-          </View>
-          
-          <View style={styles.depth4Frame1}>
-            <View style={styles.depth5Frame01}>
-              <View style={styles.depth6Frame0}>
-                <Text style={[styles.marissa, styles.marissaTypo]}>
-                  {username}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.depth5Frame1}>
-              <View style={styles.depth6Frame0}>
-                <Text style={styles.influencer150kFollowers}>
-                  Influencer{"\n"}
-                  {category}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View style={[styles.depth3Frame1, styles.frameLayout]}>
-          <View style={styles.frameLayout}>
-          <TouchableOpacity onPress={() => navigation.navigate('InboxInterface')}>
+    <View style={styles.wrapper}>
 
-            <View style={[styles.depth5Frame02, styles.frameBg]}>
-              <View style={[styles.depth6Frame02, styles.frameBg]}>
-                <View style={styles.depth6Frame0}>
-                  <Text style={[styles.message, styles.marissaTypo]}>
-                    Message
-                  </Text>
-                </View>
+      {/* ROW 1: avatar + profile info */}
+      <View style={styles.row1}>
+        <ImageWithFallback imageStyle={styles.avatar} image={image} isSelectedImage={isSelectedImage} />
+        <View style={styles.profileInfo}>
+          <View style={styles.nameRow}>
+            <Text style={styles.username}>{toTitleCase(username)}</Text>
+            <Text style={styles.separator}> | </Text>
+            <Text style={styles.role}>Influencer</Text>
+          </View>
+          <View style={styles.categoryRow}>
+            {categories.map((cat, i) => (
+              <View key={i} style={styles.categoryPill}>
+                <Text style={styles.categoryPillText}>{cat}</Text>
               </View>
-            </View>
-            </TouchableOpacity>
-
+            ))}
           </View>
         </View>
       </View>
+
+      {/* ROW 2: social stats full width */}
+      <View style={styles.statsRow}>
+        {socials.map((s, i) => (
+          <React.Fragment key={i}>
+            <View style={styles.statItem}>
+              <Text style={styles.statCount}>{s.count ? formatNumber(s.count) : "N/A"}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+            {i < socials.length - 1 && <View style={styles.statDivider} />}
+          </React.Fragment>
+        ))}
+      </View>
+
+      {/* Message button */}
+      <TouchableOpacity onPress={() => navigation.navigate('InboxInterface')} style={styles.messageBtn}>
+        <Text style={styles.messageText}>Message</Text>
+      </TouchableOpacity>
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  marissaTypo: {
+  wrapper: {
+    width: "100%",
+    paddingHorizontal: Padding.p_base,
+    paddingVertical: Padding.p_xl,
+    gap: 16,
+  },
+  row1: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
+  },
+  avatar: {
+    width: 90,
+    height: 110,
+    borderRadius: 16,
+    overflow: "hidden",
+    flexShrink: 0,
+  },
+  profileInfo: {
+    flex: 1,
+    gap: 5,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  separator: {
+    color: "#444",
+    fontSize: FontSize.size_sm,
+    fontFamily: FontFamily.beVietnamProRegular,
+  },
+  username: {
+    fontSize: FontSize.size_3xl,
+    lineHeight: 28,
+    fontFamily: FontFamily.beVietnamProBold,
+    fontWeight: "700",
+    color: Color.colorWhite,
+  },
+  role: {
+    fontSize: FontSize.size_sm,
+    fontFamily: FontFamily.beVietnamProRegular,
+    color: Color.colorLightgray,
+    lineHeight: 28,
+  },
+  categoryRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  categoryPill: {
+    backgroundColor: "#1e1e1e",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  categoryPillText: {
+    color: "#ccc",
+    fontSize: 11,
+    fontFamily: FontFamily.beVietnamProRegular,
+  },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#1e1e1e",
+    paddingVertical: 12,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 3,
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: "#2a2a2a",
+  },
+  statCount: {
+    color: Color.colorWhite,
+    fontSize: 15,
+    fontFamily: FontFamily.beVietnamProBold,
+    fontWeight: "700",
+  },
+  statLabel: {
+    color: "#666",
+    fontSize: 10,
+    fontFamily: FontFamily.beVietnamProRegular,
+  },
+  messageBtn: {
+    width: "100%",
+    height: 40,
+    backgroundColor: Color.colorDarkslategray_200,
+    borderRadius: Border.br_xl,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  messageText: {
     color: Color.colorWhite,
     fontFamily: FontFamily.beVietnamProBold,
     fontWeight: "700",
-    letterSpacing: 0,
-    textAlign: "left",
-  },
-  frameLayout: {
-    height: 40,
-    width: "100%",
-  },
-  frameBg: {
-    backgroundColor: Color.colorDarkslategray_200,
-    overflow: "hidden",
-  },
-  depth5Frame0: {
-    borderRadius: Border.br_45xl,
-    overflow: "hidden",
-    width: 128,
-    height: 128,
-  },
-  depth4Frame0: {
-    width: 128,
-    height: 128,
-  },
-  marissa: {
-    fontSize: FontSize.size_3xl,
-    lineHeight: 28,
-    textAlign: "left",
-  },
-  depth6Frame0: {
-    alignSelf: "stretch",
-  },
-  depth5Frame01: {
-    height: 'auto',
-    width: 'auto',
-  },
-  influencer150kFollowers: {
-    fontSize: FontSize.size_base,
-    lineHeight: 24,
-    fontFamily: FontFamily.beVietnamProRegular,
-    color: Color.colorLightgray,
-    textAlign: "left",
-  },
-  depth5Frame1: {
-    height: 'auto',
-    width: 'auto',
-  },
-  depth4Frame1: {
-    marginLeft: 16,
-    justifyContent: "center",
-    width: 214,
-    height: 128,
-  },
-  depth3Frame0: {
-    height: 128,
-    width: 358,
-    flexDirection: "row",
-  },
-  message: {
     fontSize: FontSize.size_sm,
-    lineHeight: 21,
-    textAlign: "left",
-  },
-  depth6Frame02: {
-    width: 'auto',
-    height: 21,
-  },
-  depth5Frame02: {
-    borderRadius: Border.br_xl,
-    alignItems: "center",
-    paddingHorizontal: Padding.p_base,
-    paddingVertical: 0,
-    height: 40,
-    width: "100%",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  depth3Frame1: {
-    marginTop: 16,
-    flexDirection: "row",
-  },
-  depth2Frame0: {
-    height: 184,
-    width: "100%",
-  },
-  depth1Frame1: {
-    width: "100%",
-    height: 216,
-    padding: Padding.p_base,
-    flexDirection: "row",
   },
 });
 

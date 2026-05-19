@@ -18,11 +18,10 @@ export const AnalyticsStyles = {
   },
   tagContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "flex-start",
-    gap: 10,
-    maxHeight: 150, // Set the maximum height for the container
-    paddingHorizontal:Padding.p_base
+    alignItems: "center",
+    paddingHorizontal: Padding.p_base,
+    paddingVertical: 8,
+    gap: 8,
   },
   frame: {
     margin: 10,
@@ -30,19 +29,18 @@ export const AnalyticsStyles = {
     borderRadius: 8,
   },
   tagItem: {
-    padding: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     backgroundColor: Color.colorWhitesmoke_300,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginVertical: 5,
-    overflow: "hidden",
-    height: "auto",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
 
   recentContainer: {
     paddingHorizontal: Padding.p_base,
-    paddingVertical: Padding.p_5xs,
-    marginTop: 4,
+    paddingVertical: 2,
+    marginTop: 0,
     marginHorizontal: 4,
   },
   recentText: {
@@ -238,10 +236,9 @@ export const AnalyticsStyles = {
     alignSelf: "stretch",
   },
   averagePriceHeaderText: {
-    fontSize: 22,
-    lineHeight: 28,
-    fontFamily: FontFamily.plusJakartaSansBold,
-    fontWeight: "700",
+    fontFamily: FontFamily.lexendBold,
+    fontSize: FontSize.size_base,
+    lineHeight: 22.5,
     color: Color.colorGray_200,
     marginBottom: 16,
   },

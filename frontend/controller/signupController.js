@@ -72,6 +72,11 @@ const BrandSignUp = async (payload, navigation, showAlert) => {
     }
   }
 
+  if (payload.document?.dataUrl) {
+    const docBlob = await (await fetch(payload.document.dataUrl)).blob();
+    data.append("document", docBlob, payload.document.name);
+  }
+
   try {
     const response = await axios.post(`${API_ENDPOINT}/brands/signup`, data, {
       headers: {
@@ -93,6 +98,7 @@ const BrandSignUp = async (payload, navigation, showAlert) => {
 const InfluencerSignUp = async (payload, navigation, showAlert) => {
   const deleteD = await AsyncStorage.getItem("ytDelete");
   const igAnalytics = await AsyncStorage.getItem("igAnalytics");
+  const igGraphAnalytics = await AsyncStorage.getItem("igGraphAnalytics");
   const fbAnalytics = await AsyncStorage.getItem("fbAnalytics");
   const data = new FormData();
   data.append("userName", payload?.userName);
@@ -103,7 +109,7 @@ const InfluencerSignUp = async (payload, navigation, showAlert) => {
   data.append("over18", payload?.over18);
   data.append("agreedToTerms", payload?.agreedToTerms);
   data.append("social", JSON.stringify(payload?.social));
-  data.append("price", JSON.stringify(payload?.price));
+  data.append("price", JSON.stringify([{ ig: "", yt: "", tt: "", tr: "" }]));
   data.append("firstName", payload?.userName);
   data.append("nickName", payload?.userName);
   data.append("instaProfile", payload?.instaProfile);
@@ -113,14 +119,13 @@ const InfluencerSignUp = async (payload, navigation, showAlert) => {
   data.append("youtubeChannel", payload?.social?.yt);
   data.append("influencerName", payload?.name);
   data.append("category", JSON.stringify(payload?.selected));
-  data.append("phoneNo[country]", payload?.country);
-  data.append("phoneNo[number]", payload?.number?.toString());
   data.append("gender", payload?.gender);
   data.append("paymentId", payload?.paymentId);
   data.append("subscriptionId", payload?.subscriptionId);
   data.append("amount", payload?.amount);
   data.append("yt", deleteD);
   data.append("igAnalytics", igAnalytics || "");
+  data.append("igGraphAnalytics", igGraphAnalytics || "");
   data.append("fbAnalytics", fbAnalytics || "");
   data.append("instagramOwnershipVerified", "false");
   if (payload?.profileUrl && payload?.profileUrl.uri) {
@@ -156,6 +161,7 @@ const InfluencerSignUp = async (payload, navigation, showAlert) => {
     if (response.status === 201) {
       AsyncStorage.removeItem("ytDelete");
       AsyncStorage.removeItem("igAnalytics");
+      AsyncStorage.removeItem("igGraphAnalytics");
       AsyncStorage.removeItem("fbAnalytics");
       navigation.navigate("InfluencerAccountSuccess");
     }

@@ -93,6 +93,16 @@ const AdminPanel = () => {
             />
           </TouchableOpacity>
         </View>
+        <View style={styles.optionContainer}>
+          <Text style={styles.optionLabel}>Renew Subscription</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("RenewSubscription")}>
+            <Image
+              style={styles.optionImage}
+              contentFit="cover"
+              source={require("../assets/depth-3-frame-1.png")}
+            />
+          </TouchableOpacity>
+        </View>
         <View style={styles.supportContainer}>
           <Text style={styles.supportText}>Support</Text>
         </View>

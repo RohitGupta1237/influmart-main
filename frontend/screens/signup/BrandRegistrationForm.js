@@ -7,8 +7,9 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
+  Platform,
 } from "react-native";
+import axios from "axios";
 import { Color } from "../../GlobalStyles";
 import MultipleSelectList from "../../shared/MultiSelect";
 import { SendOtp } from "../../controller/signupController";
@@ -18,26 +19,35 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons"; // Import t
 import Loader from '../../shared/Loader'
 import MultiDropDown from '../../shared/MultiDropDown'
 
+const API_ENDPOINT = "http://localhost:3000";
+
 const BrandRegistrationForm = ({ route, navigation }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false)
+  const [document, setDocument] = useState(null);
   const { showAlert } = useAlert();
   const payload = route.params?.payload;
   const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
   const[brandTypeDropdown,setBrandTypeDropdown]=useState(false)
   const data = [
-    { key: "grocery", value: "Grocery" },
-    { key: "electronics", value: "Electronics" },
-    { key: "fashion", value: "Fashion" },
-    { key: "toys", value: "Toys" },
-    { key: "beauty", value: "Beauty" },
-    { key: "home-decoration", value: "Home Decoration" },
-    { key: "fitness", value: "Fitness" },
-    { key: "education", value: "Education" },
+    { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
+    { key: "fashion-beauty", value: "Fashion & Beauty" },
+    { key: "food-cooking", value: "Food & Cooking" },
+    { key: "fitness-health", value: "Fitness & Health" },
+    { key: "travel-exploration", value: "Travel & Exploration" },
+    { key: "tech-gaming", value: "Tech & Gaming" },
+    { key: "education-knowledge", value: "Education & Knowledge" },
+    { key: "entertainment-comedy", value: "Entertainment & Comedy" },
+    { key: "business-entrepreneurship", value: "Business & Entrepreneurship" },
+    { key: "art-creativity", value: "Art & Creativity" },
+    { key: "parenting-family", value: "Parenting & Family" },
+    { key: "regional-local-culture", value: "Regional/Local Culture Creators" },
+    { key: "home-decor-interior", value: "Home Decor / Interior Creators" },
     { key: "others", value: "Others" },
   ];
   const clearForm = useCallback(() => {
@@ -45,7 +55,27 @@ const BrandRegistrationForm = ({ route, navigation }) => {
     setPassword("");
     setUsername("");
     setSelected([]);
+    setDocument(null);
   }, []);
+
+  const handleDocumentPick = () => {
+    if (Platform.OS === 'web') {
+      const input = window.document.createElement('input');
+      input.type = 'file';
+      input.accept = '.pdf,.jpg,.jpeg,.png';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            setDocument({ dataUrl: ev.target.result, name: file.name, type: file.type });
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+  };
 
 
   // Listen for navigation focus to clear form data
@@ -54,6 +84,20 @@ const BrandRegistrationForm = ({ route, navigation }) => {
     return unsubscribe;
   }, [navigation, clearForm]);
 
+  const handleUsernameBlur = async () => {
+    if (!username) return;
+    try {
+      const response = await axios.post(`${API_ENDPOINT}/influencers/verifyUser`, { userName: username });
+      if (response.status === 200) {
+        setUsernameError("Username is already taken");
+      } else {
+        setUsernameError("");
+      }
+    } catch {
+      setUsernameError("");
+    }
+  };
+
   const handleSubmit = async () => {
     const payload = {
       email,
@@ -61,7 +105,12 @@ const BrandRegistrationForm = ({ route, navigation }) => {
       category: selected,
       name: username,
       brandName: name,
+      document,
     };
+    if (usernameError) {
+      showAlert("Brand SignUp Error", "Please choose a different username");
+      return;
+    }
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       showAlert("Brand SignUp Error", "Please enter a valid email address");
@@ -76,6 +125,10 @@ const BrandRegistrationForm = ({ route, navigation }) => {
         "Brand SignUp Error",
         "Password should be at least 8 characters long"
       );
+      return;
+    }
+    if (!document) {
+      showAlert("Brand SignUp Error", "Please upload a business verification document");
       return;
     }
     setLoading(true)
@@ -115,13 +168,14 @@ const BrandRegistrationForm = ({ route, navigation }) => {
               </View>
             </View>
           </TouchableOpacity>
-          <View style={styles.depth1Frame2}>
-            <View style={[styles.depth2Frame02, styles.frameLayout]}>
-              <View style={styles.frameLayout}>
+          <View style={[styles.depth1Frame2, { height: "auto", paddingVertical: 8 }]}>
+            <View style={[styles.depth2Frame02, { width: "100%", height: "auto" }]}>
+              <View style={{ width: "100%", height: "auto" }}>
                 <View style={styles.depth4Frame02}>
                   <Text style={[styles.email, styles.emailTypo]}>Name</Text>
                   <Text style={styles.mandatoryText}>*</Text>
                 </View>
+                <Text style={tooltipStyles.hintText}>Use name as registered on your GST/PAN certificate or business license.</Text>
                 <View>
                   <View style={[styles.depth5Frame01]}>
                     <TextInput
@@ -135,13 +189,14 @@ const BrandRegistrationForm = ({ route, navigation }) => {
               </View>
             </View>
           </View>
-          <View style={styles.depth1Frame2}>
-            <View style={[styles.depth2Frame02, styles.frameLayout]}>
-              <View style={styles.frameLayout}>
+          <View style={[styles.depth1Frame2, { height: "auto", paddingVertical: 8 }]}>
+            <View style={[styles.depth2Frame02, { width: "100%", height: "auto" }]}>
+              <View style={{ width: "100%", height: "auto" }}>
                 <View style={styles.depth4Frame02}>
                   <Text style={[styles.email, styles.emailTypo]}>Email</Text>
                   <Text style={styles.mandatoryText}>*</Text>
                 </View>
+                <Text style={tooltipStyles.hintText}>Prefer using your company domain email (e.g. you@yourcompany.com).</Text>
                 <View>
                   <View style={[styles.depth5Frame01]}>
                     <TextInput
@@ -203,25 +258,29 @@ const BrandRegistrationForm = ({ route, navigation }) => {
                     <TextInput
                       style={styles.textInput}
                       value={username}
-                      onChangeText={setUsername}
+                      onChangeText={(val) => { setUsername(val); setUsernameError(""); }}
                       placeholder="Username"
+                      onBlur={handleUsernameBlur}
                     />
                   </View>
+                  {usernameError ? (
+                    <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{usernameError}</Text>
+                  ) : null}
                 </View>
               </View>
             </View>
           </View>
-          <View style={[styles.depth1Frame2,{height:"auto"}]}>
-            <View style={[styles.depth2Frame02, styles.frameLayout,{height:"auto"}]}>
-              <View style={[styles.frameLayout,{height:"auto"}]}>
+          <View style={[styles.depth1Frame2, { height: "auto", zIndex: 100 }]}>
+            <View style={[styles.depth2Frame02, { width: "100%", height: "auto", zIndex: 100, overflow: "visible" }]}>
+              <View style={{ width: "100%", height: "auto", zIndex: 100, overflow: "visible" }}>
                 <View style={styles.depth4Frame02}>
                   <Text style={[styles.email, styles.emailTypo]}>
                     Brand Type
                   </Text>
                   <Text style={styles.mandatoryText}>*</Text>
                 </View>
-                <View>
-                  <View>
+                <View style={{ zIndex: 100, overflow: "visible" }}>
+                  <View style={{ zIndex: 100, overflow: "visible" }}>
                     <MultiDropDown
                       name={selected?.join(", ")}
                       items={data}
@@ -231,8 +290,8 @@ const BrandRegistrationForm = ({ route, navigation }) => {
                         width: "100%",
                         paddingVertical: 16,
                       }}
-                      dropDownContainerStyle={{ width: "100%" }}
-                      dropDownItemsStyle={{ width: "100%", top: -470 }}
+                      dropDownContainerStyle={{ width: "100%", zIndex: 100, overflow: "visible" }}
+                      dropDownItemsStyle={{ width: "100%", zIndex: 200, maxHeight: 300 }}
                       titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
                       selectedValue={selected}
                       setSelectedValues={setSelected}
@@ -244,6 +303,30 @@ const BrandRegistrationForm = ({ route, navigation }) => {
               </View>
             </View>
           </View>
+          {/* Business Document Upload */}
+          <View style={[styles.depth1Frame2, { height: "auto", paddingVertical: 12 }]}>
+            <View style={[styles.depth2Frame02, { width: "100%", height: "auto" }]}>
+              <View style={{ width: "100%", height: "auto" }}>
+                <View style={styles.depth4Frame02}>
+                  <Text style={[styles.email, styles.emailTypo]}>Business Verification Document</Text>
+                  <Text style={styles.mandatoryText}>*</Text>
+                </View>
+                <Text style={docStyles.acceptedTypes}>
+                  Accepted: GST Certificate, Business PAN, Company Registration Certificate (PDF, JPG, PNG)
+                </Text>
+                <TouchableOpacity style={docStyles.uploadBtn} onPress={handleDocumentPick}>
+                  <Icon name="file-upload-outline" size={18} color="#1A5CE5" />
+                  <Text style={docStyles.uploadBtnText}>
+                    {document ? document.name : "Tap to upload document"}
+                  </Text>
+                </TouchableOpacity>
+                {document && (
+                  <Text style={docStyles.selectedDoc}>✓ {document.name}</Text>
+                )}
+              </View>
+            </View>
+          </View>
+
           <View style={styles.depth1Frame6}>
             <View style={styles.depth2Frame06}>
               <View style={styles.depth3FrameLayout}>
@@ -307,6 +390,50 @@ const styles = StyleSheet.create({
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
+  },
+});
+
+const tooltipStyles = StyleSheet.create({
+  hintText: {
+    fontSize: 11,
+    color: "#888",
+    marginTop: 2,
+    marginBottom: 6,
+  },
+});
+
+const docStyles = StyleSheet.create({
+  acceptedTypes: {
+    fontSize: 11,
+    color: "#888",
+    marginBottom: 10,
+    marginTop: 6,
+  },
+  uploadBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: "#1A5CE5",
+    borderStyle: "dashed",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: "#f0f5ff",
+    marginBottom: 20,
+  },
+  uploadBtnText: {
+    color: "#1A5CE5",
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
+  },
+  selectedDoc: {
+    marginTop: -14,
+    marginBottom: 20,
+    fontSize: 12,
+    color: "#2e7d32",
+    fontWeight: "600",
   },
 });
 

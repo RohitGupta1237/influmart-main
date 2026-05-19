@@ -28,12 +28,15 @@ const influencerSignupRequestSchema = new mongoose.Schema(
     price: [],
     email: { type: String, unique: true }, // Set the unique constraint to ensure email uniqueness
     userName: { type: String, unique: true },
+    description: { type: String, default: "" },
+    hashtags: { type: [String], default: [] },
     password: String,
     role: {
       type: String,
       default: "influencer", // Set the default value to "influencer"
     },
-    instaData: [], // Instagram data
+    instaData: [], // Instagram data (RapidAPI)
+    instaGraphData: [], // Instagram Graph API data (direct from Meta)
     fbData: [], // Facebook data
     ytData: {}, // YouTube data
     tracked: { type: String, default: "" },
@@ -50,6 +53,7 @@ const influencerSignupRequestSchema = new mongoose.Schema(
     igAccessToken: { type: String, default: null },
     instagramOwnershipVerified: { type: Boolean, default: false },
     unverifiedAccounts: { type: [String], default: [] },
+    embedding: { type: [Number], default: null },
     resetPasswordToken: {
       type: String,
       default: null,

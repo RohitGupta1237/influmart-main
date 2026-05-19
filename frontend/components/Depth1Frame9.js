@@ -4,6 +4,9 @@ import { StyleSheet, View, Text,TouchableOpacity } from "react-native";
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
 import ImageWithFallback from "../util/ImageWithFallback";
 
+const toTitleCase = (str) =>
+  str ? str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : str;
+
 const Depth1Frame9 = ({image,username,location,category,isSelectedImage}) => {
   return (
     <View style={styles.depth1Frame1}>
@@ -16,14 +19,7 @@ const Depth1Frame9 = ({image,username,location,category,isSelectedImage}) => {
             <View style={styles.depth5Frame01}>
               <View style={styles.depth6Frame0}>
                 <Text style={[styles.caroline, styles.followTypo]}>
-                  {username} 
-                </Text>
-              </View>
-            </View>
-            <View style={[styles.depth5Frame1, styles.depth5FrameLayout]}>
-              <View style={styles.depth6Frame0}>
-                <Text style={styles.age27Los} numberOfLines={1}>
-                  {location}
+                  {toTitleCase(username)}
                 </Text>
               </View>
             </View>
@@ -110,7 +106,7 @@ const styles = StyleSheet.create({
     height: "auto",
     width: "80%",
     alignItems: "center",
-    paddingBottom: 16,
+    paddingBottom: 4,
   },
   follow: {
     fontSize: FontSize.size_sm,
@@ -139,14 +135,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   depth2Frame0: {
-    height: 276,
+    height: "auto",
     alignItems: "center",
     width: "100%",
   },
   depth1Frame1: {
     width: "100%",
-    height: 308,
+    height: "auto",
     padding: Padding.p_base,
+    paddingBottom: 4,
     flexDirection: "row",
   },
 });

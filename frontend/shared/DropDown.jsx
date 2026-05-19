@@ -47,12 +47,8 @@ function DropDown({
           {icon == "none" ? "" : <Image source={icon} style={styles.icon} />}
           <Text style={[styles.dropDownTitle, titleStyle]}>{name||placeholder}</Text>
           <Image
-            style={styles.arrowAndCloseIcon}
-            source={
-              showElements
-                ? require("../assets/multiselect/close.png")
-                : require("../assets/depth-3-frame-2.png")
-            }
+            style={[styles.arrowAndCloseIcon, showElements && { transform: [{ rotate: "180deg" }] }]}
+            source={require("../assets/depth-3-frame-2.png")}
           />
         </Pressable>
       </View>

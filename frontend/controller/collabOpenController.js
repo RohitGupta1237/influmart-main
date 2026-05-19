@@ -3,9 +3,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 //import {API_ENDPOINT} from "@env"
 const API_ENDPOINT = "http://localhost:3000";
+
+// Returns collab photo if uploaded, otherwise brand profile photo, otherwise null
+const resolveCollabImage = (collab) => {
+  if (collab?.photoUrl?.includes("uploads")) {
+    return `${API_ENDPOINT}/${collab.photoUrl.replace(/\\/g, '/').replace('uploads/', '')}`;
+  }
+  const brand = collab?.brand;
+  if (brand?.profileUrl) {
+    if (brand.isSelectedImage) return brand.profileUrl; // avatar key
+    return `${API_ENDPOINT}/${brand.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`;
+  }
+  return null;
+};
 const createCollabPost = async (collabPostData, showAlert,navigation) => {
   
   const data = new FormData();
+  data.append("campaignTitle", collabPostData?.campaignTitle || "");
   data.append("campaignType", collabPostData?.campaignType);
   data.append("earningCapacity[min]", collabPostData?.earningCapacity?.min);
   data.append("earningCapacity[max]", collabPostData?.earningCapacity?.max);
@@ -84,9 +98,8 @@ const getAllCollabPosts = async (setCollabPosts, showAlert) => {
           numberOfInfluencers: collab.numberOfInfluencers,
           brandDescription: collab.brandDescription,
           createdAt: new Date(collab.createdAt).toLocaleDateString(),
-          imageSource: collab?.photoUrl?.includes("uploads")
-            ? `${API_ENDPOINT}/${collab?.photoUrl?.replace(/\\/g, '/').replace('uploads/', '')}`
-            : null,
+          imageSource: resolveCollabImage(collab),
+          isSelectedImage: !collab?.photoUrl?.includes("uploads") && collab?.brand?.isSelectedImage,
         }));
         setCollabPosts(collabPosts);
       } else {
@@ -150,6 +163,13 @@ const getAllCollabOpenRequests = async (userId, setRequests, showAlert) => {
             postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
             productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
             requestId: item?._id,
+            campaignTitle: (() => {
+              const title = item?.collabOpeningId?.campaignTitle;
+              if (title) return title;
+              const rawType = item?.collabOpeningId?.campaignType;
+              if (!rawType) return null;
+              try { return JSON.parse(rawType).join(", "); } catch { return rawType; }
+            })(),
           }));
       setRequests(formatData);
     } else {
@@ -267,4 +287,75 @@ const getBrandCollabOpenCount = async (brandId) => {
   }
 };
 
-export {createCollabPost, getAllCollabPosts, getAppliedCollabPosts, sendCollabOpenRequest, getAllCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount};
+const getBrandOwnCampaigns = async (brandId, setCampaigns, showAlert) => {
+  const token = await AsyncStorage.getItem('token');
+  try {
+    const response = await axios.get(`${API_ENDPOINT}/collab-open/brand-campaigns/${brandId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (response.status === 200) {
+      const campaigns = response.data?.collabOpenings?.map((collab) => ({
+        collabOpeningId: collab._id,
+        brandName: collab.brand?.brandName,
+        brandId: collab.brand?._id,
+        category: collab.brand?.category,
+        campaignType: JSON.parse(collab.campaignType).join(", "),
+        earningCapacity: `${collab.earningCapacity?.min} to ${collab.earningCapacity?.max}`,
+        campaignTimelines: collab.campaignTimelines,
+        minEligibilityCriteria: collab.minEligibilityCriteria,
+        postInfo: JSON.parse(collab.postInfo).join(", "),
+        productReviewInstructions: collab.productReviewInstructions,
+        campaignSteps: collab.campaignSteps,
+        compensationType: collab.compensationType,
+        numberOfInfluencers: collab.numberOfInfluencers,
+        brandDescription: collab.brandDescription,
+        createdAt: new Date(collab.createdAt).toLocaleDateString(),
+        imageSource: collab?.photoUrl?.includes("uploads")
+          ? `${API_ENDPOINT}/${collab?.photoUrl?.replace(/\\/g, '/').replace('uploads/', '')}`
+          : null,
+        status: collab.status || 'active',
+        collaboratedInfluencers: collab.collaboratedInfluencers || [],
+      }));
+      setCampaigns(campaigns || []);
+    } else {
+      showAlert('Error', response.data.message);
+    }
+  } catch (error) {
+    console.log('getBrandOwnCampaigns error:', error);
+    showAlert('Error', 'Something went wrong');
+  }
+};
+
+const updateCampaignStatus = async (campaignId, status, showAlert) => {
+  const token = await AsyncStorage.getItem('token');
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/collab-open/campaign-status/${campaignId}`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.log('updateCampaignStatus error:', error);
+    showAlert('Error', 'Failed to update campaign status');
+    return false;
+  }
+};
+
+const addCollaboratedInfluencer = async (campaignId, username, showAlert) => {
+  const token = await AsyncStorage.getItem('token');
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/collab-open/campaign-influencers/${campaignId}`,
+      { username },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    const msg = error?.response?.data?.message || 'Failed to add influencer';
+    showAlert('Error', msg);
+    return false;
+  }
+};
+
+export {createCollabPost, getAllCollabPosts, getAppliedCollabPosts, sendCollabOpenRequest, getAllCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount, getBrandOwnCampaigns, updateCampaignStatus, addCollaboratedInfluencer};

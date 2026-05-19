@@ -16,6 +16,15 @@ import { useAlert } from "../../util/AlertContext";
 import { Padding } from "../../GlobalStyles";
 import ImageWithFallback from "../../util/ImageWithFallback";
 
+const isCampaignClosed = (campaignTimelines) => {
+  if (!campaignTimelines) return false;
+  const parts = campaignTimelines.split(" - ");
+  const endDate = new Date(parts[parts.length - 1]);
+  if (isNaN(endDate)) return false;
+  endDate.setHours(23, 59, 59, 999);
+  return endDate < new Date();
+};
+
 const CollabPost = ({ navigation }) => {
   const [selectedFooterItem, setSelectedFooterItem] = useState("My Network");
   const [data, setData] = useState([]);
@@ -103,7 +112,7 @@ const CollabPost = ({ navigation }) => {
         <View style={styles.categories}>
           <Text style={styles.categoryTitle}>Categories</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {["All", "Grocery", "Electronics", "Fashion", "Toys", "Beauty", "Home Decoration", "Fitness", "Education", "Others", "Applied"].map(
+            {["All", "Lifestyle & Personal Branding", "Fashion & Beauty", "Food & Cooking", "Fitness & Health", "Travel & Exploration", "Tech & Gaming", "Education & Knowledge", "Entertainment & Comedy", "Business & Entrepreneurship", "Art & Creativity", "Parenting & Family", "Regional/Local Culture Creators", "Home Decor / Interior Creators", "Others", "Applied"].map(
               (category, index) => (
                 <Pressable
                   key={index}
@@ -140,37 +149,43 @@ const CollabPost = ({ navigation }) => {
 
         {/* Posts */}
         <View style={styles.posts}>
-          {filteredData?.map((post, index) => (
-            <Pressable
-              key={index}
-              onPress={() => {
-                navigation.navigate("CampaignDetail", { data: post, isApplied: isAppliedTab });
-              }}
-            >
-              <View style={styles.postCard}>
-                <View style={styles.postContent}>
-                  <Text style={styles.postTitle}>{post.brandName}</Text>
-                  <Text style={styles.postName}>{post.campaignType}</Text>
-                  <Text
-                    style={styles.postDegree}
-                  >{`${post.numberOfInfluencers} Influencers needed`}</Text>
-                </View>
-                {post?.imageSource == null ? (
+          {filteredData?.map((post, index) => {
+            const closed = isCampaignClosed(post.campaignTimelines);
+            return (
+              <Pressable
+                key={index}
+                onPress={() => {
+                  navigation.navigate("CampaignDetail", { data: post, isApplied: isAppliedTab, isClosed: closed });
+                }}
+              >
+                <View style={[styles.postCard, closed && !isAppliedTab && styles.postCardClosed]}>
+                  <View style={styles.postContent}>
+                    <View style={styles.postTitleRow}>
+                      <Text style={[styles.postTitle, closed && !isAppliedTab && styles.postTitleClosed]}>{post.brandName}</Text>
+                      {closed && !isAppliedTab && (
+                        <View style={styles.closedBadge}>
+                          <Text style={styles.closedBadgeText}>Closed</Text>
+                        </View>
+                      )}
+                      {isAppliedTab && (
+                        <View style={styles.underReviewBadge}>
+                          <Text style={styles.underReviewBadgeText}>Under Review</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.postName}>{post.campaignType}</Text>
+                    <Text style={styles.postDegree}>{`${post.numberOfInfluencers} Influencers needed`}</Text>
+                  </View>
                   <ImageWithFallback
-                    imageStyle={styles.postImage}
-                    image={post?.imageSource}
+                    imageStyle={[styles.postImage, closed && !isAppliedTab && { opacity: 0.5 }]}
+                    image={post?.imageSource || null}
+                    isSelectedImage={post?.isSelectedImage}
+                    fallback={require("../../assets/brandDp.png")}
                   />
-                ) : (
-                  post?.imageSource && (
-                    <ImageWithFallback
-                      imageStyle={styles.postImage}
-                      image={post?.imageSource}
-                    />
-                  )
-                )}
-              </View>
-            </Pressable>
-          ))}
+                </View>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </View>
@@ -287,9 +302,44 @@ const styles = StyleSheet.create({
     color: "#4F7396",
   },
   postImage: {
-    width: 130,
-    height: 65,
-    borderRadius: 8,
+    width: 75,
+    height: 75,
+    borderRadius: 10,
+  },
+  postCardClosed: {
+    backgroundColor: "#f9f9f9",
+    opacity: 0.75,
+  },
+  postTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  postTitleClosed: {
+    color: "#999",
+  },
+  closedBadge: {
+    backgroundColor: "#fee2e2",
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  closedBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#c0392b",
+  },
+  underReviewBadge: {
+    backgroundColor: "#fef9e7",
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  underReviewBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#d4a017",
   },
   footer: {
     flexDirection: "row",

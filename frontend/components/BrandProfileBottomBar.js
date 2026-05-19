@@ -229,8 +229,26 @@ const BrandProfileBottomBar = ({
             </View>
           </View>
         </TouchableOpacity >
-        <TouchableOpacity onPress={() => handleProfileClick()}>
+        <TouchableOpacity onPress={() => navigation.navigate('BrandCampaigns')}>
+          <View style={[styles.depth3Frame1, styles.depth3FrameLayout]}>
+            <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
+              <Image
+                style={styles.depth5Frame0}
+                contentFit="cover"
+                source={require('../assets/collab_count.png')}
+              />
+            </View>
+            <View style={[styles.depth4Frame11, styles.depth4FrameSpaceBlock]}>
+              <View style={styles.depth5Frame01}>
+                <Text style={[styles.search, styles.homeTypo]}>
+                  Campaigns
+                </Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => handleProfileClick()}>
           <View
             style={[
               styles.depth3Frame1,

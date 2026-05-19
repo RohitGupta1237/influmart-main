@@ -38,7 +38,7 @@ function MultiDropDown({
     }
 
     return (
-        <View style={{ position: "relative", zIndex: 10 }}>
+        <View style={{ position: "relative", zIndex: 100, overflow: "visible" }}>
             <View style={[styles.dropDownContainer, dropDownContainerStyle]}>
                 <Pressable
                     onPress={handleOpen}
@@ -47,12 +47,8 @@ function MultiDropDown({
                     {icon == "none" ? "" : <Image source={icon} style={styles.icon} />}
                     <Text style={[styles.dropDownTitle, titleStyle]}>{name || placeholder}</Text>
                     <Image
-                        style={styles.arrowAndCloseIcon}
-                        source={
-                            close
-                                ? require("../assets/multiselect/close.png")
-                                : require("../assets/depth-3-frame-2.png")
-                        }
+                        style={[styles.arrowAndCloseIcon, close && { transform: [{ rotate: "180deg" }] }]}
+                        source={require("../assets/depth-3-frame-2.png")}
                     />
                 </Pressable>
             </View>
@@ -137,8 +133,14 @@ const styles = StyleSheet.create({
         top: "100%",
         left: 0,
         borderRadius: Border.br_base,
-        borderWidth:3,
-        borderColor:"#fff",
+        borderWidth: 3,
+        borderColor: "#fff",
+        zIndex: 9999,
+        elevation: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
     },
     dropDownItem: {
         height: "auto",

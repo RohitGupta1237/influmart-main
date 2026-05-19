@@ -54,7 +54,7 @@ export const CollabOpenPaymentStyles = {
     borderColor: "black",
     borderWidth: 2,
     width: 328,
-    height: 178,
+    minHeight: 178,
     padding: Padding.p_5xl,
     borderRadius: Border.br_xs,
     marginVertical: Padding.p_7xs,

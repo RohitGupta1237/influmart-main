@@ -4,7 +4,7 @@ const multer = require("multer");
 const { nanoid } = require("nanoid");
 const path = require("path");
 
-const { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount } = require('../controllers/CollabOpenController');
+const { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount, getBrandCampaigns, updateCampaignStatus, addCollaboratedInfluencer } = require('../controllers/CollabOpenController');
 const brandAuthenticationMiddleware = require('../middleware/brands/brandAuthenticationMiddleware');
 const influencerAuthenticationMiddleware = require('../middleware/influencers/influencerAuthenticationMiddleware');
 
@@ -24,6 +24,9 @@ const store = multer.diskStorage({
   const upload = multer({ storage: store });
 
 router.post('/collab-post',brandAuthenticationMiddleware, upload.single("image"), postCollabOpen);
+router.get('/brand-campaigns/:brandId', brandAuthenticationMiddleware, getBrandCampaigns);
+router.patch('/campaign-status/:campaignId', brandAuthenticationMiddleware, updateCampaignStatus);
+router.patch('/campaign-influencers/:campaignId', brandAuthenticationMiddleware, addCollaboratedInfluencer);
 router.get('/brand-collab-count/:brandId', getBrandCollabOpenCount);
 
 router.get('/get-collab-open', getAllCollabOpen)

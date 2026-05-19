@@ -6,6 +6,7 @@ const collabOpeningSchema = new mongoose.Schema({
     ref: 'Brand',
     required: true
   },
+  campaignTitle: { type: String, default: "" },
   campaignType: String,
   earningCapacity: {
     min: Number,
@@ -23,6 +24,15 @@ const collabOpeningSchema = new mongoose.Schema({
   numberOfInfluencers: Number,
   brandDescription: String,
   photoUrl: String,
+  status: {
+    type: String,
+    enum: ['active', 'successfully_closed', 'cancelled'],
+    default: 'active'
+  },
+  collaboratedInfluencers: {
+    type: [String],
+    default: []
+  },
   createdAt: {
     type: Date,
     default: Date.now

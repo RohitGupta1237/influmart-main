@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import axios from "axios";
 import * as Location from "expo-location";
-import InfluPrice from "../signup/components/InfluPrice";
 import HeadingDescToggle from "../signup/components/HeadingDescToggle";
 import { InfluencerVerify } from "../../controller/signupController";
 import { InfluencerRegistrationFormStyles } from "./InfluencerRegstrationForm.scss";
@@ -20,7 +19,6 @@ import { useAlert } from "../../util/AlertContext";
 import { Color, FontSize } from "../../GlobalStyles";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MultipleSelectList from "../../shared/MultiSelect";
-import { CountryPicker } from "react-native-country-codes-picker";
 import DropDown from "../../shared/DropDown";
 import Loader from "../../shared/Loader";
 import PlaceSearchBar from "../../shared/PlaceSearchBar";
@@ -77,27 +75,22 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [gender, setGender] = useState("Male");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [location, setLocation] = useState("");
   const social = route.params?.social;
   const follower = route.params?.follower;
-  const price = route.params?.price;
   const { showAlert } = useAlert();
   const photo = route.params?.photo;
   const isCompleted = route.params?.isCompleted || {
     addSocialProfile: false,
     addProfilePhoto: false,
     addSocialFollowers: false,
-    pricePerPost: false,
   };
   const [isFormValid, setIsFormValid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [openCountryCode, setOpenCountryCode] = useState(false);
-  const [countryCode, setCountryCode] = useState("+91");
-  const [mobileNoVerified, setMobileNoVerified] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [showEmailOtp, setShowEmailOtp] = useState(false);
   const [emailOtpValue, setEmailOtpValue] = useState("");
@@ -108,14 +101,19 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
   const [genderDropdown, setGenderDropdown] = useState(false)
   const [locationLoading, setLocationLoading] = useState(false)
   const data = [
-    { key: "grocery", value: "Grocery" },
-    { key: "electronics", value: "Electronics" },
-    { key: "fashion", value: "Fashion" },
-    { key: "toys", value: "Toys" },
-    { key: "beauty", value: "Beauty" },
-    { key: "home-decoration", value: "Home Decoration" },
-    { key: "fitness", value: "Fitness" },
-    { key: "education", value: "Education" },
+    { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
+    { key: "fashion-beauty", value: "Fashion & Beauty" },
+    { key: "food-cooking", value: "Food & Cooking" },
+    { key: "fitness-health", value: "Fitness & Health" },
+    { key: "travel-exploration", value: "Travel & Exploration" },
+    { key: "tech-gaming", value: "Tech & Gaming" },
+    { key: "education-knowledge", value: "Education & Knowledge" },
+    { key: "entertainment-comedy", value: "Entertainment & Comedy" },
+    { key: "business-entrepreneurship", value: "Business & Entrepreneurship" },
+    { key: "art-creativity", value: "Art & Creativity" },
+    { key: "parenting-family", value: "Parenting & Family" },
+    { key: "regional-local-culture", value: "Regional/Local Culture Creators" },
+    { key: "home-decor-interior", value: "Home Decor / Interior Creators" },
     { key: "others", value: "Others" },
   ];
 
@@ -137,6 +135,17 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
       value: "Not prefer to say",
     },
   ];
+  const savedFormParams = () => ({
+    savedName: name,
+    savedEmail: email,
+    savedUsername: username,
+    savedGender: gender,
+    savedSelected: selected,
+    savedLocation: location,
+    savedAgreedToTerms: agreedToTerms,
+    savedEmailVerified: emailVerified,
+  });
+
   const handlePlaceSelected = (details) => {
     setLocation(details);
   };
@@ -185,20 +194,19 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
   useEffect(() => {
     if (
       name &&
-      mobileNumber &&
       email &&
       emailVerified &&
       password &&
       username &&
       //location &&  // In production, location is mandatory. But for testing, it is optional. in production, uncomment this line
-      social &&
-      price
+      social
     ) {
       setIsFormValid(true);
     } else {
       setIsFormValid(false);
     }
   }, [
+    name,
     email,
     emailVerified,
     password,
@@ -206,7 +214,6 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
     location,
     social,
     follower,
-    price,
   ]);
   useEffect(() => {
     if (!route.params) {
@@ -216,8 +223,17 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
       setAgreedToTerms(false);
       setLocation("");
       setName("");
-      setMobileNumber("");
-      setSelected([]);
+      setSelected("");
+    } else {
+      // Restore saved form fields when returning from sub-pages (password excluded)
+      if (route.params.savedName !== undefined) setName(route.params.savedName);
+      if (route.params.savedEmail !== undefined) { setEmail(route.params.savedEmail); }
+      if (route.params.savedUsername !== undefined) setUsername(route.params.savedUsername);
+      if (route.params.savedGender !== undefined) setGender(route.params.savedGender);
+      if (route.params.savedSelected !== undefined) setSelected(route.params.savedSelected);
+      if (route.params.savedLocation !== undefined) setLocation(route.params.savedLocation);
+      if (route.params.savedAgreedToTerms !== undefined) setAgreedToTerms(route.params.savedAgreedToTerms);
+      if (route.params.savedEmailVerified !== undefined) setEmailVerified(route.params.savedEmailVerified);
     }
   }, [route.params]);
   const handleSendEmailOtp = async () => {
@@ -261,7 +277,29 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
     }
   };
 
+  const handleUsernameBlur = async () => {
+    if (!username) return;
+    try {
+      const response = await axios.post(`${API_ENDPOINT}/influencers/verifyUser`, { userName: username });
+      if (response.status === 200) {
+        setUsernameError("Username is already taken");
+      } else {
+        setUsernameError("");
+      }
+    } catch {
+      setUsernameError("");
+    }
+  };
+
   const handleSelectPlan = async () => {
+    if (!selected) {
+      showAlert("Required Field", "Please select an Influencer Type");
+      return;
+    }
+    if (usernameError) {
+      showAlert("Influencer SignUp Error", "Please choose a different username");
+      return;
+    }
     setLoading(true);
     const payload = {
       email,
@@ -270,13 +308,10 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
       agreedToTerms,
       social,
       follower,
-      price,
       location,
       profileUrl: photo,
       name,
-      country: countryCode,
-      number: mobileNumber,
-      selected,
+      selected: selected ? [selected] : [],
       gender,
     };
     await InfluencerVerify(payload, navigation, showAlert);
@@ -309,6 +344,7 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
               <Text style={styles.fieldLabel}>Email</Text>
               <Text style={styles.madantoryText}>*</Text>
             </View>
+            <Text style={styles.desc}>Verify your email via OTP to proceed</Text>
             <View style={[styles.textInput, { flexDirection: "row", alignItems: "center" }]}>
               <TextInput
                 style={{ flex: 1, color: "#4F7A94", fontSize: FontSize.size_base, outlineStyle: "none" }}
@@ -370,7 +406,23 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
               setGenderDropdown={setGenderDropdown}
             />
           )}
-          <FormField label="Username" value={username} setValue={setUsername} setInfluTypeDropdown={setInfluTypeDropdown} setGenderDropdown={setGenderDropdown} />
+          <View style={styles.fieldContainer}>
+            <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+              <Text style={styles.fieldLabel}>Username</Text>
+              <Text style={styles.madantoryText}>*</Text>
+            </View>
+            <TextInput
+              style={styles.textInput}
+              value={username}
+              onChangeText={(val) => { setUsername(val); setUsernameError(""); }}
+              placeholder="Username"
+              onBlur={handleUsernameBlur}
+              onFocus={() => { setInfluTypeDropdown(false); setGenderDropdown(false); }}
+            />
+            {usernameError ? (
+              <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{usernameError}</Text>
+            ) : null}
+          </View>
           <View style={[styles.depth1Frame2, { zIndex: 15 }]}>
             <View style={[styles.depth2Frame02, styles.frameLayout]}>
               <View style={styles.frameLayout}>
@@ -401,60 +453,6 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
               </View>
             </View>
           </View>
-          <View style={{ width: "100%", flexDirection: "column" }}>
-            <View style={[styles.fieldContainer, { width: "100%" }]}>
-              <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-                <Text style={styles.fieldLabel}>Mobile Number</Text>
-                <Text style={styles.madantoryText}>*</Text>
-              </View>
-              <View style={[styles.textInput, styles.mobileNoWrap]}>
-                <View
-                  style={{
-                    width: "85%",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => {
-                      setOpenCountryCode(true);
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#4F7A94",
-                        fontSize: FontSize.size_base,
-                        paddingEnd: 12,
-                        borderRightWidth: 2,
-                        borderRightColor: "#ccc",
-                      }}
-                    >
-                      {countryCode}
-                    </Text>
-                  </TouchableOpacity>
-                  <TextInput
-                    style={{
-                      color: "#4F7A94",
-                      fontSize: FontSize.size_base,
-                      outlineStyle: "none",
-                      width: "90%",
-                      height: "100%",
-                      paddingStart: 8,
-                    }}
-                    value={mobileNumber}
-                    onChangeText={setMobileNumber}
-                    placeholder={"Mobile Number"}
-                    keyboardType="phone-pad"
-                    onFocus={() => {
-                      setInfluTypeDropdown(false)
-                      setGenderDropdown(false)
-                    }}
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
           <View style={[styles.depth1Frame2, { height: "auto" }]}>
             <View style={[styles.depth2Frame02, styles.frameLayout, { height: "auto" }]}>
               <View style={[styles.frameLayout, { height: "auto" }]}>
@@ -466,8 +464,8 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
                 </View>
                 <View>
                   <View>
-                    <MultiDropDown
-                      name={selected?.join(", ")}
+                    <DropDown
+                      name={selected}
                       items={data}
                       placeholder={"Select option"}
                       icon={"none"}
@@ -478,10 +476,9 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
                       dropDownContainerStyle={{ width: "100%" }}
                       dropDownItemsStyle={{ width: "100%", top: "100%" }}
                       titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
-                      selectedValue={selected}
-                      setSelectedValues={setSelected}
-                      close={influTypeDropdown}
-                      setClose={setInfluTypeDropdown}
+                      selectedValue={setSelected}
+                      showElements={influTypeDropdown}
+                      setShowElement={setInfluTypeDropdown}
                     />
                   </View>
                 </View>
@@ -503,13 +500,13 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
                 setInfluTypeDropdown(false);
                 setGenderDropdown(false)
                 navigation.navigate("InfluencerSocialHandles", {
-                  price,
                   follower,
                   photo,
                   social,
                   isCompleted,
                   email,
                   redirect: "InfluencerRegistrationForm",
+                  ...savedFormParams(),
                 })
               }
               }
@@ -534,12 +531,12 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
                 setInfluTypeDropdown(false)
                 setGenderDropdown(false)
                 navigation.navigate("UserProfilePhoto", {
-                  price,
                   follower,
                   social,
                   photo,
                   isCompleted,
                   redirect: "InfluencerRegistrationForm",
+                  ...savedFormParams(),
                 })
               }
               }
@@ -563,40 +560,6 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
             require={true}
           />
 
-          <View style={styles.sectionHeader}>
-            <View>
-              <View style={styles.labelWrapper}>
-                <Text style={styles.sectionHeaderText}>Price per post</Text>
-                <Text style={styles.madantoryText}>*</Text>
-              </View>
-              <Text style={styles.desc}>Atleast one field is mandatory</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                setGenderDropdown(false)
-                setInfluTypeDropdown(false)
-                navigation.navigate("PricePerPost", {
-                  social,
-                  follower,
-                  photo,
-                  price,
-                  isCompleted,
-                  redirect: "InfluencerRegistrationForm",
-                })
-              }
-              }
-            >
-              <Image
-                style={styles.icon}
-                contentFit="cover"
-                source={
-                  isCompleted?.pricePerPost
-                    ? require(`../../assets/green_tick.png`)
-                    : require(`../../assets/depth-3-frame-11.png`)
-                }
-              />
-            </TouchableOpacity>
-          </View>
           <View style={[styles.fieldContainer]}>
             <View style={{ display: "flex", flexDirection: "row", gap: 8 }}>
               <Text style={styles.fieldLabel}>Location</Text>
@@ -658,24 +621,6 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
           </View>
         </View>
       </ScrollView>
-      <CountryPicker
-        show={openCountryCode}
-        // when picker button press you will get the country object with dial code
-        pickerButtonOnPress={(item) => {
-          setCountryCode(item.dial_code);
-          setOpenCountryCode(false);
-        }}
-        onBackdropPress={() => {
-          setOpenCountryCode(false)
-        }}
-        style={{
-          modal: {
-            height: 300,
-            width: "100%",
-            maxWidth: "100%",
-          },
-        }}
-      />
       <PlaceSearchBar
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}

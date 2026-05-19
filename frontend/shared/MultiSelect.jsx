@@ -112,9 +112,9 @@ const MultipleSelectList = ({
             >
               {!closeicon ? (
                 <Image
-                  source={require("../assets/multiselect/close.png")}
+                  source={require("../assets/multiselect/chevron.png")}
                   resizeMode="contain"
-                  style={{ width: 17, height: 17 }}
+                  style={{ width: 20, height: 20, transform: [{ rotate: "180deg" }] }}
                 />
               ) : (
                 closeicon

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Modal,
 } from "react-native";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
@@ -126,12 +127,16 @@ const AddHandles = ({ route, navigation }) => {
   const [facebook, setFacebook] = useState("");
   const [youtube, setYoutube] = useState("");
   const [tiktok, setTiktok] = useState("");
-  const { price, follower, photo, isCompleted, redirect, email } =
+  const { price, follower, photo, isCompleted, redirect, email,
+    savedName, savedEmail, savedUsername, savedGender, savedMobileNumber,
+    savedSelected, savedLocation, savedCountryCode, savedAgreedToTerms, savedEmailVerified } =
     route.params || {};
+  const savedFormParams = { savedName, savedEmail, savedUsername, savedGender, savedMobileNumber, savedSelected, savedLocation, savedCountryCode, savedAgreedToTerms, savedEmailVerified };
   const [token, setToken] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const [youtubeData, setYoutubeData] = useState(null);
   const [youtubeAnalytics, setYoutubeAnalytics] = useState(null);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
   const { showAlert } = useAlert();
   const [monthlyData, setMonthlyData] = useState([]);
   let userYtData;
@@ -293,8 +298,8 @@ const AddHandles = ({ route, navigation }) => {
       const error = urlParams.get("error");
 
       if (error || !igSuccess) {
-        // OAuth failed — fall back to RapidAPI (marks as Unverified)
-        const res = await fetch(`${API_ENDPOINT}/auth/instagram/analytics?username=${encodeURIComponent(igHandle)}`);
+        // OAuth failed — fetch RapidAPI data and mark as Unverified
+        const res = await fetch(`${API_ENDPOINT}/auth/instagram/rapidapi-analytics?username=${encodeURIComponent(igHandle)}`);
         if (res.ok) {
           const analytics = await res.json();
           if (analytics && Object.keys(analytics).length > 0) {
@@ -313,13 +318,24 @@ const AddHandles = ({ route, navigation }) => {
           showAlert("Error", `Handle does not match. Your linked Instagram account is @${returnedUsername}`);
           return;
         }
-        // Ownership confirmed — fetch and cache analytics for submission with signup form
+        // Ownership confirmed — fetch Graph API data and RapidAPI data in parallel
         try {
-          const analyticsRes = await fetch(`${API_ENDPOINT}/auth/instagram/analytics?username=${encodeURIComponent(igHandle)}`);
-          if (analyticsRes.ok) {
-            const analytics = await analyticsRes.json();
-            if (analytics && Object.keys(analytics).length > 0) {
-              await AsyncStorage.setItem("igAnalytics", JSON.stringify(analytics));
+          const [graphRes, rapidRes] = await Promise.allSettled([
+            fetch(`${API_ENDPOINT}/auth/instagram/analytics?username=${encodeURIComponent(igHandle)}`),
+            fetch(`${API_ENDPOINT}/auth/instagram/rapidapi-analytics?username=${encodeURIComponent(igHandle)}`),
+          ]);
+
+          if (graphRes.status === "fulfilled" && graphRes.value.ok) {
+            const graphData = await graphRes.value.json();
+            if (graphData && Object.keys(graphData).length > 0) {
+              await AsyncStorage.setItem("igGraphAnalytics", JSON.stringify(graphData));
+            }
+          }
+
+          if (rapidRes.status === "fulfilled" && rapidRes.value.ok) {
+            const rapidData = await rapidRes.value.json();
+            if (rapidData && Object.keys(rapidData).length > 0) {
+              await AsyncStorage.setItem("igAnalytics", JSON.stringify(rapidData));
             }
           }
         } catch (e) {
@@ -327,8 +343,19 @@ const AddHandles = ({ route, navigation }) => {
         }
         setVerifiedAccounts((prev) => [...prev, "instagram"]);
       } else {
-        // Personal account — can't verify username ownership
+        // Personal account — can't verify username ownership, still fetch RapidAPI data
         showAlert("Authorization Failed", "Your Instagram account is not linked to a Facebook Page. Switch to a Creator or Business account and link it to a Facebook Page to get verified.");
+        try {
+          const res = await fetch(`${API_ENDPOINT}/auth/instagram/rapidapi-analytics?username=${encodeURIComponent(igHandle)}`);
+          if (res.ok) {
+            const analytics = await res.json();
+            if (analytics && Object.keys(analytics).length > 0) {
+              await AsyncStorage.setItem("igAnalytics", JSON.stringify(analytics));
+            }
+          }
+        } catch (e) {
+          console.warn("[Instagram] Could not fetch RapidAPI analytics for personal account:", e.message);
+        }
         setUnverifiedAccounts((prev) => [...prev, "instagram"]);
       }
     } catch (error) {
@@ -572,14 +599,18 @@ const AddHandles = ({ route, navigation }) => {
           <Text style={styles.headerText}>Add Accounts</Text>
           <View style={styles.headerIcon}>
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate(redirect, {
-                  price,
-                  follower,
-                  photo,
-                  isCompleted,
-                })
-              }
+              onPress={() => {
+                const hasData = !!(instagram || twitter || facebook || youtube || tiktok);
+                if (hasData) {
+                  setShowDiscardModal(true);
+                } else {
+                  navigation.navigate(redirect, {
+                    price, follower, photo,
+                    isCompleted: { ...isCompleted, addSocialProfile: false },
+                    ...savedFormParams,
+                  });
+                }
+              }}
             >
               <Image
                 style={styles.headerImage}
@@ -652,16 +683,109 @@ const AddHandles = ({ route, navigation }) => {
                 ...isCompleted,
                 addSocialProfile: verifiedAccounts.length != 0 && true,
               },
+              ...savedFormParams,
             });
           }}
         >
           <Text style={styles.confirmText}>Confirm</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal transparent visible={showDiscardModal} animationType="fade">
+        <View style={discardModalStyles.overlay}>
+          <View style={discardModalStyles.box}>
+            <Text style={discardModalStyles.title}>Discard Changes?</Text>
+            <Text style={discardModalStyles.message}>
+              Your entered data will be lost. Press Confirm to save them first.
+            </Text>
+            <View style={discardModalStyles.buttons}>
+              <TouchableOpacity
+                style={[discardModalStyles.btn, discardModalStyles.stayBtn]}
+                onPress={() => setShowDiscardModal(false)}
+              >
+                <Text style={discardModalStyles.stayText}>Stay</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[discardModalStyles.btn, discardModalStyles.discardBtn]}
+                onPress={() => {
+                  setShowDiscardModal(false);
+                  navigation.navigate(redirect, {
+                    price, follower, photo,
+                    isCompleted: { ...isCompleted, addSocialProfile: false },
+                    ...savedFormParams,
+                  });
+                }}
+              >
+                <Text style={discardModalStyles.discardText}>Discard</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 };
 
 const styles = AddHandlesStyles;
+
+const discardModalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  box: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 24,
+    width: "80%",
+    maxWidth: 340,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#111",
+    marginBottom: 10,
+  },
+  message: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 22,
+    lineHeight: 20,
+  },
+  buttons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  btn: {
+    paddingVertical: 9,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  stayBtn: {
+    backgroundColor: "#f0f0f0",
+  },
+  stayText: {
+    color: "#333",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  discardBtn: {
+    backgroundColor: "#e53935",
+  },
+  discardText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+});
 
 export default AddHandles;

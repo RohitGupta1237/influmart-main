@@ -6,6 +6,7 @@ import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { AlertProvider } from "./util/AlertContext";
+import { ThemeProvider } from "./util/ThemeContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Import all your screens here
@@ -60,9 +61,11 @@ import CollabPost from "./screens/collabOpen/CollabPost";
 import CampaignDetail from "./screens/collabOpen/CampaignDetail";
 import CollabForm from "./screens/collabOpen/CollabForm";
 import BrandProfile from "./screens/BrandProfile/BrandProfile";
+import BrandCampaigns from "./screens/BrandProfile/BrandCampaigns";
 import BrandCollabRequestPage from "./screens/BrandProfile/components/BrandCollabRequestPage";
 import CollabOpenPayment from "./screens/collabOpen/CollabOpenPayment";
 import RaiseTicket from "./screens/Brand/Settings/Support/RaiseTicket";
+import RenewSubscription from "./screens/Influencer/Settings/RenewSubscription";
 
 const Stack = createNativeStackNavigator();
 
@@ -124,6 +127,8 @@ const App = () => {
       }
     } catch (error) {
       console.error("Error checking token:", error);
+      await AsyncStorage.removeItem("token");
+      setInitialRoute("Homepage");
     }
   };
 
@@ -134,6 +139,7 @@ const App = () => {
   return (
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider>
         <AlertProvider>
           <SocketContextProvider>
             <NavigationContainer>
@@ -262,8 +268,18 @@ const App = () => {
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
+                  name="BrandCampaigns"
+                  component={BrandCampaigns}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
                   name="RaiseTicket"
                   component={RaiseTicket}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="RenewSubscription"
+                  component={RenewSubscription}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
@@ -406,6 +422,7 @@ const App = () => {
             </NavigationContainer>
           </SocketContextProvider>
         </AlertProvider>
+        </ThemeProvider>
       </GestureHandlerRootView>
     </>
   );

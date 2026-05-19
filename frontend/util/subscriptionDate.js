@@ -1,8 +1,8 @@
 import { format, addMonths, addYears } from "date-fns";
 
-const generateSubscriptionDates = (planDuration) => {
+const generateSubscriptionDates = (planDuration, fromDate) => {
   let free = false;
-  const currentDate = new Date();
+  const currentDate = fromDate ? new Date(fromDate) : new Date();
   let endDate;
   if (!planDuration) {
     const startDate = format(currentDate, "yyyy-MM-dd");

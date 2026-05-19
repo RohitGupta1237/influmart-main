@@ -17,16 +17,19 @@ const twitterStateMap = new Map();
 
 const YOUTUBE_REDIRECT_URI = "http://127.0.0.1:3000/auth/youtube/callback";
 
-const FB_APP_ID = process.env.FACEBOOK_APP_ID || "978928124634921";
-const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET || "4f694fe79fa492365eb6be2f7c32e37b";
+const FB_APP_ID = process.env.FACEBOOK_APP_ID;
+const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_REDIRECT_URI = "http://localhost:3000/auth/facebook/callback";
-const INSTAGRAM_REDIRECT_URI = "http://localhost:3000/auth/instagram/callback";
+const INSTAGRAM_REDIRECT_URI = "https://colorado-phoenix-fifty-icon.trycloudflare.com/auth/instagram/callback";
 const facebookStateMap = new Map();
 const instagramStateMap = new Map();
 // In-memory store: state → { influencerId } for YouTube OAuth
 const youtubeStateMap = new Map();
+// Cache for Instagram Graph API analytics fetched during OAuth callback
+// keyed by lowercase igHandle, TTL 30 minutes
+const instagramAnalyticsCache = new Map();
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
-const { InstagramData, facebookData, trackingData } = require("../utils/influencerAnalytics");
+const { InstagramData, InstagramGraphData, facebookData, trackingData } = require("../utils/influencerAnalytics");
 
 const User = mongoose.model(
   "User",
@@ -291,7 +294,8 @@ router.get("/auth/facebook/callback", async (req, res) => {
   }
 });
 
-// Instagram OAuth (via Facebook Graph API) — Step 1
+// Instagram OAuth (via Instagram Business Login) — Step 1
+// Works directly with Creator/Business accounts, no Facebook Page required
 router.get("/auth/instagram", (req, res) => {
   const { state, influencerId, igHandle, redirectUri } = req.query;
   if (!state) return res.status(400).send("Missing state");
@@ -299,18 +303,19 @@ router.get("/auth/instagram", (req, res) => {
   instagramStateMap.set(state, { influencerId: influencerId || "none", igHandle: igHandle || "", redirectUri: redirectUri || "influmart://auth" });
   setTimeout(() => instagramStateMap.delete(state), 10 * 60 * 1000);
 
+  const IG_APP_ID = process.env.INSTAGRAM_APP_ID || process.env.INSTAGRAM_CLIENT_ID;
   const params = new URLSearchParams({
-    client_id: FB_APP_ID,
+    client_id: IG_APP_ID,
     redirect_uri: INSTAGRAM_REDIRECT_URI,
     state,
-    scope: "instagram_basic,pages_show_list,instagram_manage_insights",
+    scope: "instagram_business_basic,instagram_business_manage_insights",
     response_type: "code",
   });
 
-  res.redirect(`https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`);
+  res.redirect(`https://www.instagram.com/oauth/authorize?${params.toString()}`);
 });
 
-// Instagram OAuth — Step 2: exchange code, fetch linked IG account, deep-link back
+// Instagram OAuth — Step 2: exchange code, fetch IG account data, deep-link back
 router.get("/auth/instagram/callback", async (req, res) => {
   const { code, state, error } = req.query;
   if (error || !code || !state) {
@@ -324,77 +329,89 @@ router.get("/auth/instagram/callback", async (req, res) => {
   const { influencerId, igHandle, redirectUri: igRedirectUri } = stateData;
   const appRedirectUri = igRedirectUri || "influmart://auth";
 
+  const IG_APP_ID = process.env.INSTAGRAM_APP_ID || process.env.INSTAGRAM_CLIENT_ID;
+  const IG_APP_SECRET = process.env.INSTAGRAM_APP_SECRET || process.env.INSTAGRAM_CLIENT_SECRET;
+
   try {
     // Exchange code for short-lived token
-    const tokenRes = await axios.get("https://graph.facebook.com/v19.0/oauth/access_token", {
-      params: { client_id: FB_APP_ID, client_secret: FB_APP_SECRET, redirect_uri: INSTAGRAM_REDIRECT_URI, code },
-    });
+    const tokenRes = await axios.post(
+      "https://api.instagram.com/oauth/access_token",
+      new URLSearchParams({ client_id: IG_APP_ID, client_secret: IG_APP_SECRET, grant_type: "authorization_code", redirect_uri: INSTAGRAM_REDIRECT_URI, code }).toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
     const shortToken = tokenRes.data.access_token;
+    const igUserId = tokenRes.data.user_id;
     if (!shortToken) return res.redirect("influmart://auth?error=instagram_token_failed");
 
-    // Exchange for long-lived token
+    // Exchange for long-lived token (~60 days)
     let longToken = shortToken;
     try {
-      const longTokenRes = await axios.get("https://graph.facebook.com/v19.0/oauth/access_token", {
-        params: { grant_type: "fb_exchange_token", client_id: FB_APP_ID, client_secret: FB_APP_SECRET, fb_exchange_token: shortToken },
+      const longTokenRes = await axios.get("https://graph.instagram.com/access_token", {
+        params: { grant_type: "ig_exchange_token", client_id: IG_APP_ID, client_secret: IG_APP_SECRET, access_token: shortToken },
       });
       longToken = longTokenRes.data.access_token || shortToken;
     } catch (e) {
       console.warn("[Instagram OAuth] Long-lived token exchange failed:", e.message);
     }
 
-    // Try to get actual Instagram username via Instagram Graph API
-    // This works only for Professional (Creator/Business) accounts linked to a Facebook Page
+    // Fetch username directly from Instagram Graph API using /me endpoint
     let igUsername = null;
     try {
-      const pagesRes = await axios.get("https://graph.facebook.com/v19.0/me/accounts", {
-        params: { access_token: longToken },
+      const profileRes = await axios.get(`https://graph.instagram.com/v19.0/me`, {
+        params: { fields: "username,name", access_token: longToken },
       });
-      const pages = pagesRes.data?.data || [];
-      for (const page of pages) {
-        try {
-          const igRes = await axios.get(`https://graph.facebook.com/v19.0/${page.id}`, {
-            params: { fields: "instagram_business_account", access_token: page.access_token || longToken },
-          });
-          const igAccountId = igRes.data?.instagram_business_account?.id;
-          if (igAccountId) {
-            const igUserRes = await axios.get(`https://graph.facebook.com/v19.0/${igAccountId}`, {
-              params: { fields: "username", access_token: longToken },
-            });
-            igUsername = igUserRes.data?.username || null;
-            if (igUsername) break;
-          }
-        } catch (e) {
-          console.warn("[Instagram OAuth] Page IG lookup failed:", e.message);
-        }
-      }
+      igUsername = profileRes.data?.username || null;
+      console.log("[Instagram OAuth] /me response:", profileRes.data);
     } catch (e) {
-      console.warn("[Instagram OAuth] Could not fetch IG username from Graph API:", e.message);
+      console.warn("[Instagram OAuth] Profile fetch failed:", e.response?.data || e.message);
     }
 
-    console.log("[Instagram OAuth] enteredHandle:", igHandle, "| graphApiUsername:", igUsername, "| igLinked:", !!igUsername);
+    console.log("[Instagram OAuth] enteredHandle:", igHandle, "| graphApiUsername:", igUsername, "| igUserId:", igUserId);
 
-    // Fall back to the entered handle if Graph API couldn't find linked IG account
-    // (personal accounts not linked to a Facebook Page)
     const resolvedIgUsername = igUsername || igHandle || "";
 
-    // Fetch analytics via RapidAPI
+    // Fetch analytics via Instagram Graph API
     let instaAnalytics = null;
-    const handleToFetch = igUsername || igHandle;
-    if (handleToFetch) {
+    if (igUserId && longToken) {
       try {
-        instaAnalytics = await InstagramData(handleToFetch);
-        if (instaAnalytics && Object.keys(instaAnalytics).length === 0) instaAnalytics = null;
+        instaAnalytics = await InstagramGraphData(igUserId, longToken);
+        if (!instaAnalytics || Object.keys(instaAnalytics).length === 0) instaAnalytics = null;
       } catch (e) {
-        console.warn("[Instagram OAuth] RapidAPI analytics failed:", e.message);
+        console.warn("[Instagram OAuth] Graph API analytics failed:", e.message);
       }
+    }
+
+    if (!instaAnalytics) {
+      // Fall back to RapidAPI
+      const handleToFetch = igUsername || igHandle;
+      if (handleToFetch) {
+        try {
+          instaAnalytics = await InstagramData(handleToFetch);
+          if (instaAnalytics && Object.keys(instaAnalytics).length === 0) instaAnalytics = null;
+        } catch (e) {
+          console.warn("[Instagram OAuth] RapidAPI analytics fallback failed:", e.message);
+        }
+      }
+    }
+
+    // Only cache Graph API data — RapidAPI fallback must NOT pollute the graph cache
+    if (instaAnalytics && instaAnalytics.source === "graph_api" && resolvedIgUsername) {
+      const cacheKey = resolvedIgUsername.toLowerCase();
+      instagramAnalyticsCache.set(cacheKey, instaAnalytics);
+      setTimeout(() => instagramAnalyticsCache.delete(cacheKey), 30 * 60 * 1000); // 30 min TTL
     }
 
     // Save to DB if profile edit
     if (influencerId && influencerId !== "none") {
       try {
-        const update = { igAccessToken: longToken, instaProfile: resolvedIgUsername };
-        if (instaAnalytics) update.instaData = [instaAnalytics];
+        const update = {
+          igAccessToken: longToken,
+          instaProfile: resolvedIgUsername,
+          instagramOwnershipVerified: !!igUsername,
+        };
+        if (instaAnalytics && instaAnalytics.source === "graph_api") {
+          update.instaGraphData = [instaAnalytics];
+        }
         await InfluencerSignupRequest.findByIdAndUpdate(influencerId, update);
       } catch (dbErr) {
         console.warn("[Instagram OAuth] DB save failed:", dbErr.message);
@@ -413,14 +430,31 @@ router.get("/auth/instagram/callback", async (req, res) => {
 // Analytics-only endpoints — fetch platform analytics by username, no DB save
 // Used during signup: frontend caches result in AsyncStorage, submitted with signup form
 
+// Returns cached Graph API data (from OAuth callback) — consumed once
 router.get("/auth/instagram/analytics", async (req, res) => {
+  const { username } = req.query;
+  if (!username) return res.status(400).json({ error: "Missing username" });
+
+  const cacheKey = username.toLowerCase();
+  const cached = instagramAnalyticsCache.get(cacheKey);
+  if (cached && Object.keys(cached).length > 0) {
+    console.log(`[Instagram analytics] Returning cached Graph API data for @${username}`);
+    instagramAnalyticsCache.delete(cacheKey); // consume once
+    return res.json(cached);
+  }
+
+  return res.json({});
+});
+
+// Always calls RapidAPI — used to fetch public stats regardless of OAuth
+router.get("/auth/instagram/rapidapi-analytics", async (req, res) => {
   const { username } = req.query;
   if (!username) return res.status(400).json({ error: "Missing username" });
   try {
     const data = await InstagramData(username);
     res.json(data || {});
   } catch (err) {
-    console.error("[Instagram analytics] Error:", err.message);
+    console.error("[Instagram rapidapi-analytics] Error:", err.message);
     res.status(500).json({ error: "Failed to fetch Instagram analytics" });
   }
 });

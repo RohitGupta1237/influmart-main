@@ -83,13 +83,37 @@ const reject = async (req, res) => {
 };
 
 const closeChat = async (req, res) => {
-  const { userId, chatUserId } = req.body;
+  const { userId, chatUserId, conversationId } = req.body;
+  try {
+    // Delete all messages between the two users
+    await Message.deleteMany({
+      $or: [
+        { sender: userId, receiver: chatUserId },
+        { sender: chatUserId, receiver: userId },
+      ],
+    });
 
-  // Remove all messages between these users
-  await Message.deleteMany({ sender: userId, receiver: chatUserId });
-  await Message.deleteMany({ sender: chatUserId, receiver: userId });
+    // Find and delete the conversation document
+    let conv = null;
+    if (conversationId) {
+      conv = await Conversation.findByIdAndDelete(conversationId);
+    } else {
+      conv = await Conversation.findOneAndDelete({
+        participants: { $all: [userId, chatUserId] },
+      });
+    }
 
-  res.status(200).json({ message: "Chat closed" });
+    // Remove conversation ref from both users' arrays
+    if (conv) {
+      await Brand.updateMany({}, { $pull: { conversations: conv._id } });
+      await InfluencerSignupRequest.updateMany({}, { $pull: { conversations: conv._id } });
+    }
+
+    res.status(200).json({ message: "Chat deleted" });
+  } catch (err) {
+    console.error("[closeChat]", err);
+    res.status(500).json({ message: "Failed to delete chat", error: err.message });
+  }
 };
 
 const sendMessage = async (req, res) => {

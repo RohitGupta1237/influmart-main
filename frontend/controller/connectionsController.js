@@ -108,27 +108,14 @@ const rejectRequest = async (requestId, showAlert) => {
   }
 };
 
-const closeChat = async (userId, chatUserId, showAlert) => {
+const closeChat = async (userId, chatUserId, conversationId) => {
   const token = await AsyncStorage.getItem('token');
-  try {
-    const response = await axios.post(
-      `${API_ENDPOINT}/connection/closeChat`,
-      { userId, chatUserId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    if (response.status === 200) {
-      showAlert("Success", "Chat closed");
-    } else {
-      showAlert("Error", response.data.message);
-    }
-  } catch (error) {
-    console.log(error);
-    showAlert("Error", "Something went wrong");
-  }
+  const response = await axios.post(
+    `${API_ENDPOINT}/connection/closeChat`,
+    { userId, chatUserId, conversationId },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.status === 200;
 };
 
 const sendMessage = async (senderId, receiverId, content, showAlert) => {
@@ -206,13 +193,13 @@ const getAllConversations = async (userId, userType, setConversations, showAlert
     if (response.status === 200) {
       const conversations = response.data.conversations.map(conversation => {
         // Find the participant that is not the current user
-        const participant = conversation.participants.find(p => p._id !== userId);
+        const participant = conversation.participants.find(p => p != null && p._id !== userId);
         const lastMessage = conversation.messages.length > 0 ? conversation.messages[0] : null;
         return {
           name: userType === 'influencer' ? participant?.brandName : participant?.influencerName,
-          profileUrl: participant.isSelectedImage? participant.profileUrl : participant?.profileUrl.includes("uploads") ? `${API_ENDPOINT}/${participant?.profileUrl?.replace(/\\/g, "/")?.replace("uploads/", "")}` : null,
+          profileUrl: participant?.isSelectedImage ? participant.profileUrl : participant?.profileUrl?.includes("uploads") ? `${API_ENDPOINT}/${participant?.profileUrl?.replace(/\\/g, "/")?.replace("uploads/", "")}` : null,
           lastMessage: lastMessage ? lastMessage.content : '',
-          isSelectedImage: participant.isSelectedImage,
+          isSelectedImage: participant?.isSelectedImage,
           lastUpdate: lastMessage ? new Date(lastMessage?.createdAt).toLocaleString() : new Date(conversation?.updatedAt).toLocaleString(),
           conversationId: conversation?._id,
           receiverId: participant?._id

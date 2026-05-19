@@ -19,53 +19,28 @@ import { useAlert } from "../../util/AlertContext";
 import Loader from "../../shared/Loader";
 import ImageWithFallback from "../../util/ImageWithFallback";
 
-const SenderMessage = ({ name, profileUrl, content, timeAgo, isSelectedImage }) => {
+// Sent messages — no avatar shown (WhatsApp style)
+const SenderMessage = ({ content, timeAgo }) => {
   return (
     <View style={styles.senderContainer}>
       <View style={styles.senderMessageContainer}>
-        <Text style={styles.senderName}>{name}</Text>
         <Text style={styles.senderMessage}>{content}</Text>
         <Text style={styles.senderTimeAgo}>{timeAgo}</Text>
       </View>
-      {profileUrl == null ? (
-        <ImageWithFallback
-          imageStyle={styles.profileImage}
-          image={profileUrl}
-          isSelectedImage={isSelectedImage}
-        />
-      ) : (
-        profileUrl && (
-          <ImageWithFallback
-            imageStyle={styles.profileImage}
-            image={isNaN(profileUrl)==false?`${profileUrl}`:profileUrl}
-            isSelectedImage={isSelectedImage}
-          />
-        )
-      )}
     </View>
   );
 };
 
+// Received messages — avatar + name + bubble
 const ReceiverMessage = ({ name, profileUrl, content, timeAgo, isSelectedImage }) => {
   return (
     <View style={styles.receiverContainer}>
-      {profileUrl == null || profileUrl == undefined ? (
-        <ImageWithFallback
-          imageStyle={styles.profileImage}
-          image={profileUrl}
-          isSelectedImage={isSelectedImage}
-        />
-      ) : (
-        profileUrl && (
-          <ImageWithFallback
-            imageStyle={styles.profileImage}
-            image={isNaN(profileUrl)==false?`${profileUrl}`:profileUrl}
-            isSelectedImage={isSelectedImage}
-          />
-        )
-      )}
+      <ImageWithFallback
+        imageStyle={styles.profileImage}
+        image={isNaN(profileUrl) == false ? `${profileUrl}` : profileUrl}
+        isSelectedImage={isSelectedImage}
+      />
       <View style={styles.receiverMessageContainer}>
-        <Text style={styles.receiverName}>{name}</Text>
         <Text style={styles.receiverMessage}>{content}</Text>
         <Text style={styles.receiverTimeAgo}>{timeAgo}</Text>
       </View>
@@ -105,7 +80,7 @@ const ChatInterface = ({ route, navigation }) => {
       >
         <Depth1Frame7
           depth4Frame0={require("../../assets/depth-4-frame-017.png")}
-          requestDetails={`Chat with ${name}`}
+          requestDetails={`Chat with ${name ? name.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : ""}`}
           depth3Frame0BackgroundColor="#fff"
           requestDetailsWidth={"auto"}
           depth4Frame0FontFamily="BeVietnamPro-Bold"

@@ -4,28 +4,35 @@ import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import CustomSlider from "../../shared/CustomSlider"
 import DropDown from "../../shared/DropDown";
 import MultipleSelectList from "../../shared/MultiSelect";
-import { useNavigation } from "@react-navigation/core";
 import { FilterInfluencerProfile } from '../../controller/InfluencerController'
 import { Color, FontFamily, FontSize, Padding, Border } from "../../GlobalStyles";
 
-function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
+function Filter({ selectedFilter, setLoading, setSeletedFilter, setInfluencerData }) {
     const snapPoints = useMemo(() => ['40%', '60%', '80%'], []);
     const handleClosePress = () => {
-        bottomSheetRef.current?.close();
         setSeletedFilter?.("");
+        bottomSheetRef.current?.close();
     };
     const handleOpenPress = () => bottomSheetRef.current?.expand();
     const renderBackdrop = useCallback(
-        (props) => <BottomSheetBackdrop appearsOnIndex={0} disappearsOnIndex={-1} {...props} />,
+        (props) => (
+            <BottomSheetBackdrop
+                appearsOnIndex={0}
+                disappearsOnIndex={-1}
+                pressBehavior="close"
+                {...props}
+            />
+        ),
         []
     );
     const bottomSheetRef = useRef(null);
-    const navigation = useNavigation()
     const [platform, setPlatform] = React.useState([])
     const [selectedAges, setSelectedAges] = React.useState({})
-    const [selectedFollowersCount, setSelectedFollowersCount] = React.useState({})
+    const [followersEnabled, setFollowersEnabled] = React.useState({ ig: false, yt: false, fb: false })
+    const [followers, setFollowers] = React.useState({ ig: null, yt: null, fb: null })
     const [selectedPostCount, setSelectedPostCount] = React.useState({})
-    const [selectedViewsCount, setSelectedViewsCount] = React.useState({})
+    const [viewsEnabled, setViewsEnabled] = React.useState({ ig: false, yt: false, fb: false })
+    const [viewsCount, setViewsCount] = React.useState({ ig: null, yt: null, fb: null })
     const [selectedLocation, setSelectedLocation] = React.useState("")
     const [gender, setGender] = React.useState("")
     const [engagementRate, setEngagementRate] = React.useState({ ig: null, yt: null, fb: null })
@@ -44,8 +51,14 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
             setPriceEnabled({ ig: false, yt: false, fb: false });
             setEngagementRate({ ig: null, yt: null, fb: null });
             setEngagementEnabled({ ig: false, yt: false, fb: false });
+            setFollowers({ ig: null, yt: null, fb: null });
+            setFollowersEnabled({ ig: false, yt: false, fb: false });
+            setViewsCount({ ig: null, yt: null, fb: null });
+            setViewsEnabled({ ig: false, yt: false, fb: false });
         } else if (selectedFilter !== "") {
             handleOpenPress();
+        } else {
+            bottomSheetRef.current?.close();
         }
     }, [selectedFilter])
     const locationData = [
@@ -72,14 +85,19 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
         }
     ]
     const categoriedData = [
-        { key: "grocery", value: "Grocery" },
-        { key: "electronics", value: "Electronics" },
-        { key: "fashion", value: "Fashion" },
-        { key: "toys", value: "Toys" },
-        { key: "beauty", value: "Beauty" },
-        { key: "home-decoration", value: "Home Decoration" },
-        { key: "fitness", value: "Fitness" },
-        { key: "education", value: "Education" },
+        { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
+        { key: "fashion-beauty", value: "Fashion & Beauty" },
+        { key: "food-cooking", value: "Food & Cooking" },
+        { key: "fitness-health", value: "Fitness & Health" },
+        { key: "travel-exploration", value: "Travel & Exploration" },
+        { key: "tech-gaming", value: "Tech & Gaming" },
+        { key: "education-knowledge", value: "Education & Knowledge" },
+        { key: "entertainment-comedy", value: "Entertainment & Comedy" },
+        { key: "business-entrepreneurship", value: "Business & Entrepreneurship" },
+        { key: "art-creativity", value: "Art & Creativity" },
+        { key: "parenting-family", value: "Parenting & Family" },
+        { key: "regional-local-culture", value: "Regional/Local Culture Creators" },
+        { key: "home-decor-interior", value: "Home Decor / Interior Creators" },
         { key: "others", value: "Others" },
     ];
     const handleApplyFilters = async () => {
@@ -93,7 +111,11 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                 fb: priceEnabled.fb ? price.fb : null,
             },
             platform,
-            followers: selectedFollowersCount,
+            followers: {
+                ig: followersEnabled.ig ? followers.ig : null,
+                yt: followersEnabled.yt ? followers.yt : null,
+                fb: followersEnabled.fb ? followers.fb : null,
+            },
             likes: selectedPostCount,
             engagementRate: {
                 ig: engagementEnabled.ig ? engagementRate.ig : null,
@@ -104,10 +126,14 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
             gender,
             tags,
             reachability: reachability,
-            viewCount: selectedViewsCount,
+            viewCount: {
+                ig: viewsEnabled.ig ? viewsCount.ig : null,
+                yt: viewsEnabled.yt ? viewsCount.yt : null,
+                fb: viewsEnabled.fb ? viewsCount.fb : null,
+            },
             cities
         };
-        await FilterInfluencerProfile(filters, navigation);
+        await FilterInfluencerProfile(filters, setInfluencerData);
         setLoading(false)
     }
     return (
@@ -118,17 +144,14 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
             enablePanDownToClose={true}
             handleIndicatorStyle={{ backgroundColor: '#ccc' }}
             backgroundStyle={{ backgroundColor: '#fff' }}
-            backdropComponent={renderBackdrop}
             onChange={(index) => { if (index === -1) setSeletedFilter?.(""); }}
         >
             <View style={styles.contentContainer}>
                 <View style={styles.headlineRow}>
                     <Text style={styles.containerHeadline}>{selectedFilter}</Text>
-                    {(selectedFilter === "Platform" || selectedFilter === "Price" || selectedFilter === "Engagement Rate") && (
-                        <TouchableOpacity onPress={handleClosePress} style={styles.clearButton}>
-                            <Text style={styles.clearButtonText}>✕</Text>
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity onPress={handleClosePress} style={styles.clearButton}>
+                        <Text style={styles.clearButtonText}>✕</Text>
+                    </TouchableOpacity>
                 </View>
                 {
                     selectedFilter == "Platform" ?
@@ -154,7 +177,7 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                             })}
                         </View>
                         :
-                        selectedFilter == "Price" ?
+                        selectedFilter == "Budget" ?
                             <View style={{ width: "100%" }}>
                                 {[
                                     { label: "Instagram", field: "ig" },
@@ -169,7 +192,7 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                                 onPress={() => {
                                                     const nowEnabled = !priceEnabled[field];
                                                     setPriceEnabled(prev => ({ ...prev, [field]: nowEnabled }));
-                                                    if (nowEnabled) setPrice(prev => ({ ...prev, [field]: prev[field] ?? { min: 0, max: 50000 } }));
+                                                    if (nowEnabled) setPrice(prev => ({ ...prev, [field]: prev[field] ?? { min: 0, max: 1000000 } }));
                                                     else setPrice(prev => ({ ...prev, [field]: null }));
                                                 }}
                                                 hitSlop={8}
@@ -181,8 +204,10 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                             </Pressable>
                                             <CustomSlider
                                                 minValue={0}
-                                                maxValue={50000}
+                                                maxValue={1000000}
                                                 singleHandle={true}
+                                                maxLabel="10L+"
+                                                defaultMax={price[field]?.max}
                                                 selectedValues={(val) => setPrice(prev => ({ ...prev, [field]: val }))}
                                             />
                                         </View>
@@ -219,6 +244,7 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                                     minValue={0}
                                                     maxValue={100}
                                                     singleHandle={true}
+                                                    maxLabel="100"
                                                     selectedValues={(val) => setEngagementRate(prev => ({ ...prev, [field]: val }))}
                                                 />
                                             </View>
@@ -232,8 +258,41 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                     </View>
                                     :
                                     selectedFilter == "Followers Count" ?
-                                        <View style={[styles.depth5Frame01, styles.frameLayout]}>
-                                            <CustomSlider minValue={1000} maxValue={50000} selectedValues={setSelectedFollowersCount} />
+                                        <View style={{ width: "100%" }}>
+                                            {[
+                                                { label: "Instagram", field: "ig" },
+                                                { label: "YouTube", field: "yt" },
+                                                { label: "Facebook", field: "fb" },
+                                            ].map(({ label, field }) => {
+                                                const enabled = followersEnabled[field];
+                                                return (
+                                                    <View key={field} style={styles.pricePlatformRow}>
+                                                        <Pressable
+                                                            style={styles.priceLabelRow}
+                                                            onPress={() => {
+                                                                const nowEnabled = !followersEnabled[field];
+                                                                setFollowersEnabled(prev => ({ ...prev, [field]: nowEnabled }));
+                                                                if (nowEnabled) setFollowers(prev => ({ ...prev, [field]: prev[field] ?? { min: 0, max: 10000000 } }));
+                                                                else setFollowers(prev => ({ ...prev, [field]: null }));
+                                                            }}
+                                                            hitSlop={8}
+                                                        >
+                                                            <View style={[styles.checkbox, enabled && styles.checkboxChecked]}>
+                                                                {enabled && <Text style={styles.checkmark}>✓</Text>}
+                                                            </View>
+                                                            <Text style={styles.pricePlatformLabel}>{label}</Text>
+                                                        </Pressable>
+                                                        <CustomSlider
+                                                            minValue={0}
+                                                            maxValue={10000000}
+                                                            singleHandle={false}
+                                                            editableMin={true}
+                                                            maxLabel="10M+"
+                                                            selectedValues={(val) => setFollowers(prev => ({ ...prev, [field]: val }))}
+                                                        />
+                                                    </View>
+                                                );
+                                            })}
                                         </View>
                                         :
                                         selectedFilter == "Post Count" ?
@@ -241,9 +300,45 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                                 <CustomSlider minValue={100} maxValue={2000} selectedValues={setSelectedPostCount} />
                                             </View>
                                             :
-                                            selectedFilter == "Views Count" ?
-                                                <View style={[styles.depth5Frame01, styles.frameLayout]}>
-                                                    <CustomSlider minValue={100} maxValue={2000} selectedValues={setSelectedViewsCount} />
+                                            selectedFilter == "Avg Views Count" ?
+                                                <View style={{ width: "100%" }}>
+                                                    {[
+                                                        { label: "Instagram", field: "ig", disabled: true },
+                                                        { label: "YouTube", field: "yt", disabled: false },
+                                                        { label: "Facebook", field: "fb", disabled: false },
+                                                    ].map(({ label, field, disabled }) => {
+                                                        const enabled = viewsEnabled[field];
+                                                        return (
+                                                            <View key={field} style={styles.pricePlatformRow}>
+                                                                <Pressable
+                                                                    style={[styles.priceLabelRow, disabled && { opacity: 0.4 }]}
+                                                                    onPress={() => {
+                                                                        if (disabled) return;
+                                                                        const nowEnabled = !viewsEnabled[field];
+                                                                        setViewsEnabled(prev => ({ ...prev, [field]: nowEnabled }));
+                                                                        if (nowEnabled) setViewsCount(prev => ({ ...prev, [field]: prev[field] ?? { min: 0, max: 100000000 } }));
+                                                                        else setViewsCount(prev => ({ ...prev, [field]: null }));
+                                                                    }}
+                                                                    hitSlop={8}
+                                                                >
+                                                                    <View style={[styles.checkbox, enabled && styles.checkboxChecked]}>
+                                                                        {enabled && <Text style={styles.checkmark}>✓</Text>}
+                                                                    </View>
+                                                                    <Text style={styles.pricePlatformLabel}>{label}{disabled ? " (N/A)" : ""}</Text>
+                                                                </Pressable>
+                                                                <CustomSlider
+                                                                    minValue={0}
+                                                                    maxValue={100000000}
+                                                                    singleHandle={false}
+                                                                    editableMin={true}
+                                                                    maxLabel="100M+"
+                                                                    defaultMin={viewsCount[field]?.min}
+                                                                    defaultMax={viewsCount[field]?.max}
+                                                                    selectedValues={(val) => { if (!disabled) setViewsCount(prev => ({ ...prev, [field]: val })); }}
+                                                                />
+                                                            </View>
+                                                        );
+                                                    })}
                                                 </View>
                                                 :
                                                 selectedFilter == "Location" ?
@@ -270,26 +365,24 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                                     </View>
                                                     :
                                                     selectedFilter == "Gender" ?
-                                                        <View style={{ paddingVertical: 8 }}>
-                                                            <View>
-                                                                <DropDown
-                                                                    name={gender}
-                                                                    items={genderData}
-                                                                    dropDownOptionStyle={{
-                                                                        width: "100%",
-                                                                        paddingVertical: 16,
-                                                                        backgroundColor: "#fff",
-                                                                        borderWidth: 2,
-                                                                        borderColor: "#DBE0E5"
-                                                                    }}
-                                                                    dropDownContainerStyle={{ width: "100%" }}
-                                                                    dropDownItemsStyle={{ width: "100%", position: "absolute", top: 55, zIndex: 1000, height: 120, overflow: "scroll" }}
-                                                                    titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
-                                                                    selectedValue={setGender}
-                                                                    showElements={showElements}
-                                                                    setShowElement={setShowElements}
-                                                                />
-                                                            </View>
+                                                        <View style={styles.platformsContainer}>
+                                                            {["Male", "Female"].map((g) => {
+                                                                const isSelected = gender === g;
+                                                                return (
+                                                                    <Pressable
+                                                                        key={g}
+                                                                        onPress={() => setGender(isSelected ? "" : g)}
+                                                                        style={[styles.platformContainer, {
+                                                                            backgroundColor: isSelected ? Color.colorRoyalblue : Color.colorWhite,
+                                                                            borderColor: isSelected ? Color.colorRoyalblue : "#ccc",
+                                                                        }]}
+                                                                    >
+                                                                        <Text style={[styles.platformText, { color: isSelected ? "#fff" : "#000" }]}>
+                                                                            {g}
+                                                                        </Text>
+                                                                    </Pressable>
+                                                                );
+                                                            })}
                                                         </View>
                                                         :
                                                         selectedFilter == "Tags" ?
@@ -324,8 +417,9 @@ function Filter({ selectedFilter, setLoading, setSeletedFilter }) {
                                                                 </View>
                 }
                 <TouchableOpacity style={[styles.depth3Frame05]} onPress={()=>{
-                    handleApplyFilters()
-                    handleClosePress()
+                    setSeletedFilter?.("");
+                    handleClosePress();
+                    handleApplyFilters();
                 }}>
                     <Text
                         style={[styles.applyFilters, styles.ageLayout]}
@@ -420,6 +514,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 8,
+        width: "100%",
+        paddingVertical: 8,
+        minHeight: 36,
     },
     checkbox: {
         width: 20,

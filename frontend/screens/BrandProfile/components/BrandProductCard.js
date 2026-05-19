@@ -16,6 +16,7 @@ const BrandProductCard = ({
   postTitle,
   postDate,
   productName,
+  campaignTitle,
   cardWidth,
   id,
   postTitleWidth,
@@ -51,16 +52,13 @@ const BrandProductCard = ({
     <View style={[styles.card, cardStyle]}>
       <View style={styles.cardContent}>
         <ImageWithFallback image={imageSource} isSelectedImage={isSelectedImage} imageStyle={styles.image} />
-        <View>
-          <View style={[styles.textContainer, postTitleStyle]}>
-            <Text style={styles.postTitle}>{postTitle}</Text>
-          </View>
-          <View style={[styles.textContainer, postDateStyle]}>
-            <Text style={styles.postDate}>Date: {postDate}</Text>
-          </View>
-          <View style={[styles.textContainer, productNameStyle]}>
-            <Text style={styles.productName}>Product: {productName}</Text>
-          </View>
+        <View style={styles.textWrapper}>
+          <Text style={styles.postTitle} numberOfLines={1}>{postTitle}</Text>
+          <Text style={styles.postDate} numberOfLines={1}>Date: {postDate}</Text>
+          <Text style={styles.productName} numberOfLines={1}>Product: {productName}</Text>
+          {campaignTitle && (
+            <Text style={styles.productName} numberOfLines={1}>Campaign: {campaignTitle}</Text>
+          )}
         </View>
       </View>
       <TouchableOpacity
@@ -79,20 +77,27 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Color.colorWhitesmoke_300,
     width: 390,
-    height: 96,
+    minHeight: 96,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: Padding.p_base,
     paddingVertical: 12,
     justifyContent: "space-between",
     borderWidth: 1,
     borderColor: Color.colorWhitesmoke_400,
     borderRadius: Border.br_base,
-    paddingHorizontal: Padding.p_base,
   },
   cardContent: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
+    marginRight: 12,
+    overflow: "hidden",
+  },
+  textWrapper: {
+    flex: 1,
+    marginLeft: 12,
+    overflow: "hidden",
   },
   image: {
     borderRadius: Border.br_5xs,
@@ -102,6 +107,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     marginLeft: 16,
+    flex: 1,
   },
   postTitle: {
     fontSize: FontSize.size_base,
@@ -123,7 +129,8 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     height: 32,
-    width: 126,
+    width: 110,
+    flexShrink: 0,
   },
   button: {
     backgroundColor: Color.colorRoyalblue,

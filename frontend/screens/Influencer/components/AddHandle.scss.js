@@ -92,7 +92,7 @@ export const AddHandlesStyles = {
     color: "#E07B00",
   },
   confirmButton: {
-    backgroundColor: "#388fe6",
+    backgroundColor: Color.colorDodgerblue,
     paddingVertical: Padding.p_base,
     alignItems: "center",
     borderRadius: Border.br_xs,

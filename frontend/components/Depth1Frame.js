@@ -127,20 +127,26 @@ const Depth1Frame = ({
     };
   }, [propFontFamily3, propColor3]);
   const handleProfileClick = async () => {
-    const token = await AsyncStorage.getItem("token");
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-      if (decodedToken.exp && decodedToken.exp > currentTime) {
-        if (decodedToken?.brandId) {
-          navigation.navigate("BrandProfile");
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        if (decodedToken.exp && decodedToken.exp > currentTime) {
+          if (decodedToken?.brandId) {
+            navigation.navigate("BrandProfile");
+          } else {
+            navigation.navigate("UserProfile");
+          }
         } else {
-          navigation.navigate("UserProfile");
+          await AsyncStorage.removeItem("token");
+          navigation.navigate("BrandorInfluencer");
         }
       } else {
         navigation.navigate("BrandorInfluencer");
       }
-    } else {
+    } catch (error) {
+      await AsyncStorage.removeItem("token");
       navigation.navigate("BrandorInfluencer");
     }
   };

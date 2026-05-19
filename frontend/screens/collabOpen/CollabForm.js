@@ -32,6 +32,7 @@ const CollabForm = ({ navigation }) => {
     numberOfInfluencers: "",
     brandDescription: "",
   });
+  const [campaignTitle, setCampaignTitle] = React.useState("");
   const [location, setLocation] = React.useState([]);
   const [selected, setSelected] = React.useState([]);
   const [money, setMoney] = React.useState({ min: 0, max: 0 });
@@ -44,14 +45,19 @@ const CollabForm = ({ navigation }) => {
   const [showEndPicker, setShowEndPicker] = React.useState(false);
   const[campaignTypeDropDown,setCampaignTypeDropdown]=React.useState(false)
   const data = [
-    { key: "grocery", value: "Grocery" },
-    { key: "electronics", value: "Electronics" },
-    { key: "fashion", value: "Fashion" },
-    { key: "toys", value: "Toys" },
-    { key: "beauty", value: "Beauty" },
-    { key: "home-decoration", value: "Home Decoration" },
-    { key: "fitness", value: "Fitness" },
-    { key: "education", value: "Education" },
+    { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
+    { key: "fashion-beauty", value: "Fashion & Beauty" },
+    { key: "food-cooking", value: "Food & Cooking" },
+    { key: "fitness-health", value: "Fitness & Health" },
+    { key: "travel-exploration", value: "Travel & Exploration" },
+    { key: "tech-gaming", value: "Tech & Gaming" },
+    { key: "education-knowledge", value: "Education & Knowledge" },
+    { key: "entertainment-comedy", value: "Entertainment & Comedy" },
+    { key: "business-entrepreneurship", value: "Business & Entrepreneurship" },
+    { key: "art-creativity", value: "Art & Creativity" },
+    { key: "parenting-family", value: "Parenting & Family" },
+    { key: "regional-local-culture", value: "Regional/Local Culture Creators" },
+    { key: "home-decor-interior", value: "Home Decor / Interior Creators" },
     { key: "others", value: "Others" },
   ];
   const { showAlert } = useAlert();
@@ -87,10 +93,27 @@ const CollabForm = ({ navigation }) => {
   };
 
   const handleNextPress = async () => {
+    if (!campaignTitle.trim()) {
+      showAlert("Required Field", "Campaign Title is required");
+      return;
+    }
+    if (!collabPostData.brandName.trim()) {
+      showAlert("Required Field", "Brand Name is required");
+      return;
+    }
+    if (!collabPostData.productReviewInstructions.trim()) {
+      showAlert("Required Field", "Product Tagging is required");
+      return;
+    }
+    if (!campansationType) {
+      showAlert("Required Field", "Compensation Type is required");
+      return;
+    }
     const brandId = await AsyncStorage.getItem("brandId");
     const data = {
       ...collabPostData,
       brandId: brandId,
+      campaignTitle: campaignTitle.trim(),
       image: photo,
       compensationType: campansationType,
       postInfo: JSON.stringify(location),
@@ -134,6 +157,16 @@ const CollabForm = ({ navigation }) => {
         <Text style={styles.headerText}>Create a Campaign</Text>
         <View style={{ width: 24, height: 24 }}></View>
       </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Campaign Title <Text style={{ color: "red" }}>*</Text></Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. Summer Fashion Collab"
+          placeholderTextColor="#4F7096"
+          value={campaignTitle}
+          onChangeText={setCampaignTitle}
+        />
+      </View>
       <View style={[styles.inputGroup, { height: "auto", zIndex: 12 }]}>
         <Text style={styles.label}>Campaign Type</Text>
         <MultiDropDown
@@ -160,40 +193,59 @@ const CollabForm = ({ navigation }) => {
         <View style={styles.dateInputGroup}>
           <TextInput
             style={styles.dateInput}
-            placeholder="$1,000"
+            placeholder="₹1,000"
             placeholderTextColor="#4F7096"
             onChangeText={(text) => setMoney({ ...money, min: parseInt(text) })}
           />
           <Text>to</Text>
           <TextInput
             style={styles.dateInput}
-            placeholder="$2,000"
+            placeholder="₹2,000"
             placeholderTextColor="#4F7096"
             onChangeText={(text) => setMoney({ ...money, max: parseInt(text) })}
           />
         </View>
       </View>
-      <View style={styles.inputGroup}>
+      <View style={[styles.inputGroup, { zIndex: 10 }]}>
         <Text style={styles.label}>Timeline</Text>
         {Platform.OS === "web" ? (
-          <View style={styles.dateInputGroup}>
-            <DatePicker
-              showIcon
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              dateFormat="MMMM dd, yyyy"
-              customInput={<TextInput style={styles.dateInput} />}
-              className="react-datepicker"
-            />
-            <Text style={styles.dateText}>to</Text>
-            <DatePicker
-              showIcon
-              className="react-datepicker"
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              dateFormat="MMMM dd, yyyy"
-              customInput={<TextInput style={styles.dateInput} />}
-            />
+          <View style={styles.timelineGroup}>
+            <View style={[styles.timelineRow, { zIndex: 2 }]}>
+              <Text style={styles.timelineLabel}>From:</Text>
+              <DatePicker
+                showIcon
+                selected={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
+                  if (endDate && date > endDate) setEndDate(date);
+                }}
+                dateFormat="MMMM dd, yyyy"
+                customInput={<TextInput style={styles.timelineInput} />}
+                className="react-datepicker"
+                popperPlacement="bottom-start"
+                popperProps={{ strategy: "fixed" }}
+              />
+            </View>
+            <View style={[styles.timelineRow, { zIndex: 1 }]}>
+              <Text style={styles.timelineLabel}>To:</Text>
+              <DatePicker
+                showIcon
+                className="react-datepicker"
+                selected={endDate}
+                onChange={(date) => {
+                  if (date < startDate) {
+                    showAlert("Invalid Date", "End date cannot be before start date");
+                    return;
+                  }
+                  setEndDate(date);
+                }}
+                minDate={startDate}
+                dateFormat="MMMM dd, yyyy"
+                customInput={<TextInput style={styles.timelineInput} />}
+                popperPlacement="bottom-start"
+                popperProps={{ strategy: "fixed" }}
+              />
+            </View>
           </View>
         ) : (
           <>
@@ -277,7 +329,7 @@ const CollabForm = ({ navigation }) => {
         </View>
       </View>
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Product Tagging</Text>
+        <Text style={styles.label}>Product Tagging <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.inputLarge}
           placeholder="Details about product tagging"
@@ -301,7 +353,7 @@ const CollabForm = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Brand Name</Text>
+        <Text style={styles.label}>Brand Name <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.input}
           placeholder="Brand Name"
@@ -338,7 +390,7 @@ const CollabForm = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>compensation Type</Text>
+        <Text style={styles.label}>compensation Type <Text style={styles.required}>*</Text></Text>
         <RadioButton.Group
           onValueChange={(value) => setCampansationType(value)}
           value={campansationType}
@@ -494,6 +546,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     fontWeight: "700",
+  },
+  required: {
+    color: "red",
+    fontSize: 16,
+  },
+  timelineGroup: {
+    flexDirection: "column",
+    backgroundColor: "#E8EDF2",
+    borderRadius: 10,
+  },
+  timelineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    gap: 8,
+    position: "relative",
+    borderBottomWidth: 1,
+    borderBottomColor: "#D1D8E0",
+  },
+  timelineLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#0D141C",
+    width: 50,
+  },
+  timelineInput: {
+    backgroundColor: "#E8EDF2",
+    fontSize: 16,
+    color: "#0D141C",
+    flex: 1,
   },
 });
 

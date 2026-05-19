@@ -97,7 +97,7 @@ export const PricePerPostStyles = {
     color: Color.colorGray_100,
   },
   confirmButton: {
-    backgroundColor: "#388fe6",
+    backgroundColor: Color.colorDodgerblue,
     paddingVertical: Padding.p_base,
     alignItems: "center",
     borderRadius: Border.br_xs,

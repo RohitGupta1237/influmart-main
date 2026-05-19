@@ -9,6 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import Depth1Frame7 from "../../components/Depth1Frame7";
 import Depth1Frame17 from "../../components/Depth1Frame17";
 import Depth1Frame16 from "../../components/Depth1Frame16";
 import Depth1Frame15 from "../../components/Depth1Frame15";
@@ -100,7 +101,7 @@ const UserProfile = ({ navigation }) => {
           {
             heading: "Price per Post",
             content: influencer?.price[0]?.fb
-              ? `$ ${formatNumber(influencer?.price[0]?.fb)}`
+              ? `₹ ${formatNumber(influencer?.price[0]?.fb)}`
               : "N/A",
           },
         ];
@@ -129,7 +130,7 @@ const UserProfile = ({ navigation }) => {
           {
             heading: "Avg ER",
             content: insta[0]?.avgER != null && !isNaN(insta[0]?.avgER)
-              ? `${(insta[0].avgER * 1000).toPrecision(3)} %`
+              ? `${parseFloat(insta[0].avgER).toFixed(2)} %`
               : "N/A",
           },
           {
@@ -158,32 +159,30 @@ const UserProfile = ({ navigation }) => {
             },
           },
           {
-            heading: "Member Cites",
+            heading: "Member Cities",
             content: {
-              bullet: insta[0]?.memberCities?.map((item) => {
-                return {
-                  content: `${item?.category} - ${(item?.value * 100).toPrecision(
-                    3
-                  )}%`,
-                };
-              }),
+              bullet: insta[0]?.memberCities?.map((item) => ({
+                content: `${item?.city || item?.category} - ${parseFloat(item?.percent ?? item?.value * 100).toFixed(1)}%`,
+              })),
             },
           },
           {
             heading: "Ages",
             content: {
-              bullet: insta[0]?.ages?.map((item) => {
-                return {
-                  content: `${item?.name} - ${(item?.percent * 100).toPrecision(
-                    3
-                  )}%`,
-                };
-              }),
+              bullet: insta[0]?.ages?.map((item) => ({
+                content: `${item?.range || item?.name} - ${parseFloat(item?.percent).toFixed(1)}%`,
+              })),
             },
           },
           {
+            heading: "Gender",
+            content: insta[0]?.genders
+              ? `Female ${parseFloat(insta[0].genders.female).toFixed(1)}%  |  Male ${parseFloat(insta[0].genders.male).toFixed(1)}%`
+              : "N/A",
+          },
+          {
             heading: "Price per Post",
-            content: `$ ${influencer?.price[0]?.ig
+            content: `₹ ${influencer?.price[0]?.ig
               ? formatNumber(influencer?.price[0]?.ig)
               : "N/A"
               }`,
@@ -255,6 +254,14 @@ const UserProfile = ({ navigation }) => {
   return (
     <View style={styles.userprofile}>
       {loading&&<Loader loading={loading}/>}
+      <Depth1Frame7
+        depth4Frame0={require("../../assets/depth-4-frame-010.png")}
+        requestDetails="User Profile"
+        depth3Frame0BackgroundColor="#000"
+        requestDetailsWidth="auto"
+        depth4Frame0FontFamily="BeVietnamPro-Bold"
+        depth4Frame0Color="#fff"
+      />
       <ScrollView>
         <View style={[styles.depth0Frame0, styles.frameLayout1]}>
           {influencer &&<Depth1Frame17
@@ -262,6 +269,9 @@ const UserProfile = ({ navigation }) => {
             username={influencer?.influencerName}
             category={influencer?.category}
             isSelectedImage={influencer.isSelectedImage}
+            instaFollowers={influencer?.instaData?.[0]?.followers}
+            ytFollowers={influencer?.ytData?.overAll?.subscriberCount}
+            fbFollowers={influencer?.fbData?.[0]?.followers}
           />}
           <View style={[styles.depth1Frame2, styles.depth1FrameSpaceBlock]}>
             <View style={styles.depth2Frame01}>
@@ -349,7 +359,7 @@ const styles = StyleSheet.create({
   },
   depth1FrameSpaceBlock: {
     paddingHorizontal: Padding.p_base,
-    width: 390,
+    width: "100%",
   },
   frameFlexBox: {
     justifyContent: "space-between",
@@ -418,7 +428,6 @@ const styles = StyleSheet.create({
     height: 20,
   },
   depth0Frame0: {
-    paddingTop: 40,
     minHeight: 900,
     height: "100%",
     overflow: "hidden",

@@ -12,8 +12,12 @@ const {
   getAllProfiles,
   verifyUser,
   filterInfluencers,
+  aiSearchInfluencers,
   saveYtRefreshToken,
   changePassword,
+  updateDescription,
+  updateHashtags,
+  updatePrice,
 } = require("../controllers/influencerController");
 const influencerAuthenticationMiddleware = require("../middleware/influencers/influencerAuthenticationMiddleware");
 const brandorInfluencerAuthenticationMiddleware = require("../middleware/brandorInfluencerAuthenticationMiddleware");
@@ -68,10 +72,18 @@ router.get("/profiles", getAllProfiles);
 // Route to get filtered influencers
 router.post("/search-influencers", filterInfluencers);
 
+// AI natural language search
+router.post("/ai-search", aiSearchInfluencers);
+
 // Save YouTube refresh token for cron job
 router.put("/:id/yt-refresh-token", influencerAuthenticationMiddleware, saveYtRefreshToken);
 
 // Change password
 router.post("/change-password", influencerAuthenticationMiddleware, changePassword);
+
+// Update influencer description
+router.patch("/:id/description", influencerAuthenticationMiddleware, updateDescription);
+router.patch("/:id/hashtags", influencerAuthenticationMiddleware, updateHashtags);
+router.patch("/:id/price", influencerAuthenticationMiddleware, updatePrice);
 
 module.exports = router;

@@ -4,11 +4,21 @@ require("dotenv").config();
 var cookies = require("cookie-parser");
 const { app, io, server } = require("./socket/socket");
 
+
 // Making uploads folder public
 app.use(express.static("uploads"));
 
 // CORS
-app.use(cors());
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map(o => o.trim())
+  : ["http://localhost:8081"];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+}));
 
 // Body Parser
 app.use(express.json({ limit: "50mb" }));

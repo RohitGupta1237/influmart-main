@@ -16,6 +16,7 @@ export const handleInfluencerLogin = async (username,password) => {
         const data = await response.json()
         await AsyncStorage.setItem('token', data?.token);
         await AsyncStorage.setItem('influencerId', data?.influencer?._id);
+        await AsyncStorage.removeItem('brandId');
         if (response.status == 200){
             return {success:true,message:data.message}
         }
@@ -42,6 +43,7 @@ export const handleBrandLogin = async (email, password) => {
       const data = await response.data;
       await AsyncStorage.setItem('token', data.token);
       await AsyncStorage.setItem('brandId', data.brandId);
+      await AsyncStorage.removeItem('influencerId');
       if (response.status == 200) {
         return { success: true, message: data.message, id: data?.brand?._id };
       } else return { success: false, message: data.message };
