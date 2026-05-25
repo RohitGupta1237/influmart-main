@@ -1,4 +1,4 @@
-const { JWT_SECRET_KEY, JWT_EXPIRES_IN, OTP_MAIL, PASSWORD, SMTP_HOST } = require("../config/configs");
+const { JWT_SECRET_KEY, JWT_EXPIRES_IN } = require("../config/configs");
 const { DOESNT_EXIST } = require("../constant/constants");
 const Brand = require("../model/brandDbRequestModel");
 const bcrypt = require("bcrypt"); // For password hashing
@@ -7,18 +7,10 @@ const cron = require("node-cron");
 const OTP = require("../model/otp");
 const Collaboration = require("../model/collaboration");
 const CollabOpening = require("../model/CollabOpening");
-const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 
 const ADMIN_EMAIL = "rohitgupta12371380@gmail.com";
-
-const mailer = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: 465,
-  secure: true,
-  auth: { user: OTP_MAIL, pass: PASSWORD },
-});
 
 // Signup a brand
 exports.signup = async (req, res) => {
@@ -52,21 +44,30 @@ exports.signup = async (req, res) => {
     // Email document to admin if uploaded
     if (documentFile) {
       try {
-        await mailer.sendMail({
-          from: OTP_MAIL,
-          to: ADMIN_EMAIL,
-          subject: `New Brand Registration - Business Document: ${brandName || name}`,
-          html: `<p>A new brand has registered on Influmart.</p>
-                 <p><strong>Brand Name:</strong> ${brandName || name}</p>
-                 <p><strong>Email:</strong> ${email}</p>
-                 <p>Please find the business verification document attached.</p>`,
-          attachments: [
-            {
-              filename: documentFile.originalname || path.basename(documentFile.path),
-              path: documentFile.path,
-            },
-          ],
+        const fileContent = fs.readFileSync(documentFile.path).toString('base64');
+        const resendResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'Influmart <onboarding@resend.dev>',
+            to: ADMIN_EMAIL,
+            subject: `New Brand Registration - Business Document: ${brandName || name}`,
+            html: `<p>A new brand has registered on Influmart.</p>
+                   <p><strong>Brand Name:</strong> ${brandName || name}</p>
+                   <p><strong>Email:</strong> ${email}</p>
+                   <p>Please find the business verification document attached.</p>`,
+            attachments: [
+              {
+                filename: documentFile.originalname || path.basename(documentFile.path),
+                content: fileContent,
+              },
+            ],
+          }),
         });
+        if (!resendResponse.ok) console.error("[Brand signup] Failed to email document");
       } catch (mailErr) {
         console.error("[Brand signup] Failed to email document:", mailErr.message);
       }
@@ -99,8 +100,8 @@ exports.login = async (req, res) => {
 
       // Return token and brandId in response
       res
-        .status(200)
-        .json({ message: "Login successful", token, brandId: brand._id });
+          .status(200)
+          .json({ message: "Login successful", token, brandId: brand._id });
     } else {
       res.status(401).json({ message: "Authentication failed" });
     }
@@ -179,7 +180,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     Object.keys(updatedFields).forEach(
-      (key) => updatedFields[key] === undefined && delete updatedFields[key]
+        (key) => updatedFields[key] === undefined && delete updatedFields[key]
     );
 
     const updatedBrand = await Brand.findByIdAndUpdate(brandId, updatedFields, {

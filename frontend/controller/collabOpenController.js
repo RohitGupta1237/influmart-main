@@ -160,7 +160,7 @@ const getAllCollabOpenRequests = async (userId, setRequests, showAlert) => {
         postTitle: item?.sender?.influencerName,
         isSelectedImage: item?.sender?.isSelectedImage,
         postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
-        productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
+        productName: (() => { try { return JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "); } catch { return null; } })(),
         requestId: item?._id,
         campaignTitle: (() => {
           const title = item?.collabOpeningId?.campaignTitle;

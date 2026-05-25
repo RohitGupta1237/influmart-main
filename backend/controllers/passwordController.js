@@ -1,39 +1,31 @@
-const { RESET_PASSWORD_TOKEN_EXPIRATION, PASSWORD, OTP_MAIL } = require("../config/configs");
+const { RESET_PASSWORD_TOKEN_EXPIRATION } = require("../config/configs");
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');
 const Brand = require("../model/brandDbRequestModel");
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: OTP_MAIL,
-    pass: PASSWORD,
-  },
-});
 
 // Generate a 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// Send reset email — returns a Promise so errors are caught properly
-const sendResetEmail = (email, otp) => {
-  return new Promise((resolve, reject) => {
-    const mailOptions = {
-      from: OTP_MAIL,
+// Send reset email via Resend
+const sendResetEmail = async (email, otp) => {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'Influmart <onboarding@resend.dev>',
       to: email,
       subject: 'Influmart Password Reset OTP',
       text: `Your Influmart password reset OTP is: ${otp}\n\nThis OTP expires in 1 hour. Do not share it with anyone.`,
-    };
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error sending reset email:', error);
-        reject(error);
-      } else {
-        console.log('Reset email sent:', info.response);
-        resolve(info);
-      }
-    });
+    }),
   });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Resend email failed');
+  }
+  console.log('Reset email sent via Resend');
 };
 
 // Forgot Password — sends OTP to email
