@@ -24,7 +24,7 @@ const sendResendEmail = async ({ to, subject, text }) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Influmart <onboarding@resend.dev>',
+      from: 'Influmart <noreply@influmart.in>',
       to,
       subject,
       text,

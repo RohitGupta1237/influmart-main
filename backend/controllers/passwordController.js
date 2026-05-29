@@ -15,7 +15,7 @@ const sendResetEmail = async (email, otp) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Influmart <onboarding@resend.dev>',
+      from: 'Influmart <noreply@influmart.in>',
       to: email,
       subject: 'Influmart Password Reset OTP',
       text: `Your Influmart password reset OTP is: ${otp}\n\nThis OTP expires in 1 hour. Do not share it with anyone.`,

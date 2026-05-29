@@ -52,7 +52,7 @@ exports.signup = async (req, res) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'Influmart <onboarding@resend.dev>',
+            from: 'Influmart <noreply@influmart.in>',
             to: ADMIN_EMAIL,
             subject: `New Brand Registration - Business Document: ${brandName || name}`,
             html: `<p>A new brand has registered on Influmart.</p>
