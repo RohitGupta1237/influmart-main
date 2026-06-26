@@ -30,6 +30,34 @@ import { GetInfluencerProfile, UpdateInfluencerDescription, UpdateInfluencerHash
 import {sendRequest} from "../../controller/connectionsController"
 import Loader from '../../shared/Loader';
 
+const AnalyticsBadge = ({ symbol, textColor }) => {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <View style={{ position: "relative" }}>
+      <Text
+        style={{ fontSize: 13, fontWeight: "700", color: textColor, lineHeight: 21 }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {symbol}
+      </Text>
+      {hovered && (
+        <View style={{
+          position: "absolute", bottom: 22, left: "50%",
+          transform: [{ translateX: -30 }],
+          backgroundColor: "rgba(0,0,0,0.85)", borderRadius: 4,
+          paddingHorizontal: 6, paddingVertical: 3, zIndex: 999,
+          minWidth: 70, alignItems: "center",
+        }}>
+          <Text style={{ color: "#fff", fontSize: 11, fontWeight: "600", whiteSpace: "nowrap" }}>
+            {symbol === "✓" ? "Verified" : "Not Verified"}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const AveragePrice = ({ platform, price }) => (
   <View style={styles.averagePriceContainer}>
     <View style={styles.platformContainer}>
@@ -471,42 +499,32 @@ const Analytics = ({ route, navigation }) => {
               );
             })()}
             <View style={styles.nav}>
-              <TouchableOpacity onPress={() => setTab("instagram")}>
-                <View style={styles.navItems}>
-                  <Text
-                    style={[
-                      styles.navText,
-                      tab == "instagram" && styles.navSelectText,
-                    ]}
-                  >
-                    {`Instagram${influencer?.unverifiedAccounts?.includes("instagram") ? " !" : ""}`}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setTab("youtube")}>
-                <View style={styles.navItems}>
-                  <Text
-                    style={[
-                      styles.navText,
-                      tab == "youtube" && styles.navSelectText,
-                    ]}
-                  >
-                    {`YouTube${influencer?.unverifiedAccounts?.includes("youtube") ? " !" : ""}`}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setTab("facebook")}>
-                <View style={styles.navItems}>
-                  <Text
-                    style={[
-                      styles.navText,
-                      tab == "facebook" && styles.navSelectText,
-                    ]}
-                  >
-                    {`Facebook${influencer?.unverifiedAccounts?.includes("facebook") ? " !" : ""}`}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+              {[
+                { key: "instagram", label: "Instagram" },
+                { key: "youtube",   label: "YouTube"   },
+                { key: "facebook",  label: "Facebook"  },
+              ].map(({ key, label }) => {
+                const isSelected = tab === key;
+                const textColor = isSelected ? "black" : "#637087";
+                const unverified = influencer?.unverifiedAccounts || [];
+                const badgeType = unverified.includes(key)
+                  ? "!"
+                  : key === "instagram"
+                  ? influencer?.instaData?.length > 0 ? "✓" : null
+                  : key === "youtube"
+                  ? influencer?.ytData != null ? "✓" : null
+                  : influencer?.fbData?.length > 0 ? "✓" : null;
+                return (
+                  <TouchableOpacity key={key} onPress={() => setTab(key)}>
+                    <View style={[styles.navItems, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
+                      <Text style={[styles.navText, isSelected && styles.navSelectText]}>{label}</Text>
+                      {badgeType && (
+                        <AnalyticsBadge symbol={badgeType} textColor={textColor} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             {tab === "instagram" ? (
               <>{instaData && <InstaStats instaData={instaData} />}</>

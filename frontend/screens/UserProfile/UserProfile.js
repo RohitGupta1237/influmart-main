@@ -312,7 +312,7 @@ const UserProfile = ({ navigation }) => {
               </View>
           }
 
-          <NavTab setTab={setTab} tab={tab} />
+          <NavTab setTab={setTab} tab={tab} influencer={influencer} />
           <ScrollView style={{ flex: 1, paddingHorizontal: Padding.p_base }} showsVerticalScrollIndicator={false}>
             {tab == "instagram"
               ? instaData &&
