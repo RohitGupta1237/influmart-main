@@ -16,6 +16,12 @@ import { useAlert } from "../../util/AlertContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Loader from '../../shared/Loader'
 
+// Admin bypass: these exact credentials open the social-verification admin
+// panel directly — no brand account required. The real protection for admin
+// actions is the ADMIN_SECRET checked by the backend inside that panel.
+const ADMIN_EMAIL = "rohitgupta12371380@gmail.com";
+const ADMIN_PASSWORD = "macbookpro@123";
+
 const LoginPageBrand = () => {
   const navigation = useNavigation();
   const { showAlert } = useAlert();
@@ -123,6 +129,13 @@ const LoginPageBrand = () => {
           <TouchableOpacity
             style={{ width: "100%" }}
             onPress={async () => {
+              // Admin bypass — no DB brand account needed.
+              if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                setEmail("");
+                setPassword("");
+                navigation.navigate("SocialVerificationAdmin");
+                return;
+              }
               setLoading(true)
               let result = await handleBrandLogin(email, password);
               if (result.success) {

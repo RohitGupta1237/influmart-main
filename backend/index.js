@@ -40,6 +40,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const authRoutes = require("./routes/authRoutes");
 const Message = require("./model/Message");
 const collabOpenRoutes = require("./routes/collabOpenRoutes");
+const socialVerificationRoutes = require("./routes/socialVerificationRoutes");
 
 app.use((req, res, next) => {
     req.io = io;
@@ -65,6 +66,8 @@ app.use("/subscriptions", subscriptionRouter);
 app.use("/otp", otpRouter);
 
 app.use("/collab-open", collabOpenRoutes);
+
+app.use("/social-verification", socialVerificationRoutes);
 
 // Mount the brand routes on a specific path
 app.use("/brands", brandRoutes);

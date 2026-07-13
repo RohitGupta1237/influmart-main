@@ -2,10 +2,16 @@ import * as React from "react";
 import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
 import { FontFamily, FontSize, Padding, Color } from "../../GlobalStyles";
 
+// Manual OTP verification is offered only for the Meta platforms.
+const OTP_VERIFIABLE = ["instagram", "facebook"];
+
 const getBadgeType = (platform, influencer) => {
   if (!influencer) return null;
+  // Verified via the manual OTP-over-DM flow (admin-approved).
+  const otpVerified = influencer.otpVerifiedAccounts || [];
+  if (otpVerified.includes(platform)) return "verified";
+
   const unverified = influencer.unverifiedAccounts || [];
-  if (unverified.includes(platform)) return "unverified";
   const hasData =
     platform === "instagram"
       ? influencer.instaData?.length > 0
@@ -14,34 +20,56 @@ const getBadgeType = (platform, influencer) => {
       : platform === "facebook"
       ? influencer.fbData?.length > 0
       : false;
-  return hasData ? "verified" : null;
+
+  // For IG/FB, anything not yet verified shows a clickable "?" so the user can
+  // start the OTP flow. Other platforms keep the original ✓ / ! / none behaviour.
+  if (unverified.includes(platform)) {
+    return OTP_VERIFIABLE.includes(platform) ? "question" : "unverified";
+  }
+  if (hasData) return "verified";
+  return OTP_VERIFIABLE.includes(platform) ? "question" : null;
 };
 
-// Inline badge: ✓ or ! in the same colour as the sibling tab label.
-// textColor is passed down so the symbol blends with the heading.
-const Badge = ({ type, textColor }) => {
+// Inline badge: ✓ / ! / ? in the same colour as the sibling tab label.
+// A "?" badge is tappable and opens the OTP verification popup.
+const Badge = ({ type, textColor, platform, onVerifyPress }) => {
   const [hovered, setHovered] = React.useState(false);
   if (!type) return null;
-  const isVerified = type === "verified";
-  return (
+  const symbol = type === "verified" ? "✓" : type === "question" ? "?" : "!";
+  const tip =
+    type === "verified" ? "Verified" : type === "question" ? "Tap to verify" : "Not Verified";
+
+  const content = (
     <View style={styles.badgeWrapper}>
       <Text
         style={[styles.badgeText, { color: textColor }]}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {isVerified ? "✓" : "!"}
+        {symbol}
       </Text>
       {hovered && (
         <View style={styles.tooltip}>
-          <Text style={styles.tooltipText}>{isVerified ? "Verified" : "Not Verified"}</Text>
+          <Text style={styles.tooltipText}>{tip}</Text>
         </View>
       )}
     </View>
   );
+
+  if (type === "question" && onVerifyPress) {
+    return (
+      <TouchableOpacity
+        onPress={() => onVerifyPress(platform)}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+  return content;
 };
 
-const NavTab = ({ setTab, tab, influencer }) => {
+const NavTab = ({ setTab, tab, influencer, onVerifyPress }) => {
   const igBadge = getBadgeType("instagram", influencer);
   const ytBadge = getBadgeType("youtube", influencer);
   const fbBadge = getBadgeType("facebook", influencer);
@@ -58,7 +86,12 @@ const NavTab = ({ setTab, tab, influencer }) => {
         >
           <View style={styles.textContainer}>
             <Text style={[styles.text, tab === "instagram" && styles.selectedText]}>Instagram</Text>
-            <Badge type={igBadge} textColor={tab === "instagram" ? activeColor : inactiveColor} />
+            <Badge
+              type={igBadge}
+              platform="instagram"
+              onVerifyPress={onVerifyPress}
+              textColor={tab === "instagram" ? activeColor : inactiveColor}
+            />
           </View>
         </TouchableOpacity>
         <TouchableOpacity
@@ -76,7 +109,12 @@ const NavTab = ({ setTab, tab, influencer }) => {
         >
           <View style={styles.textContainer}>
             <Text style={[styles.text, tab === "facebook" && styles.selectedText]}>Facebook</Text>
-            <Badge type={fbBadge} textColor={tab === "facebook" ? activeColor : inactiveColor} />
+            <Badge
+              type={fbBadge}
+              platform="facebook"
+              onVerifyPress={onVerifyPress}
+              textColor={tab === "facebook" ? activeColor : inactiveColor}
+            />
           </View>
         </TouchableOpacity>
       </View>

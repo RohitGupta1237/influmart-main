@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetInfluencerProfile } from "../../controller/InfluencerController";
 import { useAlert } from "../../util/AlertContext";
 import NavTab from "./NavTab";
+import VerifySocialModal from "./VerifySocialModal";
 import DropdownComponent from "./DropDownComponent";
 import { formatNumber } from "../../helpers/GraphData";
 import { getAllRequests } from "../../controller/connectionsController";
@@ -36,6 +37,7 @@ const UserProfile = ({ navigation }) => {
   const [requests, setRequests] = React.useState([]);
   const isFocused = useIsFocused();
   const[loading,setLoading]=React.useState(false)
+  const [verifyModal, setVerifyModal] = React.useState({ visible: false, platform: null });
   React.useEffect(() => {
     const getData = async () => {
       const id = await AsyncStorage.getItem("influencerId");
@@ -312,7 +314,12 @@ const UserProfile = ({ navigation }) => {
               </View>
           }
 
-          <NavTab setTab={setTab} tab={tab} influencer={influencer} />
+          <NavTab
+            setTab={setTab}
+            tab={tab}
+            influencer={influencer}
+            onVerifyPress={(platform) => setVerifyModal({ visible: true, platform })}
+          />
           <ScrollView style={{ flex: 1, paddingHorizontal: Padding.p_base }} showsVerticalScrollIndicator={false}>
             {tab == "instagram"
               ? instaData &&
@@ -345,6 +352,13 @@ const UserProfile = ({ navigation }) => {
         </View>
       </ScrollView>
       <Depth1Frame13 active={"list"}/>
+      <VerifySocialModal
+        visible={verifyModal.visible}
+        platform={verifyModal.platform}
+        influencerId={influencerId}
+        showAlert={showAlert}
+        onClose={() => setVerifyModal({ visible: false, platform: null })}
+      />
     </View>
   );
 };

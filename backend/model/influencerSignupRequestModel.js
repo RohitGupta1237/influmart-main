@@ -53,6 +53,9 @@ const influencerSignupRequestSchema = new mongoose.Schema(
     igAccessToken: { type: String, default: null },
     instagramOwnershipVerified: { type: Boolean, default: false },
     unverifiedAccounts: { type: [String], default: [] },
+    // Platforms verified via the manual OTP-over-DM flow (admin-approved).
+    // Kept separate from the OAuth fields so the OAuth flow is untouched.
+    otpVerifiedAccounts: { type: [String], default: [] },
     embedding: { type: [Number], default: null },
     resetPasswordToken: {
       type: String,

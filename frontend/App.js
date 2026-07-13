@@ -26,6 +26,7 @@ import PlanChooseInterface from "./screens/Influencer/PlanChooseInterface";
 import LoginPageBrand from "./screens/login/LoginPageBrands";
 import BrandAssosciated from "./screens/BrandsAssosciated";
 import AdminPanel from "./screens/AdminPanel";
+import SocialVerificationAdmin from "./screens/SocialVerificationAdmin";
 import FilterUI from "./screens/FiltersUI";
 import BrandAccountSignupDataPreview from "./screens/BrandAccountSignupDataPreview";
 import BrandRegistrationForm from "./screens/signup/BrandRegistrationForm";
@@ -220,6 +221,11 @@ const App = () => {
                 <Stack.Screen
                   name="AdminPanel"
                   component={AdminPanel}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="SocialVerificationAdmin"
+                  component={SocialVerificationAdmin}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

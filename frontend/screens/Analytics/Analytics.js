@@ -29,6 +29,8 @@ import { useAlert } from "../../util/AlertContext";
 import { GetInfluencerProfile, UpdateInfluencerDescription, UpdateInfluencerHashtags, UpdateInfluencerPrice } from "../../controller/InfluencerController";
 import {sendRequest} from "../../controller/connectionsController"
 import Loader from '../../shared/Loader';
+import VerifySocialModal from "../UserProfile/VerifySocialModal";
+import FetchStatsModal from "../UserProfile/FetchStatsModal";
 
 const AnalyticsBadge = ({ symbol, textColor }) => {
   const [hovered, setHovered] = React.useState(false);
@@ -50,7 +52,7 @@ const AnalyticsBadge = ({ symbol, textColor }) => {
           minWidth: 70, alignItems: "center",
         }}>
           <Text style={{ color: "#fff", fontSize: 11, fontWeight: "600", whiteSpace: "nowrap" }}>
-            {symbol === "✓" ? "Verified" : "Not Verified"}
+            {symbol === "✓" ? "Verified" : symbol === "?" ? "Tap to verify" : "Not Verified"}
           </Text>
         </View>
       )}
@@ -114,6 +116,8 @@ const Analytics = ({ route, navigation }) => {
   const [roiPlatform, setRoiPlatform] = React.useState("instagram")
   const [roiResult, setRoiResult] = React.useState(null)
   const [showProductDropdown, setShowProductDropdown] = React.useState(false)
+  const [verifyModal, setVerifyModal] = React.useState({ visible: false, platform: null })
+  const [fetchModal, setFetchModal] = React.useState({ visible: false, platform: null, username: "" })
 
   const productTypes = [
     { label: "Fashion / Beauty", value: "Fashion/Beauty", convRate: 0.015 },
@@ -280,6 +284,21 @@ const Analytics = ({ route, navigation }) => {
     };
     getData();
   }, [influencerId, clickedId]);
+
+  // Re-pull social data + profile after a fresh fetch so the columns update.
+  const reloadSocial = async () => {
+    const getId = clickedId || myOwnId;
+    if (!getId) return;
+    GetInfluencerProfile(getId, (profileData) => setInfluencer(profileData), showAlert);
+    try {
+      const data = await getSocialData(getId, showAlert);
+      setFbData(transformFB(data).fbdata);
+      setInstaData(transformIG(data).instadata);
+      setSocialData(data);
+    } catch (e) {
+      console.log("reloadSocial error:", e);
+    }
+  };
 
   const processTag = (tag) => {
     const splitTag = tag.split(/[-\s]/);
@@ -506,20 +525,56 @@ const Analytics = ({ route, navigation }) => {
               ].map(({ key, label }) => {
                 const isSelected = tab === key;
                 const textColor = isSelected ? "black" : "#637087";
+                const otpVerified = influencer?.otpVerifiedAccounts || [];
                 const unverified = influencer?.unverifiedAccounts || [];
-                const badgeType = unverified.includes(key)
-                  ? "!"
-                  : key === "instagram"
-                  ? influencer?.instaData?.length > 0 ? "✓" : null
-                  : key === "youtube"
-                  ? influencer?.ytData != null ? "✓" : null
-                  : influencer?.fbData?.length > 0 ? "✓" : null;
+                const otpVerifiable = key === "instagram" || key === "facebook";
+                const hasData =
+                  key === "instagram"
+                    ? influencer?.instaData?.length > 0
+                    : key === "youtube"
+                    ? influencer?.ytData != null
+                    : influencer?.fbData?.length > 0;
+
+                let badgeType;
+                if (otpVerified.includes(key)) badgeType = "✓";
+                else if (unverified.includes(key)) badgeType = otpVerifiable ? "?" : "!";
+                else if (hasData) badgeType = "✓";
+                else badgeType = otpVerifiable ? "?" : null;
+
+                // The "?" is tappable only on the owner's own profile.
+                const canVerify = badgeType === "?" && isOwnProfile;
                 return (
                   <TouchableOpacity key={key} onPress={() => setTab(key)}>
                     <View style={[styles.navItems, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
                       <Text style={[styles.navText, isSelected && styles.navSelectText]}>{label}</Text>
                       {badgeType && (
-                        <AnalyticsBadge symbol={badgeType} textColor={textColor} />
+                        canVerify ? (
+                          <TouchableOpacity
+                            onPress={() => setVerifyModal({ visible: true, platform: key })}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <AnalyticsBadge symbol={badgeType} textColor={textColor} />
+                          </TouchableOpacity>
+                        ) : (
+                          <AnalyticsBadge symbol={badgeType} textColor={textColor} />
+                        )
+                      )}
+                      {badgeType === "✓" && otpVerifiable && isOwnProfile && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            setFetchModal({
+                              visible: true,
+                              platform: key,
+                              username:
+                                key === "instagram"
+                                  ? influencer?.instaProfile
+                                  : influencer?.facebookProfile,
+                            })
+                          }
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={{ fontSize: 13, fontWeight: "700", color: textColor }}>↻</Text>
+                        </TouchableOpacity>
                       )}
                     </View>
                   </TouchableOpacity>
@@ -756,6 +811,22 @@ const Analytics = ({ route, navigation }) => {
           </View>
         </View>
       </ScrollView>
+      <VerifySocialModal
+        visible={verifyModal.visible}
+        platform={verifyModal.platform}
+        influencerId={myOwnId}
+        showAlert={showAlert}
+        onClose={() => setVerifyModal({ visible: false, platform: null })}
+      />
+      <FetchStatsModal
+        visible={fetchModal.visible}
+        platform={fetchModal.platform}
+        username={fetchModal.username}
+        influencerId={myOwnId}
+        showAlert={showAlert}
+        onSuccess={reloadSocial}
+        onClose={() => setFetchModal({ visible: false, platform: null, username: "" })}
+      />
     </View>
   );
 };
