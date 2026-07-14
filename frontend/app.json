@@ -58,7 +58,6 @@
     "plugins": [
       "expo-font",
       "expo-image-picker",
-      "expo-dev-client",
       "expo-asset",
       [
         "expo-location",

@@ -164,7 +164,7 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
 
       // Use Google Geocoding API — works on web, iOS and Android
       const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyB1VXXbx0lvqZYImnPGhGz3BtjSF1oyFsM`
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY || "AIzaSyB1VXXbx0lvqZYImnPGhGz3BtjSF1oyFsM"}`
       );
       const data = await response.json();
 
@@ -196,9 +196,9 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
         email &&
         emailVerified &&
         password &&
-        username &&
+        username
         //location &&  // In production, location is mandatory. But for testing, it is optional. in production, uncomment this line
-        social
+        // social profiles are optional — no longer required to submit
     ) {
       setIsFormValid(true);
     } else {
@@ -490,9 +490,8 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
                   <Text style={styles.sectionHeaderText}>
                     Add social profiles
                   </Text>
-                  <Text style={styles.madantoryText}>*</Text>
                 </View>
-                <Text style={styles.desc}>Atleast one field is mandatory</Text>
+                <Text style={styles.desc}>You can also add these later from your profile</Text>
               </View>
               <TouchableOpacity
                   onPress={() => {

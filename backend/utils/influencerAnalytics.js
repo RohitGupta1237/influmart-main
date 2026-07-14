@@ -1,6 +1,36 @@
 const axios = require("axios");
 const config = require("../config/configs");
 
+// RapidAPI request with automatic key rotation.
+// Tries each key in config.X_RAPIDAPI_KEYS; on 429 (quota) or 403 (forbidden)
+// it moves to the next key. Other errors are thrown immediately.
+const rapidRequest = async (options) => {
+  const keys =
+    config.X_RAPIDAPI_KEYS && config.X_RAPIDAPI_KEYS.length
+      ? config.X_RAPIDAPI_KEYS
+      : [config.X_RAPIDAPI_KEY];
+  let lastErr;
+  for (let i = 0; i < keys.length; i++) {
+    try {
+      return await axios.request({
+        ...options,
+        headers: { ...(options.headers || {}), "x-rapidapi-key": keys[i] },
+      });
+    } catch (e) {
+      const status = e?.response?.status;
+      lastErr = e;
+      if (status === 429 || status === 403) {
+        console.warn(
+          `[rapidRequest] key #${i + 1}/${keys.length} unavailable (status ${status}); trying next key`
+        );
+        continue;
+      }
+      throw e; // non-quota error — don't waste other keys
+    }
+  }
+  throw lastErr;
+};
+
 const trackingData = () => {
   const now = new Date();
   const monthNames = [
@@ -33,13 +63,12 @@ const InstagramData = async (instagramId) => {
       url: `https://www.instagram.com/${instagramId}/`
     },
     headers: {
-      "x-rapidapi-key": config.X_RAPIDAPI_KEY,
       "x-rapidapi-host": config.X_RAPIDAPI_HOST_INSTA,
     },
   };
-  
+
   try {
-    const response = await axios.request(options);
+    const response = await rapidRequest(options);
     console.log(`[InstagramData] handle=${instagramId} status=${response.status} keys=${Object.keys(response.data || {}).join(",")}`);
     console.log(`[InstagramData] data keys=${Object.keys(response.data?.data || {}).join(",")}`);
     if(response.status !== 200) return {}
@@ -290,13 +319,14 @@ const InstagramGraphData = async (igAccountId, accessToken) => {
 //facebook
 const facebookData = async (facebookUrl) => {
   const headers = {
-    "x-rapidapi-key": config.X_RAPIDAPI_KEY,
     "x-rapidapi-host": config.X_RAPIDAPI_HOST_FB,
   };
 
   try {
     // Fetch page info (followers, bio etc.)
-    const pageRes = await axios.get(config.FB_ENDPOINT, {
+    const pageRes = await rapidRequest({
+      method: "GET",
+      url: config.FB_ENDPOINT,
       params: { link: facebookUrl },
       headers,
     });
@@ -312,10 +342,14 @@ const facebookData = async (facebookUrl) => {
 
     try {
       const [postsRes, reelsRes] = await Promise.allSettled([
-        axios.get(`https://${config.X_RAPIDAPI_HOST_FB}/get_facebook_posts_details`, {
+        rapidRequest({
+          method: "GET",
+          url: `https://${config.X_RAPIDAPI_HOST_FB}/get_facebook_posts_details`,
           params: { link: facebookUrl, timezone: "UTC" }, headers,
         }),
-        axios.get(`https://${config.X_RAPIDAPI_HOST_FB}/get_facebook_reels_details`, {
+        rapidRequest({
+          method: "GET",
+          url: `https://${config.X_RAPIDAPI_HOST_FB}/get_facebook_reels_details`,
           params: { link: facebookUrl }, headers,
         }),
       ]);

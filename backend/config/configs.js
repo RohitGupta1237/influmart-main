@@ -8,6 +8,13 @@ const configs = {
   BASE_URL: process.env.BASE_URL,
   CLIENT_URL: process.env.CLIENT_URL,
   X_RAPIDAPI_KEY: process.env.X_RAPIDAPI_KEY,
+  // Optional comma-separated fallback keys. If one is exhausted (429) or
+  // forbidden (403), the next is tried automatically. Falls back to the
+  // single X_RAPIDAPI_KEY when X_RAPIDAPI_KEYS is not set.
+  X_RAPIDAPI_KEYS: (process.env.X_RAPIDAPI_KEYS || process.env.X_RAPIDAPI_KEY || "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean),
   X_RAPIDAPI_HOST_INSTA: process.env.X_RAPIDAPI_HOST_INSTA,
   X_RAPIDAPI_HOST_YT: process.env.X_RAPIDAPI_HOST_YT,
   X_RAPIDAPI_HOST_YT_STAT: process.env.X_RAPIDAPI_HOST_YT_STAT,

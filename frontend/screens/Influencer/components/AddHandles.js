@@ -379,7 +379,7 @@ const AddHandles = ({ route, navigation }) => {
 
       const state = Math.random().toString(36).substring(2, 18);
       const result = await WebBrowser.openAuthSessionAsync(
-        `http://127.0.0.1:3000/auth/youtube?state=${state}&influencerId=${influencerId}`,
+        `${API_ENDPOINT}/auth/youtube?state=${state}&influencerId=${influencerId}`,
         "influmart://"
       );
 
@@ -428,7 +428,7 @@ const AddHandles = ({ route, navigation }) => {
     try {
       const state = Math.random().toString(36).substring(2, 18);
       const result = await WebBrowser.openAuthSessionAsync(
-        `http://127.0.0.1:3000/auth/twitter?state=${state}`,
+        `${API_ENDPOINT}/auth/twitter?state=${state}`,
         "influmart://"
       );
 

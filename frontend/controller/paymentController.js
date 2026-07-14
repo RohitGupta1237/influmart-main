@@ -3,7 +3,7 @@ import RazorpayCheckout from "react-native-razorpay";
 import { subscribe, renewSubscription } from "./subscriptionController";
 import { createCollabPost } from "./collabOpenController";
 import API_ENDPOINT from "../config";
-const RAZORPAY_KEY_ID = "rzp_test_Sh0EeBoIs61uzZ";
+const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_Sh0EeBoIs61uzZ";
 
 // ─── Create order ─────────────────────────────────────────────────────────────
 // type: 'subscription' | 'renewal' | 'campaign'
