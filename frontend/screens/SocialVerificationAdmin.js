@@ -17,6 +17,7 @@ import {
   approveVerification,
   rejectVerification,
 } from "../controller/socialVerificationController";
+import { getAllCoupons, setCoupon } from "../controller/couponController";
 
 // Admin-only screen to moderate manual social-verification requests.
 // Gated by an admin secret (matches ADMIN_SECRET on the backend).
@@ -27,6 +28,7 @@ const SocialVerificationAdmin = () => {
   const [authed, setAuthed] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [requests, setRequests] = React.useState([]);
+  const [coupons, setCoupons] = React.useState([]);
 
   React.useEffect(() => {
     (async () => {
@@ -45,12 +47,23 @@ const SocialVerificationAdmin = () => {
       setRequests(data);
       setAuthed(true);
       await AsyncStorage.setItem("adminSecret", sec);
+      try { setCoupons(await getAllCoupons(sec)); } catch (e) {}
     } catch (err) {
       const msg = err?.response?.status === 401 ? "Wrong admin secret" : "Failed to load";
       showAlert("Error", msg);
       setAuthed(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Toggle a coupon: activating deactivates the others; tapping an active one closes it.
+  const toggleCoupon = async (coupon) => {
+    try {
+      const updated = await setCoupon(coupon.code, !coupon.active, secret);
+      setCoupons(updated);
+    } catch (err) {
+      showAlert("Error", err?.response?.data?.message || "Failed to update coupon");
     }
   };
 
@@ -100,6 +113,29 @@ const SocialVerificationAdmin = () => {
             <Text style={styles.refreshText}>{loading ? "Refreshing..." : "↻ Refresh"}</Text>
           </TouchableOpacity>
 
+          {/* Coupons */}
+          <Text style={styles.sectionTitle}>Discount Coupons</Text>
+          <Text style={styles.sectionHint}>
+            Activate one coupon — users see it in the subscription screen. Tap the active one to close it.
+          </Text>
+          <View style={styles.couponRow}>
+            {coupons.map((c) => (
+              <TouchableOpacity
+                key={c.code}
+                style={[styles.couponBtn, c.active && styles.couponBtnActive]}
+                onPress={() => toggleCoupon(c)}
+              >
+                <Text style={[styles.couponBtnText, c.active && styles.couponBtnTextActive]}>
+                  {c.label}
+                </Text>
+                <Text style={[styles.couponState, c.active && styles.couponStateActive]}>
+                  {c.active ? "ACTIVE — tap to close" : "tap to activate"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Verification Requests</Text>
           {requests.length === 0 && (
             <Text style={styles.empty}>No pending requests.</Text>
           )}
@@ -179,6 +215,22 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: Color.colorWhite, fontWeight: "700" },
   refresh: { alignSelf: "flex-end", marginBottom: 12 },
   refreshText: { color: "#1A80E5", fontSize: 14 },
+  sectionTitle: {
+    color: Color.colorWhite, fontSize: 16, fontWeight: "700",
+    marginTop: 8, marginBottom: 4,
+  },
+  sectionHint: { color: "#888", fontSize: 12, marginBottom: 12 },
+  couponRow: { flexDirection: "row", gap: 8, marginBottom: 24, flexWrap: "wrap" },
+  couponBtn: {
+    flex: 1, minWidth: 90, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 8,
+    alignItems: "center", backgroundColor: "#1c1c1e",
+    borderWidth: 1, borderColor: Color.colorDarkslategray_100 || "#333",
+  },
+  couponBtnActive: { backgroundColor: "#1e9e5a", borderColor: "#1e9e5a" },
+  couponBtnText: { color: Color.colorWhite, fontWeight: "700", fontSize: 15 },
+  couponBtnTextActive: { color: Color.colorWhite },
+  couponState: { color: "#888", fontSize: 10, marginTop: 4, textAlign: "center" },
+  couponStateActive: { color: "#eaffea" },
   empty: { color: Color.colorLightgray, textAlign: "center", marginTop: 40 },
   card: {
     backgroundColor: "#1c1c1e",

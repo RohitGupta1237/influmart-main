@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Text, StyleSheet, View, ScrollView, TouchableOpacity, TextInput,
 } from "react-native";
@@ -8,7 +8,9 @@ import { useAlert } from "../../util/AlertContext";
 import Loader from "../../shared/Loader";
 import CountryCurrencyPicker from "../../shared/CountryCurrencyPicker";
 import { handlePayment } from "../../controller/paymentController";
-import { applyCoupon, getDiscountedPrice } from "../../util/couponUtil";
+import { createCollabPost } from "../../controller/collabOpenController";
+import { getDiscountedPrice } from "../../util/couponUtil";
+import { fetchActiveCoupon } from "../../controller/couponController";
 
 const BASE_PRICE = 499;
 
@@ -23,20 +25,31 @@ const CollabOpenPayment = ({ route, navigation }) => {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+  const [activeCoupon, setActiveCoupon] = useState(null);
+
+  useEffect(() => {
+    fetchActiveCoupon().then(setActiveCoupon);
+  }, []);
 
   const finalPrice = appliedCoupon
     ? getDiscountedPrice(BASE_PRICE, appliedCoupon.discount)
     : BASE_PRICE;
 
+  const applyActiveCoupon = () => {
+    if (!activeCoupon) return;
+    setAppliedCoupon(activeCoupon);
+    setCouponInput(activeCoupon.code);
+    setCouponMessage(`Coupon applied! ${activeCoupon.label}`);
+  };
+
   const handleApplyCoupon = () => {
-    if (!couponInput.trim()) return;
-    const result = applyCoupon(couponInput);
-    if (result.valid) {
-      setAppliedCoupon(result);
-      setCouponMessage(result.message);
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    if (activeCoupon && code === activeCoupon.code) {
+      applyActiveCoupon();
     } else {
       setAppliedCoupon(null);
-      setCouponMessage(result.message);
+      setCouponMessage("Invalid or expired coupon code");
     }
   };
 
@@ -49,6 +62,12 @@ const CollabOpenPayment = ({ route, navigation }) => {
   const initiatePayment = async () => {
     setLoading(true);
     try {
+      // 100% off coupon → skip Razorpay, post the campaign for free.
+      if (finalPrice === 0) {
+        await createCollabPost(payload, showAlert, navigation);
+        setLoading(false);
+        return;
+      }
       const subscription = { amount: finalPrice, notSave: true };
       const augmentedPayload = {
         ...payload,
@@ -133,6 +152,11 @@ const CollabOpenPayment = ({ route, navigation }) => {
         {/* Coupon Section */}
         <View style={couponStyles.container}>
           <Text style={couponStyles.label}>Have a coupon code?</Text>
+          {activeCoupon && !appliedCoupon && (
+            <TouchableOpacity style={couponStyles.offerChip} onPress={applyActiveCoupon}>
+              <Text style={couponStyles.offerChipText}>🎟  {activeCoupon.label} available — tap to apply</Text>
+            </TouchableOpacity>
+          )}
           <View style={couponStyles.row}>
             <TextInput
               style={[couponStyles.input, appliedCoupon && couponStyles.inputApplied]}
@@ -186,6 +210,11 @@ const couponStyles = StyleSheet.create({
     marginBottom: 16, borderWidth: 1, borderColor: "#eee",
   },
   label: { fontSize: 13, fontWeight: "600", color: "#555", marginBottom: 10 },
+  offerChip: {
+    backgroundColor: "#eef6ff", borderWidth: 1, borderColor: "#1A80E5",
+    borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 10,
+  },
+  offerChipText: { color: "#1A80E5", fontWeight: "700", fontSize: 13 },
   row: { flexDirection: "row", gap: 8 },
   input: {
     flex: 1, backgroundColor: "#fff", borderWidth: 1, borderColor: "#ddd",

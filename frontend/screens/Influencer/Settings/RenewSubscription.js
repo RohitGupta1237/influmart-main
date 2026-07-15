@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
 } from "react-native";
@@ -7,10 +7,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PlanBox from "../../../shared/PlansBox";
 import { handleRenewalPayment } from "../../../controller/paymentController";
 import { GetInfluencerProfile } from "../../../controller/InfluencerController";
+import { renewSubscription } from "../../../controller/subscriptionController";
 import { useAlert } from "../../../util/AlertContext";
 import Loader from "../../../shared/Loader";
 import { Color, FontSize, FontFamily, Padding } from "../../../GlobalStyles";
-import { applyCoupon, getDiscountedPrice } from "../../../util/couponUtil";
+import { getDiscountedPrice } from "../../../util/couponUtil";
+import { fetchActiveCoupon } from "../../../controller/couponController";
 
 const PLAN_DATA = { halfYearly: 499, quarterly: 299, annually: 899 };
 
@@ -21,22 +23,33 @@ const RenewSubscription = ({ navigation }) => {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+  const [activeCoupon, setActiveCoupon] = useState(null);
   const { showAlert } = useAlert();
 
+  useEffect(() => {
+    fetchActiveCoupon().then(setActiveCoupon);
+  }, []);
+
   const originalPrice = selectedPlan ? parseInt(selectedPlan.price) : null;
-  const finalPrice = appliedCoupon && originalPrice
+  const finalPrice = appliedCoupon && originalPrice != null
     ? getDiscountedPrice(originalPrice, appliedCoupon.discount)
     : originalPrice;
 
+  const applyActiveCoupon = () => {
+    if (!activeCoupon) return;
+    setAppliedCoupon(activeCoupon);
+    setCouponInput(activeCoupon.code);
+    setCouponMessage(`Coupon applied! ${activeCoupon.label}`);
+  };
+
   const handleApplyCoupon = () => {
-    if (!couponInput.trim()) return;
-    const result = applyCoupon(couponInput);
-    if (result.valid) {
-      setAppliedCoupon(result);
-      setCouponMessage(result.message);
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    if (activeCoupon && code === activeCoupon.code) {
+      applyActiveCoupon();
     } else {
       setAppliedCoupon(null);
-      setCouponMessage(result.message);
+      setCouponMessage("Invalid or expired coupon code");
     }
   };
 
@@ -58,6 +71,24 @@ const RenewSubscription = ({ navigation }) => {
       const userName = profile?.userName;
       const email = profile?.email;
 
+      // 100% off coupon → skip Razorpay, renew for free.
+      if (finalPrice === 0) {
+        const ok = await renewSubscription(
+          {
+            userName,
+            plan: selectedPlan.plan,
+            amount: "0",
+            paymentMode: JSON.stringify({ razorpay_payment_id: null, coupon: appliedCoupon?.code }),
+          },
+          showAlert
+        );
+        if (ok) {
+          showAlert("Success", "Subscription renewed with 100% off coupon!");
+          navigation.navigate("AdminPanel");
+        }
+        setLoading(false);
+        return;
+      }
       const subscription = {
         userName,
         plan: selectedPlan.plan,
@@ -116,6 +147,11 @@ const RenewSubscription = ({ navigation }) => {
         {/* Coupon Section */}
         <View style={styles.couponContainer}>
           <Text style={styles.couponLabel}>Have a coupon code?</Text>
+          {activeCoupon && !appliedCoupon && (
+            <TouchableOpacity style={styles.offerChip} onPress={applyActiveCoupon}>
+              <Text style={styles.offerChipText}>🎟  {activeCoupon.label} available — tap to apply</Text>
+            </TouchableOpacity>
+          )}
           <View style={styles.couponRow}>
             <TextInput
               style={[styles.couponInput, appliedCoupon && styles.couponInputApplied]}
@@ -193,6 +229,11 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "#eee",
   },
   couponLabel: { fontSize: 13, fontWeight: "600", color: "#555", marginBottom: 10 },
+  offerChip: {
+    backgroundColor: "#eef6ff", borderWidth: 1, borderColor: "#1A80E5",
+    borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 10,
+  },
+  offerChipText: { color: "#1A80E5", fontWeight: "700", fontSize: 13 },
   couponRow: { flexDirection: "row", gap: 8 },
   couponInput: {
     flex: 1, backgroundColor: "#fff", borderWidth: 1, borderColor: "#ddd",

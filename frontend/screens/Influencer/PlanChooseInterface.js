@@ -13,7 +13,9 @@ import {
   getSubscriptionPlans,
 } from "../../controller/subscriptionController";
 import { handlePayment } from "../../controller/paymentController";
-import { applyCoupon, getDiscountedPrice } from "../../util/couponUtil";
+import { subscribe } from "../../controller/subscriptionController";
+import { getDiscountedPrice } from "../../util/couponUtil";
+import { fetchActiveCoupon } from "../../controller/couponController";
 import { PlanChooseInterfaceStyles } from "./PlanChooseInterface.scss";
 import { useAlert } from "../../util/AlertContext";
 import Loader from '../../shared/Loader';
@@ -29,21 +31,28 @@ const PlanChooseInterface = ({ route, navigation }) => {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+  const [activeCoupon, setActiveCoupon] = useState(null);
 
   const originalPrice = selectedPlan ? parseInt(selectedPlan.price) : null;
-  const finalPrice = appliedCoupon && originalPrice
+  const finalPrice = appliedCoupon && originalPrice != null
     ? getDiscountedPrice(originalPrice, appliedCoupon.discount)
     : originalPrice;
 
+  const applyActiveCoupon = () => {
+    if (!activeCoupon) return;
+    setAppliedCoupon(activeCoupon);
+    setCouponInput(activeCoupon.code);
+    setCouponMessage(`Coupon applied! ${activeCoupon.label}`);
+  };
+
   const handleApplyCoupon = () => {
-    if (!couponInput.trim()) return;
-    const result = applyCoupon(couponInput);
-    if (result.valid) {
-      setAppliedCoupon(result);
-      setCouponMessage(result.message);
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    if (activeCoupon && code === activeCoupon.code) {
+      applyActiveCoupon();
     } else {
       setAppliedCoupon(null);
-      setCouponMessage(result.message);
+      setCouponMessage("Invalid or expired coupon code");
     }
   };
 
@@ -60,6 +69,19 @@ const PlanChooseInterface = ({ route, navigation }) => {
     }
     setLoading(true);
     try {
+      // 100% off coupon → skip Razorpay, grant the subscription for free.
+      if (finalPrice === 0) {
+        const freeSubs = {
+          userName: payload?.userName,
+          plan:     selectedPlan?.plan || "free",
+          isFree:   false,
+          amount:   0,
+          paymentMode: JSON.stringify({ razorpay_payment_id: null, coupon: appliedCoupon?.code }),
+        };
+        await subscribe(freeSubs, payload, navigation);
+        setLoading(false);
+        return;
+      }
       // Dates are calculated on the backend — only send plan + amount
       const subscription = {
         userName: payload?.userName,
@@ -102,6 +124,7 @@ const PlanChooseInterface = ({ route, navigation }) => {
     };
 
     getPlans();
+    fetchActiveCoupon().then(setActiveCoupon);
   }, []);
   return (
     <ScrollView style={styles.container}>
@@ -203,6 +226,11 @@ const PlanChooseInterface = ({ route, navigation }) => {
         {/* Coupon Section */}
         <View style={couponStyles.container}>
           <Text style={couponStyles.label}>Have a coupon code?</Text>
+          {activeCoupon && !appliedCoupon && (
+            <TouchableOpacity style={couponStyles.offerChip} onPress={applyActiveCoupon}>
+              <Text style={couponStyles.offerChipText}>🎟  {activeCoupon.label} available — tap to apply</Text>
+            </TouchableOpacity>
+          )}
           <View style={couponStyles.row}>
             <TextInput
               style={[couponStyles.input, appliedCoupon && couponStyles.inputApplied]}
@@ -269,6 +297,11 @@ const couponStyles = StyleSheet.create({
     marginBottom: 16, borderWidth: 1, borderColor: "#eee",
   },
   label: { fontSize: 13, fontWeight: "600", color: "#555", marginBottom: 10 },
+  offerChip: {
+    backgroundColor: "#eef6ff", borderWidth: 1, borderColor: "#1A80E5",
+    borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 10,
+  },
+  offerChipText: { color: "#1A80E5", fontWeight: "700", fontSize: 13 },
   row: { flexDirection: "row", gap: 8 },
   input: {
     flex: 1, backgroundColor: "#fff", borderWidth: 1, borderColor: "#ddd",
