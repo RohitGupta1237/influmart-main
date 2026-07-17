@@ -19,7 +19,9 @@ const rapidRequest = async (options) => {
     } catch (e) {
       const status = e?.response?.status;
       lastErr = e;
-      if (status === 429 || status === 403) {
+      // 429 = quota exhausted, 403 = forbidden, 405 = provider disabled access
+      // for that key/subscription — in all cases try the next key.
+      if (status === 429 || status === 403 || status === 405) {
         console.warn(
           `[rapidRequest] key #${i + 1}/${keys.length} unavailable (status ${status}); trying next key`
         );
@@ -215,6 +217,139 @@ const InstagramGraphData = async (igAccountId, accessToken) => {
 };
 
 //InstagramData("mrbeast");
+
+// ---- Instagram historical (6-month) backfill via Retrospective ----
+// artemlipko exposes two endpoints on the same host:
+//   /community                → Profile-by-URL: cid + current stats + demographics
+//   /statistics/retrospective → daily time-series (per-day deltas + cumulative usersCount)
+// buildInstagramHistory combines them into up to 6 monthly instaData snapshots
+// matching the exact shape InstagramData produces, so the IG graph fills all
+// six months instantly (the same way the YouTube Analytics cron backfills ytData).
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+// "DD.MM.YYYY" → { year, month(0-11) }
+const parseRetroDate = (s) => {
+  const [d, m, y] = String(s).split(".").map(Number);
+  return { year: y, month: m - 1 };
+};
+
+// /community (Profile-by-URL) → raw data object (cid + stats + demographics).
+// The artemlipko endpoint is multi-platform: pass any instagram.com OR
+// facebook.com URL and it returns that platform's cid (INST:… / FB:…).
+const fetchCommunityByUrl = async (url) => {
+  const res = await rapidRequest({
+    method: "GET",
+    url: config.INSTA_ENDPOINT,
+    params: { url },
+    headers: { "x-rapidapi-host": config.X_RAPIDAPI_HOST_INSTA },
+  });
+  if (res.status !== 200) return null;
+  return res.data?.data || null;
+};
+
+const fetchIgProfile = (handle) =>
+  fetchCommunityByUrl(`https://www.instagram.com/${handle}/`);
+
+// /statistics/retrospective → daily series array (data.series.current)
+const fetchIgRetrospective = async (cid, fromDate, toDate) => {
+  const fmt = (dt) =>
+    `${String(dt.getDate()).padStart(2, "0")}.${String(dt.getMonth() + 1).padStart(2, "0")}.${dt.getFullYear()}`;
+  const res = await rapidRequest({
+    method: "GET",
+    url: `https://${config.X_RAPIDAPI_HOST_INSTA}/statistics/retrospective`,
+    params: { cid, from: fmt(fromDate), to: fmt(toDate) },
+    headers: { "x-rapidapi-host": config.X_RAPIDAPI_HOST_INSTA },
+  });
+  if (res.status !== 200) return [];
+  return res.data?.data?.series?.current || [];
+};
+
+// Build up to `months` monthly instaData snapshots (oldest → newest).
+// Falls back to a single live InstagramData snapshot when the account has no
+// cid / a sparse (COLLECTING) history, so nothing breaks for new accounts.
+const buildInstagramHistory = async (handle, months = 10) => {
+  try {
+    const profile = await fetchIgProfile(handle);
+    if (!profile || !profile.cid) {
+      const snap = await InstagramData(handle);
+      return snap && Object.keys(snap).length ? [snap] : [];
+    }
+
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+    const series = await fetchIgRetrospective(profile.cid, from, now);
+
+    // Group daily points by calendar month.
+    const buckets = new Map();
+    for (const pt of series) {
+      const { year, month } = parseRetroDate(pt.date);
+      const key = `${year}-${month}`;
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(pt);
+    }
+
+    const history = [];
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const days = buckets.get(`${d.getFullYear()}-${d.getMonth()}`);
+      if (!days || !days.length) continue; // skip months with no data
+
+      const last = days[days.length - 1];
+      const totPosts = days.reduce((s, x) => s + (x.deltaPosts || 0), 0);
+      const totLikes = days.reduce((s, x) => s + (x.deltaLikes || 0), 0);
+      const totComments = days.reduce((s, x) => s + (x.deltaComments || 0), 0);
+      const totInteractions = days.reduce((s, x) => s + (x.deltaInteractions || 0), 0);
+
+      history.push({
+        followers: last.usersCount,
+        avgER: last.avgER,
+        avgInteractions: totPosts ? Math.round(totInteractions / totPosts) : 0,
+        avgLikes: totPosts ? Math.round(totLikes / totPosts) : 0,
+        avgComments: totPosts ? Math.round(totComments / totPosts) : 0,
+        postsCount: totPosts,
+        qualityScore: last.qualityScore || 0,
+        trackingDate: `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`,
+      });
+    }
+
+    // Retrospective empty/sparse → fall back to a single live snapshot.
+    if (!history.length) {
+      const snap = await InstagramData(handle);
+      return snap && Object.keys(snap).length ? [snap] : [];
+    }
+
+    // Retrospective carries no demographics/tags, but the UI reads those off
+    // instaData snapshots by index (e.g. instaData[0]). To match the previous
+    // behaviour — where every snapshot stored the current demographics — attach
+    // them to ALL months. Only the numeric time-series (followers, avg*) stays
+    // per-month so the graph shows real history.
+    const demographics = {
+      memberCities: profile.membersCities,
+      ages: profile.ages,
+      genders: profile.genders,
+      lastPosts: profile.lastPosts,
+      membersReachability: profile.membersReachability,
+      tags: profile.tags,
+    };
+    history.forEach((snap) => Object.assign(snap, demographics));
+
+    // NOTE: the numeric series (followers, avgER, avgLikes, avgComments,
+    // avgInteractions, qualityScore) is left as the RETROSPECTIVE value for
+    // every month — including the latest — so all points are computed the same
+    // way and the last point never "jumps". /community is used ONLY for the
+    // demographics the retrospective doesn't provide (attached above).
+
+    return history.slice(-months);
+  } catch (error) {
+    console.log("[buildInstagramHistory] error:", error.message);
+    const snap = await InstagramData(handle);
+    return snap && Object.keys(snap).length ? [snap] : [];
+  }
+};
 
 // //yt-api
 // const YoutubeData = async (youtubeId) => {
@@ -428,7 +563,91 @@ const facebookData = async (facebookUrl) => {
 
 //facebookData("https://www.facebook.com/MrBeast6000");
 
-module.exports = {facebookData,InstagramData,InstagramGraphData,trackingData}
+// ---- Facebook historical (6-month) backfill — HYBRID ----
+// facebook-pages-scraper2 gives the current post/reel breakdown (reels have no
+// history anywhere), while artemlipko's retrospective gives the follower &
+// post-engagement trend. We combine them: retrospective builds the monthly
+// series, and the scraper snapshot is merged onto the newest month (real reels
+// + accurate current values). Falls back to the plain scraper snapshot when the
+// account has no cid / a sparse history.
+const buildFacebookHistory = async (fbUrl, months = 10) => {
+  let scraper = {};
+  try {
+    scraper = (await facebookData(fbUrl)) || {};
+    // facebookData() returns avgER already as a percentage (engagements/
+    // followers*100); every other path here (retrospective) stores avgER as a
+    // fraction and transformFB multiplies ×100. Normalise the scraper's value
+    // to a fraction ONCE so all paths — merge AND fallback — stay consistent
+    // and never show a 100×-inflated ER.
+    if (typeof scraper.avgER === "number") scraper.avgER = scraper.avgER / 100;
+    const profile = await fetchCommunityByUrl(fbUrl);
+    if (!profile || !profile.cid) {
+      return Object.keys(scraper).length ? [scraper] : [];
+    }
+
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+    const series = await fetchIgRetrospective(profile.cid, from, now);
+
+    const buckets = new Map();
+    for (const pt of series) {
+      const { year, month } = parseRetroDate(pt.date);
+      const key = `${year}-${month}`;
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(pt);
+    }
+
+    const history = [];
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const days = buckets.get(`${d.getFullYear()}-${d.getMonth()}`);
+      if (!days || !days.length) continue;
+
+      const last = days[days.length - 1];
+      const totPosts = days.reduce((s, x) => s + (x.deltaPosts || 0), 0);
+      const totLikes = days.reduce((s, x) => s + (x.deltaLikes || 0), 0);
+      const totComments = days.reduce((s, x) => s + (x.deltaComments || 0), 0);
+      const totShares = days.reduce((s, x) => s + (x.deltaRePosts || 0), 0);
+
+      history.push({
+        followers: last.usersCount,
+        avgER: last.avgER,
+        avgPostReactions: totPosts ? Math.round(totLikes / totPosts) : 0,
+        avgPostComments: totPosts ? Math.round(totComments / totPosts) : 0,
+        avgPostShares: totPosts ? Math.round(totShares / totPosts) : 0,
+        postsCount: totPosts,
+        qualityScore: last.qualityScore || 0,
+        trackingData: `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`,
+      });
+    }
+
+    if (!history.length) {
+      return Object.keys(scraper).length ? [scraper] : [];
+    }
+
+    // Use the scraper ONLY for what the retrospective can't provide: reel-level
+    // stats, lastReels, and page meta. The numeric series (followers, avgER,
+    // avgPostReactions/Comments/Shares) stays retrospective for EVERY month so
+    // all points are apples-to-apples and the latest point never "jumps".
+    if (Object.keys(scraper).length) {
+      const SCRAPER_ONLY = [
+        "avgReelReactions", "avgReelComments", "avgReelShares", "avgReelPlayCount",
+        "lastReels", "title", "bio", "category", "image",
+      ];
+      const last = history[history.length - 1];
+      for (const k of SCRAPER_ONLY) {
+        if (scraper[k] !== undefined) last[k] = scraper[k];
+      }
+    }
+
+    return history.slice(-months);
+  } catch (error) {
+    console.log("[buildFacebookHistory] error:", error.message);
+    return Object.keys(scraper).length ? [scraper] : [];
+  }
+};
+
+module.exports = {facebookData,InstagramData,InstagramGraphData,trackingData,buildInstagramHistory,buildFacebookHistory}
 
 
 // Facebook

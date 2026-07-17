@@ -12,6 +12,8 @@ function getLast6MonthLabels(n = 6) {
   return labels;
 }
 
+const MONTHS_WINDOW = 10; // how many months of history the IG/FB graphs show
+
 function transformFB(inputData) {
   let transformedData = {
     fbdata: {
@@ -20,17 +22,24 @@ function transformFB(inputData) {
       avgPostReactions: [],
       avgPostComments: [],
       avgReelReactions: [],
+      avgPostShares: [],
+      postsCount: [],
+      qualityScore: [],
       trackingData: [],
     },
   };
-  // Only use the last 6 snapshots
-  const fbSlice = inputData?.fbData?.slice(-6) || [];
+  // Only use the last N snapshots
+  const fbSlice = inputData?.fbData?.slice(-MONTHS_WINDOW) || [];
   fbSlice.forEach((item) => {
     transformedData.fbdata.followers.push(item?.followers || 0);
-    transformedData.fbdata.avgER.push(item?.avgER || 0);
+    // avgER is stored as a fraction (e.g. 0.003) → show as a percentage.
+    transformedData.fbdata.avgER.push((item?.avgER || 0) * 100);
     transformedData.fbdata.avgPostReactions.push(item?.avgPostReactions || 0);
     transformedData.fbdata.avgPostComments.push(item?.avgPostComments || 0);
     transformedData.fbdata.avgReelReactions.push(item?.avgReelReactions || 0);
+    transformedData.fbdata.avgPostShares.push(item?.avgPostShares || 0);
+    transformedData.fbdata.postsCount.push(item?.postsCount || 0);
+    transformedData.fbdata.qualityScore.push((item?.qualityScore || 0) * 100);
     transformedData.fbdata.trackingData.push(item?.trackingData);
   });
 
@@ -39,16 +48,17 @@ function transformFB(inputData) {
     i === 0 ? 0 : (f || 0) - (transformedData.fbdata.followers[i - 1] || 0)
   );
 
-  // Pad to 6 months
-  const fbFields = ["followers", "avgER", "avgPostReactions", "avgPostComments", "avgReelReactions"];
+  // Pad to N months
+  const fbFields = ["followers", "avgER", "avgPostReactions", "avgPostComments",
+                    "avgReelReactions", "avgPostShares", "postsCount", "qualityScore"];
   fbFields.forEach((key) => {
-    while (transformedData.fbdata[key].length < 6) transformedData.fbdata[key].unshift(0);
+    while (transformedData.fbdata[key].length < MONTHS_WINDOW) transformedData.fbdata[key].unshift(0);
   });
-  while (fbGained.length < 6) fbGained.unshift(0);
+  while (fbGained.length < MONTHS_WINDOW) fbGained.unshift(0);
   transformedData.fbdata.followersGained = fbGained;
 
-  // Always use computed last-6-month labels so X-axis shows real month names
-  transformedData.fbdata.trackingData = getLast6MonthLabels(6);
+  // Always use computed last-N-month labels so X-axis shows real month names
+  transformedData.fbdata.trackingData = getLast6MonthLabels(MONTHS_WINDOW);
 
   return transformedData;
 }
@@ -111,18 +121,23 @@ function transformIG(inputData) {
       avgER: [],
       avgLikes: [],
       avgComments: [],
+      postsCount: [],
+      qualityScore: [],
       trackingData: [],
     },
   };
-  // Only use the last 6 snapshots
-  const igSlice = inputData?.instaData?.slice(-6) || [];
+  // Only use the last N snapshots
+  const igSlice = inputData?.instaData?.slice(-MONTHS_WINDOW) || [];
   igSlice.forEach((item) => {
     transformedData.instadata.followers.push(item?.followers);
     transformedData.instadata.avgComments.push(item?.avgComments);
     transformedData.instadata.trackingData.push(item?.trackingDate);
-    transformedData.instadata.avgER.push(item?.avgER * 1000);
+    // avgER is a fraction (e.g. 0.015) → ×100 for a true percentage (1.5%).
+    transformedData.instadata.avgER.push((item?.avgER || 0) * 100);
     transformedData.instadata.avgInteractions.push(item?.avgInteractions);
     transformedData.instadata.avgLikes.push(item?.avgLikes);
+    transformedData.instadata.postsCount.push(item?.postsCount || 0);
+    transformedData.instadata.qualityScore.push((item?.qualityScore || 0) * 100);
   });
 
   // Compute monthly gained followers from real data before padding
@@ -130,28 +145,20 @@ function transformIG(inputData) {
     i === 0 ? 0 : (f || 0) - (transformedData.instadata.followers[i - 1] || 0)
   );
 
-  // Pad to 6 months so the graph always shows a 6-month window
-  while (transformedData.instadata.followers.length < 6) {
-    transformedData.instadata.followers.unshift(0);
-  }
-  while (transformedData.instadata.avgComments.length < 6) {
-    transformedData.instadata.avgComments.unshift(0);
-  }
-  while (transformedData.instadata.avgER.length < 6) {
-    transformedData.instadata.avgER.unshift(0);
-  }
-  while (transformedData.instadata.avgInteractions.length < 6) {
-    transformedData.instadata.avgInteractions.unshift(0);
-  }
-  while (transformedData.instadata.avgLikes.length < 6) {
-    transformedData.instadata.avgLikes.unshift(0);
-  }
+  // Pad to N months so the graph always shows a full window
+  const igFields = ["followers", "avgComments", "avgER", "avgInteractions",
+                    "avgLikes", "postsCount", "qualityScore"];
+  igFields.forEach((key) => {
+    while (transformedData.instadata[key].length < MONTHS_WINDOW) {
+      transformedData.instadata[key].unshift(0);
+    }
+  });
   // Pad gained array and attach
-  while (igGained.length < 6) igGained.unshift(0);
+  while (igGained.length < MONTHS_WINDOW) igGained.unshift(0);
   transformedData.instadata.followersGained = igGained;
 
-  // Always use computed last-6-month labels so X-axis shows real month names
-  transformedData.instadata.trackingData = getLast6MonthLabels(6);
+  // Always use computed last-N-month labels so X-axis shows real month names
+  transformedData.instadata.trackingData = getLast6MonthLabels(MONTHS_WINDOW);
 
   return transformedData;
 }

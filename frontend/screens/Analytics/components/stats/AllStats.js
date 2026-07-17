@@ -2,27 +2,33 @@ import { StyleSheet, View, Text } from "react-native";
 import { statsStyles } from "./stats.scss";
 import { formatNumber } from "../../../../helpers/GraphData";
 
+// Average over the real months (ignore padded zeros).
+const avgOf = (arr) => {
+  const vals = (arr || []).filter((v) => v > 0);
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+};
+
 const FBStats = ({ fbData }) => {
   return (
     <View style={styles.container}>
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
-          {`Followers: ${formatNumber(Math.max(...(fbData?.followers || [0])))}`}
+          {`Followers: ${formatNumber((fbData?.followers || [0]).slice(-1)[0] || 0)}`}
         </Text>
       </View>
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
-          {`Engagement Rate: ${Math.max(...(fbData?.avgER || [0])).toFixed(2)}%`}
+          {`Avg Engagement Rate: ${avgOf(fbData?.avgER).toFixed(2)}%`}
         </Text>
       </View>
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
-          {`Avg Reactions: ${formatNumber(Math.max(...(fbData?.avgPostReactions || [0])))}`}
+          {`Avg Reactions: ${formatNumber(avgOf(fbData?.avgPostReactions))}`}
         </Text>
       </View>
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
-          {`Avg Comments: ${formatNumber(Math.max(...(fbData?.avgPostComments || [0])))}`}
+          {`Avg Comments: ${formatNumber(avgOf(fbData?.avgPostComments))}`}
         </Text>
       </View>
     </View>
@@ -82,20 +88,20 @@ const InstaStats = ({ instaData }) => {
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
           {instaData?.followers &&
-            `Followers: ${formatNumber(Math.max(...instaData?.followers))}`}
+            `Followers: ${formatNumber(instaData.followers.slice(-1)[0] || 0)}`}
         </Text>
       </View>
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
           {instaData?.avgER &&
-            `Engagement Rate: ${Math.max(...instaData?.avgER).toPrecision(2)}%`}
+            `Avg Engagement Rate: ${avgOf(instaData?.avgER).toFixed(2)}%`}
         </Text>
       </View>
       <View style={[styles.statsContainer, styles.fullWidth]}>
         <Text style={styles.statsTitle}>
           {instaData?.avgLikes &&
             `Average Likes Rate: ${formatNumber(
-              Math.max(...instaData?.avgLikes)
+              avgOf(instaData?.avgLikes)
             )}`}
         </Text>
       </View>

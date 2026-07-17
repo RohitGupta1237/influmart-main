@@ -1,8 +1,8 @@
 const cron = require("node-cron");
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
-const { InstagramData, InstagramGraphData, facebookData } = require("../utils/influencerAnalytics");
+const { InstagramData, InstagramGraphData, facebookData, buildInstagramHistory, buildFacebookHistory } = require("../utils/influencerAnalytics");
 
-const MAX_MONTHS = 6;
+const MAX_MONTHS = 10;
 
 // Main job: runs on the 1st of every month at 3am
 const startIgFbAnalyticsCron = () => {
@@ -23,11 +23,18 @@ const startIgFbAnalyticsCron = () => {
         const updates = {};
 
         if (influencer.instaProfile) {
-          // RapidAPI snapshot → instaData
-          const igSnap = await InstagramData(influencer.instaProfile);
-          if (igSnap && Object.keys(igSnap).length > 0) {
-            const updated = [...(influencer.instaData || []), igSnap].slice(-MAX_MONTHS);
-            updates.instaData = updated;
+          // Full history via /community (cid) + /statistics/retrospective.
+          // Overwrites instaData each run (idempotent, same as the YT cron) so
+          // the graph always shows a complete, accurate window.
+          // GUARD: only overwrite when the fresh build has at least as many
+          // months as what's stored. A failed/partial fetch returns a short
+          // fallback (e.g. 1 snapshot) and must NOT wipe good history.
+          const igHistory = await buildInstagramHistory(influencer.instaProfile, MAX_MONTHS);
+          const igExistingLen = influencer.instaData?.length || 0;
+          if (igHistory && igHistory.length > 0 && igHistory.length >= igExistingLen) {
+            updates.instaData = igHistory;
+          } else if (igHistory && igHistory.length > 0) {
+            console.warn(`[IG/FB Cron] Kept existing instaData for ${influencer._id}: fresh build ${igHistory.length} < stored ${igExistingLen}`);
           }
 
           // Graph API snapshot → instaGraphData (only if access token exists)
@@ -48,10 +55,15 @@ const startIgFbAnalyticsCron = () => {
           const fbUrl = influencer.facebookProfile.startsWith("http")
             ? influencer.facebookProfile
             : `https://www.facebook.com/${influencer.facebookProfile}`;
-          const fbSnap = await facebookData(fbUrl);
-          if (fbSnap && Object.keys(fbSnap).length > 0) {
-            const updated = [...(influencer.fbData || []), fbSnap].slice(-MAX_MONTHS);
-            updates.fbData = updated;
+          // Full history (scraper detail + retrospective trend), overwritten
+          // each run — same idempotent pattern as IG/YT. Same guard: don't let
+          // a failed/partial fetch wipe good stored history.
+          const fbHistory = await buildFacebookHistory(fbUrl, MAX_MONTHS);
+          const fbExistingLen = influencer.fbData?.length || 0;
+          if (fbHistory && fbHistory.length > 0 && fbHistory.length >= fbExistingLen) {
+            updates.fbData = fbHistory;
+          } else if (fbHistory && fbHistory.length > 0) {
+            console.warn(`[IG/FB Cron] Kept existing fbData for ${influencer._id}: fresh build ${fbHistory.length} < stored ${fbExistingLen}`);
           }
         }
 

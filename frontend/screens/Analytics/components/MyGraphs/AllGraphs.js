@@ -3,7 +3,14 @@ import { StyleSheet, View, Text } from "react-native";
 import { formatNumber } from "../../../../helpers/GraphData";
 import graphStyles from "./graphs.scss";
 import MyLineChart from "../../../../shared/MyLineChart";
-import MonthlyGainedChart from "../../../../shared/MonthlyGainedChart";
+
+// Average across the real months only — arrays are padded with leading zeros
+// to fill the window, so we ignore zeros to avoid deflating short histories.
+const avgOf = (arr) => {
+  const vals = (arr || []).filter((v) => v > 0);
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+};
+const latestOf = (arr) => (arr || []).slice(-1)[0] || 0;
 
 const YTGraph = ({ ytData }) => {
   console.log("graph", ytData);
@@ -114,7 +121,7 @@ const YTGraph = ({ ytData }) => {
       {/* Monthly Net Subscribers Gained */}
       {ytData?.subscribersNetGained && (
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Monthly Gained Subscribers</Text>
+          <Text style={styles.chartTitle}>Last Month Subscribers Gained</Text>
           <Text style={styles.chartValue}>
             {(() => {
               const latest = ytData.subscribersNetGained[ytData.subscribersNetGained.length - 1] || 0;
@@ -122,9 +129,10 @@ const YTGraph = ({ ytData }) => {
             })()}
           </Text>
           <Text style={styles.chartDesc}>Last 6 Months</Text>
-          <MonthlyGainedChart
+          <MyLineChart
             data={ytData.subscribersNetGained}
-            labels={ytData.trackingData}
+            tracking={ytData.trackingData}
+            title={"Subscribers gained"}
           />
         </View>
       )}
@@ -132,14 +140,16 @@ const YTGraph = ({ ytData }) => {
   );
 };
 const FBGraph = ({ fbData }) => {
+  const months = fbData?.followers?.length || 0;
+  const window = `Last ${months} Months`;
   return (
     <View style={styles.row}>
       <View style={styles.chartContainer}>
         <Text style={styles.chartTitle}>Followers Over Time</Text>
         <Text style={styles.chartValue}>
-          {`${formatNumber(Math.max(...(fbData?.followers || [0])))}`}
+          {`${formatNumber((fbData?.followers || [0]).slice(-1)[0] || 0)}`}
         </Text>
-        <Text style={styles.chartDesc}>Last 6 Months</Text>
+        <Text style={styles.chartDesc}>{window}</Text>
         <MyLineChart
           data={fbData?.followers}
           tracking={fbData?.trackingData}
@@ -149,9 +159,9 @@ const FBGraph = ({ fbData }) => {
       <View style={styles.chartContainer}>
         <Text style={styles.chartTitle}>Avg Post Reactions Over Time</Text>
         <Text style={styles.chartValue}>
-          {`${formatNumber(Math.max(...(fbData?.avgPostReactions || [0])))}`}
+          {`${formatNumber(avgOf(fbData?.avgPostReactions))}`}
         </Text>
-        <Text style={styles.chartDesc}>Last 6 Months</Text>
+        <Text style={styles.chartDesc}>{window}</Text>
         <MyLineChart
           data={fbData?.avgPostReactions}
           tracking={fbData?.trackingData}
@@ -159,11 +169,38 @@ const FBGraph = ({ fbData }) => {
         />
       </View>
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Engagement Rate Over Time</Text>
+        <Text style={styles.chartTitle}>Avg Post Comments Over Time</Text>
         <Text style={styles.chartValue}>
-          {`${Math.max(...(fbData?.avgER || [0])).toFixed(2)}%`}
+          {`${formatNumber(avgOf(fbData?.avgPostComments))}`}
         </Text>
-        <Text style={styles.chartDesc}>Last 6 Months</Text>
+        <Text style={styles.chartDesc}>{window}</Text>
+        <MyLineChart
+          data={fbData?.avgPostComments}
+          tracking={fbData?.trackingData}
+          title={"Avg Post Comments"}
+        />
+      </View>
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>Avg Post Shares Over Time</Text>
+        <Text style={styles.chartValue}>
+          {`${formatNumber(avgOf(fbData?.avgPostShares))}`}
+        </Text>
+        <Text style={styles.chartDesc}>{window}</Text>
+        <MyLineChart
+          data={fbData?.avgPostShares}
+          tracking={fbData?.trackingData}
+          title={"Avg Post Shares"}
+        />
+      </View>
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>Avg Engagement Rate Over Time</Text>
+        <Text style={styles.chartValue}>
+          {`${avgOf(fbData?.avgER).toFixed(2)}%`}
+        </Text>
+        <Text style={styles.chartDesc}>
+          {`≈ ${(avgOf(fbData?.avgER) * 10).toFixed(1)} engaged per 1,000 followers`}
+        </Text>
+        <Text style={styles.chartDesc}>{window}</Text>
         <MyLineChart
           data={fbData?.avgER}
           tracking={fbData?.trackingData}
@@ -174,17 +211,18 @@ const FBGraph = ({ fbData }) => {
       {/* Monthly Gained Followers */}
       {fbData?.followersGained && (
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Monthly Gained Followers</Text>
+          <Text style={styles.chartTitle}>Last Month Followers Gained</Text>
           <Text style={styles.chartValue}>
             {(() => {
               const latest = fbData.followersGained[fbData.followersGained.length - 1] || 0;
               return (latest >= 0 ? "+" : "") + formatNumber(latest);
             })()}
           </Text>
-          <Text style={styles.chartDesc}>Last 6 Months</Text>
-          <MonthlyGainedChart
+          <Text style={styles.chartDesc}>{window}</Text>
+          <MyLineChart
             data={fbData.followersGained}
-            labels={fbData.trackingData}
+            tracking={fbData.trackingData}
+            title={"Followers gained"}
           />
         </View>
       )}
@@ -195,11 +233,16 @@ function IgGraph({ instaData }) {
   return (
     <View style={styles.row}>
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Engagement Rate Over Time</Text>
+        <Text style={styles.chartTitle}>Avg Engagement Rate Over Time</Text>
         <Text style={styles.chartValue}>
           {instaData?.avgER &&
-            `${Math.max(...instaData?.avgER).toPrecision(2)}%`}
+            `${avgOf(instaData?.avgER).toFixed(2)}%`}
         </Text>
+        {instaData?.avgER && (
+          <Text style={styles.chartDesc}>
+            {`≈ ${(avgOf(instaData?.avgER) * 10).toFixed(1)} engaged per 1,000 followers`}
+          </Text>
+        )}
         <Text
           style={styles.chartDesc}
         >{`Last ${instaData?.avgER?.length} Months`}</Text>
@@ -210,10 +253,10 @@ function IgGraph({ instaData }) {
         />
       </View>
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Likes Over Time</Text>
+        <Text style={styles.chartTitle}>Avg Likes Over Time</Text>
         <Text style={styles.chartValue}>
           {instaData?.avgLikes &&
-            `${formatNumber(Math.max(...instaData?.avgLikes))}`}
+            `${formatNumber(avgOf(instaData?.avgLikes))}`}
         </Text>
         <Text
           style={styles.chartDesc}
@@ -225,10 +268,10 @@ function IgGraph({ instaData }) {
         />
       </View>
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Comments Over Time</Text>
+        <Text style={styles.chartTitle}>Avg Comments Over Time</Text>
         <Text style={styles.chartValue}>
           {instaData?.avgComments &&
-            `${formatNumber(Math.max(...instaData?.avgComments))}`}
+            `${formatNumber(avgOf(instaData?.avgComments))}`}
         </Text>
         <Text
           style={styles.chartDesc}
@@ -240,10 +283,10 @@ function IgGraph({ instaData }) {
         />
       </View>
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Interactions Over Time</Text>
+        <Text style={styles.chartTitle}>Avg Interactions Over Time</Text>
         <Text style={styles.chartValue}>
           {instaData?.avgInteractions &&
-            `${formatNumber(Math.max(...instaData?.avgInteractions))}`}
+            `${formatNumber(avgOf(instaData?.avgInteractions))}`}
         </Text>
         <Text
           style={styles.chartDesc}
@@ -258,7 +301,7 @@ function IgGraph({ instaData }) {
         <Text style={styles.chartTitle}>Followers Over Time</Text>
         <Text style={styles.chartValue}>
           {instaData?.followers &&
-            `${formatNumber(Math.max(...instaData?.followers))}`}
+            `${formatNumber(instaData.followers.slice(-1)[0] || 0)}`}
         </Text>
         <Text
           style={styles.chartDesc}
@@ -273,17 +316,18 @@ function IgGraph({ instaData }) {
       {/* Monthly Gained Followers */}
       {instaData?.followersGained && (
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Monthly Gained Followers</Text>
+          <Text style={styles.chartTitle}>Last Month Followers Gained</Text>
           <Text style={styles.chartValue}>
             {(() => {
               const latest = instaData.followersGained[instaData.followersGained.length - 1] || 0;
               return (latest >= 0 ? "+" : "") + formatNumber(latest);
             })()}
           </Text>
-          <Text style={styles.chartDesc}>Last 6 Months</Text>
-          <MonthlyGainedChart
+          <Text style={styles.chartDesc}>{`Last ${instaData?.followersGained?.length} Months`}</Text>
+          <MyLineChart
             data={instaData.followersGained}
-            labels={instaData.trackingData}
+            tracking={instaData.trackingData}
+            title={"Followers gained"}
           />
         </View>
       )}

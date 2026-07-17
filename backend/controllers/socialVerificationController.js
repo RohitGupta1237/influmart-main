@@ -1,8 +1,8 @@
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
 const SocialVerificationRequest = require("../model/socialVerificationRequest");
-const { InstagramData, facebookData } = require("../utils/influencerAnalytics");
+const { InstagramData, facebookData, buildInstagramHistory, buildFacebookHistory } = require("../utils/influencerAnalytics");
 
-const MAX_MONTHS = 6; // keep the last 6 snapshots, same as the analytics cron
+const MAX_MONTHS = 10; // keep the last 10 snapshots, same as the analytics cron
 
 // Where the OTP notifications go. Override with ADMIN_NOTIFY_EMAIL in .env.
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || "rohitgupta12371380@gmail.com";
@@ -156,24 +156,38 @@ exports.fetchLatestStats = async (req, res) => {
       return res.status(403).json({ message: "This account is not verified yet" });
     }
 
-    // Fetch fresh snapshot from the same RapidAPI helpers the cron uses.
-    let snapshot;
+    // Fetch fresh stats from the same RapidAPI helpers the cron uses.
+    // Instagram/Facebook: build the full history and overwrite, so the graph
+    // is complete instantly.
+    const field = platform === "instagram" ? "instaData" : "fbData";
+    let history;
     if (platform === "instagram") {
-      snapshot = await InstagramData(handle);
+      history = await buildInstagramHistory(handle, MAX_MONTHS);
     } else {
       const url = handle.startsWith("http") ? handle : `https://www.facebook.com/${handle}`;
-      snapshot = await facebookData(url);
+      history = await buildFacebookHistory(url, MAX_MONTHS);
     }
-
-    if (!snapshot || Object.keys(snapshot).length === 0) {
+    if (!history || history.length === 0) {
       return res.status(502).json({
         message: "Could not fetch stats right now. Please try again in a moment.",
       });
     }
 
-    const field = platform === "instagram" ? "instaData" : "fbData";
+    // GUARD: never let a partial/failed fetch wipe richer stored history.
+    // If the fresh build has fewer months than what's already saved, keep the
+    // existing data instead of overwriting with a degraded snapshot.
     const existing = influencer[field] || [];
-    const updated = [...existing, snapshot].slice(-MAX_MONTHS);
+    if (history.length < existing.length) {
+      return res.status(200).json({
+        message: "Showing your saved statistics — a full refresh isn't available right now.",
+        platform,
+        snapshot: existing[existing.length - 1],
+        [field]: existing,
+      });
+    }
+
+    const updated = history;
+    const snapshot = history[history.length - 1];
     influencer[field] = updated;
     // Persist the handle so future fetches (and the cron) know it.
     if (!influencer[profileField]) influencer[profileField] = handle;

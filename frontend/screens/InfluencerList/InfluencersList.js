@@ -226,7 +226,12 @@ const InfluencersList = ({ route, navigation }) => {
                           const parsed = typeof yt === "string" ? JSON.parse(yt) : yt;
                           ytSubscribers = parsed?.overAll?.subscriberCount ?? parsed?.subscriberCount ?? "N/A";
                         } catch (e) {}
-                        return <InfluencerCard key={index} userName={item?.userName} influencerId={item?._id} depth5Frame0={item?.profileUrl} isSelectedImage={item?.isSelectedImage} kylieCosmetics={item?.influencerName} beauty={item?.category} statistics={{ ytData: ytSubscribers, instaData: item?.instaData[0]?.followers || "N/A", fbData: item?.fbData[0]?.followers || "N/A" }} />;
+                        // Use the latest snapshot (last element) so the card matches
+                        // the current followers shown on the profile/analytics screens.
+                        // instaData/fbData are now a multi-month series; [0] is the oldest.
+                        const igFollowers = item?.instaData?.[item.instaData.length - 1]?.followers || "N/A";
+                        const fbFollowers = item?.fbData?.[item.fbData.length - 1]?.followers || "N/A";
+                        return <InfluencerCard key={index} userName={item?.userName} influencerId={item?._id} depth5Frame0={item?.profileUrl} isSelectedImage={item?.isSelectedImage} kylieCosmetics={item?.influencerName} beauty={item?.category} statistics={{ ytData: ytSubscribers, instaData: igFollowers, fbData: fbFollowers }} />;
                       })
                 }
               </View>

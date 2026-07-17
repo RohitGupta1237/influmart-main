@@ -26,6 +26,45 @@ import { formatNumber } from "../../helpers/GraphData";
 import { getAllRequests } from "../../controller/connectionsController";
 import ProductCard from "./ProductCard";
 
+// Average across the real months (ignore zero/empty months). Matches the
+// "Avg … Over Time" headline logic in the analytics graphs so the profile
+// cards and the graphs show the same number.
+const avgOf = (arr) => {
+  const vals = (arr || []).filter((v) => typeof v === "number" && v > 0);
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+};
+
+// Turn API age keys ("30_35", "45_100") into readable labels ("30–35", "45+").
+const AGE_LABELS = {
+  "0_18": "Under 18",
+  "18_21": "18–21",
+  "21_24": "21–24",
+  "24_27": "24–27",
+  "27_30": "27–30",
+  "30_35": "30–35",
+  "35_45": "35–45",
+  "45_100": "45+",
+};
+const ageLabel = (raw) => AGE_LABELS[raw] || (raw ? String(raw).replace(/_/g, "–") : "");
+
+// Reachability = how many people each follower can themselves reach (how
+// influential the audience is). Plain-language labels instead of API codes.
+const REACH_LABELS = {
+  r0_500: "🔴 Low reach — each reaches under 500 people",
+  r500_1000: "🟡 Moderate reach — each reaches 500–1,000",
+  r1000_1500: "🟢 Good reach — each reaches 1,000–1,500",
+  r1500_plus: "🔥 High reach — each reaches 1,500+ people",
+};
+
+// "new-york-city" → "New York City", "moscow" → "Moscow".
+const cityLabel = (raw) =>
+  raw
+    ? String(raw)
+        .split(/[-_]/)
+        .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ""))
+        .join(" ")
+    : "";
+
 const UserProfile = ({ navigation }) => {
   const [influencer, setInfluencer] = React.useState(null);
   const [influencerId, setInfluencerId] = React.useState("");
@@ -63,42 +102,49 @@ const UserProfile = ({ navigation }) => {
       const insta = influencer.instaData;
       const yt = influencer.ytData;
       if (fb) {
+        // fbData is now a real 6-month series; the profile card shows current
+        // stats, so read the latest snapshot (not the oldest fb[0]).
+        const fbLatest = fb[fb.length - 1] || {};
+        // "Avg …" cards = 10-month average (matches the graphs). Followers = latest.
+        const fbAvg = (k) => avgOf(fb.map((m) => m?.[k]));
         let _fb = [
           {
             heading: "Followers",
-            content: fb[0]?.followers ? formatNumber(fb[0]?.followers) : "N/A",
+            content: fbLatest?.followers ? formatNumber(fbLatest?.followers) : "N/A",
           },
           {
             heading: "Avg Post Reactions",
-            content: fb[0]?.avgPostReactions ? formatNumber(fb[0]?.avgPostReactions) : "N/A",
+            content: fbAvg("avgPostReactions") ? formatNumber(fbAvg("avgPostReactions")) : "N/A",
           },
           {
             heading: "Avg Post Comments",
-            content: fb[0]?.avgPostComments ? formatNumber(fb[0]?.avgPostComments) : "N/A",
+            content: fbAvg("avgPostComments") ? formatNumber(fbAvg("avgPostComments")) : "N/A",
           },
           {
             heading: "Avg Post Shares",
-            content: fb[0]?.avgPostShares ? formatNumber(fb[0]?.avgPostShares) : "N/A",
+            content: fbAvg("avgPostShares") ? formatNumber(fbAvg("avgPostShares")) : "N/A",
           },
           {
             heading: "Avg Reel Reactions",
-            content: fb[0]?.avgReelReactions ? formatNumber(fb[0]?.avgReelReactions) : "N/A",
+            content: fbAvg("avgReelReactions") ? formatNumber(fbAvg("avgReelReactions")) : "N/A",
           },
           {
             heading: "Avg Reel Comments",
-            content: fb[0]?.avgReelComments ? formatNumber(fb[0]?.avgReelComments) : "N/A",
+            content: fbAvg("avgReelComments") ? formatNumber(fbAvg("avgReelComments")) : "N/A",
           },
           {
             heading: "Avg Reel Shares",
-            content: fb[0]?.avgReelShares ? formatNumber(fb[0]?.avgReelShares) : "N/A",
+            content: fbAvg("avgReelShares") ? formatNumber(fbAvg("avgReelShares")) : "N/A",
           },
           {
             heading: "Avg Reel Play Count",
-            content: fb[0]?.avgReelPlayCount ? formatNumber(fb[0]?.avgReelPlayCount) : "N/A",
+            content: fbAvg("avgReelPlayCount") ? formatNumber(fbAvg("avgReelPlayCount")) : "N/A",
           },
           {
             heading: "Avg Engagement Rate",
-            content: fb[0]?.avgER ? `${fb[0]?.avgER} %` : "N/A",
+            content: fbAvg("avgER")
+              ? `${(fbAvg("avgER") * 100).toFixed(2)} %`
+              : "N/A",
           },
           {
             heading: "Price per Post",
@@ -110,77 +156,85 @@ const UserProfile = ({ navigation }) => {
         setFbData(_fb);
       }
       if (insta) {
+        // Read the latest snapshot (last element) so numbers match the header
+        // and analytics; instaData is a multi-month series ([0] is the oldest).
+        const igLatest = insta[insta.length - 1] || {};
+        // "Avg …" cards = 10-month average (matches the graphs). Followers = latest.
+        const igAvg = (k) => avgOf(insta.map((m) => m?.[k]));
         let _insta = [
           {
             heading: "Followers",
-            content: insta[0]?.followers
-              ? formatNumber(insta[0]?.followers)
+            content: igLatest?.followers
+              ? formatNumber(igLatest?.followers)
               : "N/A",
           },
           {
             heading: "Avg Comments",
-            content: insta[0]?.avgComments
-              ? formatNumber(insta[0]?.avgComments)
+            content: igAvg("avgComments")
+              ? formatNumber(igAvg("avgComments"))
               : "N/A",
           },
           {
             heading: "Avg Likes",
-            content: insta[0]?.avgLikes
-              ? formatNumber(insta[0]?.avgLikes)
+            content: igAvg("avgLikes")
+              ? formatNumber(igAvg("avgLikes"))
               : "N/A",
           },
           {
             heading: "Avg ER",
-            content: insta[0]?.avgER != null && !isNaN(insta[0]?.avgER)
-              ? `${parseFloat(insta[0].avgER).toFixed(2)} %`
+            content: igAvg("avgER")
+              ? `${(igAvg("avgER") * 100).toFixed(2)} %`
               : "N/A",
           },
           {
             heading: "Avg Interactions",
-            content: insta[0]?.avgInteractions
-              ? formatNumber(insta[0]?.avgInteractions)
+            content: igAvg("avgInteractions")
+              ? formatNumber(igAvg("avgInteractions"))
               : "N/A",
           },
           {
-            heading: "Member Reachability",
+            heading: "Audience Reach",
             content: {
-              bullet: insta[0]?.membersReachability?.map((item) => {
-                const reachLabels = {
-                  r0_500: "🔴 Low Reach Audience",
-                  r500_1000: "🟡 Moderate Reach",
-                  r1000_1500: "🟢 Good Reach",
-                  r1500_plus: "🔥 High Reach Audience",
-                };
-                const label = reachLabels[item?.name]
-                  ? `${item.name} (${reachLabels[item.name]})`
-                  : item?.name;
-                return {
-                  content: `${label} - ${(item?.percent * 100).toPrecision(3)} %`,
-                };
-              }),
-            },
-          },
-          {
-            heading: "Member Cities",
-            content: {
-              bullet: insta[0]?.memberCities?.map((item) => ({
-                content: `${item?.city || item?.category} - ${parseFloat(item?.percent ?? item?.value * 100).toFixed(1)}%`,
+              bullet: igLatest?.membersReachability?.map((item) => ({
+                content: `${REACH_LABELS[item?.name] || item?.name} — ${(parseFloat(item?.percent) * 100).toFixed(1)}% of audience`,
               })),
             },
           },
           {
-            heading: "Ages",
+            heading: "Top Audience Cities",
             content: {
-              bullet: insta[0]?.ages?.map((item) => ({
-                content: `${item?.range || item?.name} - ${parseFloat(item?.percent).toFixed(1)}%`,
+              // Top 10 only; each % is that city's share of the whole audience
+              // (hundreds of cities exist, so these won't sum to 100%).
+              bullet: igLatest?.memberCities?.slice(0, 10).map((item) => ({
+                content: `${cityLabel(item?.category || item?.city)} — ${parseFloat(item?.percent ?? item?.value * 100).toFixed(1)}% of audience`,
+              })),
+            },
+          },
+          {
+            heading: "Audience Age Groups",
+            content: {
+              // Readable label + % of audience. `percent` is a fraction → ×100.
+              bullet: igLatest?.ages?.map((item) => ({
+                content: `${ageLabel(item?.range || item?.name)} yrs — ${(parseFloat(item?.percent) * 100).toFixed(1)}% of audience`,
               })),
             },
           },
           {
             heading: "Gender",
-            content: insta[0]?.genders
-              ? `Female ${parseFloat(insta[0].genders.female).toFixed(1)}%  |  Male ${parseFloat(insta[0].genders.male).toFixed(1)}%`
-              : "N/A",
+            // artemlipko returns genders as an array [{name:"m"/"f", percent}]
+            // with percent as a fraction. Map it and ×100.
+            content: (() => {
+              const g = igLatest?.genders;
+              if (Array.isArray(g) && g.length) {
+                const pct = (n) => ((g.find((x) => x?.name === n)?.percent || 0) * 100).toFixed(1);
+                return `Female ${pct("f")}%  |  Male ${pct("m")}%`;
+              }
+              // fallback for the old {female, male} shape
+              if (g && (g.female != null || g.male != null)) {
+                return `Female ${parseFloat(g.female || 0).toFixed(1)}%  |  Male ${parseFloat(g.male || 0).toFixed(1)}%`;
+              }
+              return "N/A";
+            })(),
           },
           {
             heading: "Price per Post",
@@ -271,9 +325,9 @@ const UserProfile = ({ navigation }) => {
             username={influencer?.influencerName}
             category={influencer?.category}
             isSelectedImage={influencer.isSelectedImage}
-            instaFollowers={influencer?.instaData?.[0]?.followers}
+            instaFollowers={influencer?.instaData?.[influencer.instaData.length - 1]?.followers}
             ytFollowers={influencer?.ytData?.overAll?.subscriberCount}
-            fbFollowers={influencer?.fbData?.[0]?.followers}
+            fbFollowers={influencer?.fbData?.[influencer.fbData.length - 1]?.followers}
           />}
           <View style={[styles.depth1Frame2, styles.depth1FrameSpaceBlock]}>
             <View style={styles.depth2Frame01}>
