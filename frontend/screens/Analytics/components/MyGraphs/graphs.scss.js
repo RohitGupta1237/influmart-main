@@ -20,7 +20,12 @@ const graphStyles = {
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    width: 320,
+    // Responsive: fills the row on mobile, widens and wraps to multiple
+    // columns on desktop (instead of a fixed narrow card with dead space).
+    flexGrow: 1,
+    flexBasis: 360,
+    minWidth: 280,
+    maxWidth: 560,
 
   },
   chartTitle: {

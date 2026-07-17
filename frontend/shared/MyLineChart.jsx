@@ -1,9 +1,7 @@
 import React from "react";
 import { LineChart } from "react-native-chart-kit";
-import { Dimensions, View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { formatNumber } from "../helpers/GraphData";
-
-const screenWidth = Dimensions.get("window").width;
 
 const chartConfig = {
   backgroundGradientFrom: "#FFFFFF",
@@ -25,6 +23,9 @@ const chartConfig = {
 };
 
 const MyLineChart = ({ tracking, data, title }) => {
+  // Fill the card: measure the container and size the chart to it, instead of
+  // a hardcoded width (which caused the overflow / dead-space on desktop).
+  const [containerW, setContainerW] = React.useState(300);
 
   if (!data || !Array.isArray(data) || data.length === 0) {
     return (
@@ -62,14 +63,22 @@ const MyLineChart = ({ tracking, data, title }) => {
   };
 
   return (
-    <View>
+    <View
+      style={{ alignItems: "center", width: "100%" }}
+      onLayout={(e) => {
+        const w = Math.round(e.nativeEvent.layout.width);
+        if (w && Math.abs(w - containerW) > 1) setContainerW(w);
+      }}
+    >
       <LineChart
         data={chartData}
-        width={310}
+        width={Math.max(containerW, 220)}
         height={220}
         formatYLabel={formatNumber}
         chartConfig={chartConfig}
-        bezier
+        withInnerLines={false}
+        withOuterLines={false}
+        segments={4}
       />
     </View>
   );

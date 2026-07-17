@@ -6,15 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Dimensions,
   Modal,
   TextInput,
   Pressable,
+  useWindowDimensions,
 } from "react-native";
-
-const CARD_WIDTH = Math.round(Dimensions.get("window").width * 0.75);
-const YT_CARD_HEIGHT = Math.round(CARD_WIDTH * (9 / 16));
-const IG_CARD_HEIGHT = Math.round(CARD_WIDTH * 1.2);
 import Depth1Frame7 from "../../components/Depth1Frame7";
 import Depth1Frame9 from "../../components/Depth1Frame9";
 
@@ -77,6 +73,13 @@ const AveragePrice = ({ platform, price }) => (
 );
 
 const Analytics = ({ route, navigation }) => {
+  // Highlight cards: responsive to the current viewport but capped so they stay
+  // a sensible thumbnail size on desktop (previously computed once from the full
+  // browser width → ~900px giant portrait iframe).
+  const { width: winWidth } = useWindowDimensions();
+  const CARD_WIDTH = Math.min(Math.round(winWidth * 0.8), 320);
+  const YT_CARD_HEIGHT = Math.round(CARD_WIDTH * (9 / 16));
+  const IG_CARD_HEIGHT = Math.round(CARD_WIDTH * 1.77);
   const [fbData, setFbData] = React.useState({});
   const [instaData, setInstaData] = React.useState({});
   const [ytData, setYtData] = React.useState({});
@@ -642,8 +645,8 @@ const Analytics = ({ route, navigation }) => {
                       <YTDemo videoId={item.url} width={CARD_WIDTH} height={YT_CARD_HEIGHT} />
                     </View>
                   ) : item.platform == "Facebook" && tab == "facebook" ? (
-                    <View key={index} style={[styles.frame, { width: CARD_WIDTH, height: IG_CARD_HEIGHT }]}>
-                      <FBDemo item={item} width={CARD_WIDTH} height={IG_CARD_HEIGHT} />
+                    <View key={index} style={[styles.frame, { width: CARD_WIDTH }]}>
+                      <FBDemo item={item} width={CARD_WIDTH} />
                     </View>
                   ) : null
                 )}

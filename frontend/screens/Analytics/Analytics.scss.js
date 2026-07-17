@@ -24,9 +24,15 @@ export const AnalyticsStyles = {
     gap: 8,
   },
   frame: {
-    margin: 10,
+    margin: 8,
+    borderRadius: 18,
+    backgroundColor: Color.colorWhite,
     overflow: "hidden",
-    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    elevation: 5,
   },
   tagItem: {
     paddingHorizontal: 14,

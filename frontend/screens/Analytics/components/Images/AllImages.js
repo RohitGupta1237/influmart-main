@@ -17,7 +17,7 @@ const YTDemo = ({ videoId, width = 320, height = 180 }) => {
 
   if (Platform.OS === "web") {
     return (
-      <View style={{ width, height, overflow: "hidden", borderRadius: 8 }}>
+      <View style={{ width, height, overflow: "hidden", borderRadius: 14 }}>
         <iframe
           width={width}
           height={height}
@@ -25,7 +25,7 @@ const YTDemo = ({ videoId, width = 320, height = 180 }) => {
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          style={{ display: "block", borderRadius: 8 }}
+          style={{ display: "block", borderRadius: 14 }}
         />
       </View>
     );
@@ -46,27 +46,41 @@ const YTDemo = ({ videoId, width = 320, height = 180 }) => {
   );
 };
 
-const FBDemo = ({ item, width = 320, height = 400 }) => {
+const StatChip = ({ icon, value }) => (
+  <View style={styles.statChip}>
+    <Text style={styles.statChipIcon}>{icon}</Text>
+    <Text style={styles.statChipText}>{value?.toLocaleString() || 0}</Text>
+  </View>
+);
+
+const FBDemo = ({ item, width = 320 }) => {
+  // Self-sizing card: media area + caption + stat chips sit together (no dead gap).
+  const mediaH = Math.round(width * 1.4);
   return (
-    <View style={[styles.container, { width, height }]}>
-      {item.thumbnail ? (
-        <Image
-          source={{ uri: item.thumbnail }}
-          style={{ width, height: height * 0.7, resizeMode: "cover" }}
-        />
-      ) : (
-        <View style={{ width, height: height * 0.7, backgroundColor: "#f0f0f0", justifyContent: "center", alignItems: "center" }}>
-          <Text style={{ color: "#999" }}>No Preview</Text>
+    <View style={{ width, backgroundColor: "#fff" }}>
+      <View style={{ width, height: mediaH, backgroundColor: "#eef1f6" }}>
+        {item.thumbnail ? (
+          <Image
+            source={{ uri: item.thumbnail }}
+            style={{ width, height: mediaH, resizeMode: "cover" }}
+          />
+        ) : (
+          <View style={styles.noPreview}>
+            <Text style={{ color: "#9aa3b2", fontSize: 13 }}>No Preview</Text>
+          </View>
+        )}
+        <View style={styles.playBadge}>
+          <Text style={styles.playBadgeIcon}>▶</Text>
         </View>
-      )}
-      <View style={{ padding: 8, flex: 1, justifyContent: "space-between" }}>
+      </View>
+      <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 }}>
         {item.description ? (
-          <Text style={{ fontSize: 12, color: "#333" }} numberOfLines={2}>{item.description}</Text>
+          <Text style={styles.caption} numberOfLines={2}>{item.description}</Text>
         ) : null}
-        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 4 }}>
-          <Text style={{ fontSize: 11, color: "#666" }}>▶ {item.playCount?.toLocaleString() || 0}</Text>
-          <Text style={{ fontSize: 11, color: "#666" }}>♥ {item.reactions?.toLocaleString() || 0}</Text>
-          <Text style={{ fontSize: 11, color: "#666" }}>💬 {item.comments?.toLocaleString() || 0}</Text>
+        <View style={styles.statsRow}>
+          <StatChip icon="▶" value={item.playCount} />
+          <StatChip icon="♥" value={item.reactions} />
+          <StatChip icon="💬" value={item.comments} />
         </View>
       </View>
     </View>
@@ -78,7 +92,7 @@ const InstaDemo = ({ url, width = 320, height = 400 }) => {
 
   if (Platform.OS === "web") {
     return (
-      <View style={{ width, height, overflow: "hidden", borderRadius: 8 }}>
+      <View style={{ width, height, overflow: "hidden", borderRadius: 14 }}>
         <iframe
           width={width}
           height={height}
@@ -86,7 +100,7 @@ const InstaDemo = ({ url, width = 320, height = 400 }) => {
           frameBorder="0"
           scrolling="no"
           allowTransparency
-          style={{ display: "block", borderRadius: 8 }}
+          style={{ display: "block", borderRadius: 14 }}
         />
       </View>
     );
