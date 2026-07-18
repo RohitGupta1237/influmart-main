@@ -36,9 +36,9 @@ const tiktokDiscovery = {
 // Isolated in its own component so its hook state never conflicts with FacebookAuthManager
 const GoogleAuthManager = forwardRef(({ onSuccess }, ref) => {
   const [, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "329932494226-70dt8rglfndtp9lulruvn1c3u8n9igmm.apps.googleusercontent.com",
-    iosClientId: "329932494226-1ovccufudqbu1ppo8f1sdnuu7ffl32fr.apps.googleusercontent.com",
-    webClientId: "329932494226-rkpausht5lbbm9umvspatt9973pco2q6.apps.googleusercontent.com",
+    androidClientId: "382205507716-p53a7td72lbm9rasr4njtguljpsukifs.apps.googleusercontent.com",
+    iosClientId: "382205507716-c9u4gh6b9a2kouehakrgbd2m6eqgh3lu.apps.googleusercontent.com",
+    webClientId: "382205507716-9m2339559me6bm5uu0sue6eukfmgf3ab.apps.googleusercontent.com",
     scopes: [
       "profile",
       "email",

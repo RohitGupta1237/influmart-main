@@ -58,11 +58,9 @@ passport.use(
   new GoogleStrategy(
     {
       clientID:
-        process.env.GOOGLE_CLIENT_ID ||
-        "329932494226-rkpausht5lbbm9umvspatt9973pco2q6.apps.googleusercontent.com",
+        process.env.GOOGLE_CLIENT_ID,
       clientSecret:
-        process.env.GOOGLE_CLIENT_SECRET ||
-        "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",
+        process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -137,6 +135,7 @@ router.get(
       "profile",
       "email",
       "https://www.googleapis.com/auth/youtube.readonly",
+      "https://www.googleapis.com/auth/yt-analytics.readonly",
     ],
   })
 );
@@ -556,7 +555,7 @@ router.get("/auth/youtube", (req, res) => {
   youtubeStateMap.set(state, { influencerId });
   setTimeout(() => youtubeStateMap.delete(state), 10 * 60 * 1000);
 
-  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "329932494226-rkpausht5lbbm9umvspatt9973pco2q6.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
   const params = new URLSearchParams({
     response_type: "code",
     client_id: GOOGLE_CLIENT_ID,
@@ -587,8 +586,8 @@ router.get("/auth/youtube/callback", async (req, res) => {
   if (!stateData) return res.redirect("influmart://auth?error=youtube_state_mismatch");
 
   const { influencerId } = stateData;
-  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "329932494226-rkpausht5lbbm9umvspatt9973pco2q6.apps.googleusercontent.com";
-  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "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";
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
   try {
     // Exchange authorization code for access_token + refresh_token

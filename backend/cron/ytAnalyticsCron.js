@@ -2,8 +2,8 @@ const cron = require("node-cron");
 const axios = require("axios");
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "329932494226-rkpausht5lbbm9umvspatt9973pco2q6.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "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";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
 // Exchange refresh token for a new access token
 const getAccessToken = async (refreshToken) => {
