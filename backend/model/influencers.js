@@ -17,6 +17,7 @@ const Influencer = {
   instaData: [], // Instagram data
   fbData: [], // Facebook data
   ytData: [], // YouTube data
+  aiInsights: {}, // AI content insights per platform { instagram, facebook, youtube }
   tracked: "",
 };
 

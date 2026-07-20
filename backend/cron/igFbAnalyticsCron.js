@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
-const { InstagramData, InstagramGraphData, facebookData, buildInstagramHistory, buildFacebookHistory } = require("../utils/influencerAnalytics");
+const { InstagramData, InstagramGraphData, facebookData, buildInstagramHistory, buildFacebookHistory, buildContentInsights } = require("../utils/influencerAnalytics");
 
 const MAX_MONTHS = 10;
 
@@ -37,6 +37,14 @@ const startIgFbAnalyticsCron = () => {
             console.warn(`[IG/FB Cron] Kept existing instaData for ${influencer._id}: fresh build ${igHistory.length} < stored ${igExistingLen}`);
           }
 
+          // AI content insights (topic/format recommendations)
+          try {
+            const igInsights = await buildContentInsights(`https://www.instagram.com/${influencer.instaProfile}/`, 3);
+            if (igInsights) updates["aiInsights.instagram"] = igInsights;
+          } catch (e) {
+            console.warn(`[IG/FB Cron] IG insights failed for ${influencer._id}:`, e.message);
+          }
+
           // Graph API snapshot → instaGraphData (only if access token exists)
           if (influencer.igAccessToken) {
             try {
@@ -64,6 +72,14 @@ const startIgFbAnalyticsCron = () => {
             updates.fbData = fbHistory;
           } else if (fbHistory && fbHistory.length > 0) {
             console.warn(`[IG/FB Cron] Kept existing fbData for ${influencer._id}: fresh build ${fbHistory.length} < stored ${fbExistingLen}`);
+          }
+
+          // AI content insights (topic/format recommendations)
+          try {
+            const fbInsights = await buildContentInsights(fbUrl, 3);
+            if (fbInsights) updates["aiInsights.facebook"] = fbInsights;
+          } catch (e) {
+            console.warn(`[IG/FB Cron] FB insights failed for ${influencer._id}:`, e.message);
           }
         }
 

@@ -76,8 +76,8 @@ function transformYT(data) {
     trackingData: [],
   };
 
-  // Only use last 6 snapshots
-  const ytSlice = data.slice(-6);
+  // Only use last MONTHS_WINDOW snapshots (matches IG/FB)
+  const ytSlice = data.slice(-MONTHS_WINDOW);
   ytSlice.forEach((item) => {
     const { month, views, likes, comments, shares, subscribersGained, subscribersLost } = item;
 
@@ -96,10 +96,10 @@ function transformYT(data) {
     youtubedata.trackingData.push(month.slice(0, 3));
   });
 
-  // Pad all arrays to 6 months with zeros
+  // Pad all arrays to MONTHS_WINDOW months with zeros
   const ytFields = ["views", "likes", "comments", "shares", "subscribersGained", "subscribersLost", "engagementRate"];
   ytFields.forEach((key) => {
-    while (youtubedata[key].length < 6) youtubedata[key].unshift(0);
+    while (youtubedata[key].length < MONTHS_WINDOW) youtubedata[key].unshift(0);
   });
 
   // Net subscribers gained per month (gained - lost)
@@ -107,8 +107,8 @@ function transformYT(data) {
     (g, i) => g - (youtubedata.subscribersLost[i] || 0)
   );
 
-  // Always use last-6-month labels
-  youtubedata.trackingData = getLast6MonthLabels(6);
+  // Always use last-N-month labels
+  youtubedata.trackingData = getLast6MonthLabels(MONTHS_WINDOW);
 
   return youtubedata;
 }

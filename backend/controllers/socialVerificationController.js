@@ -1,6 +1,6 @@
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
 const SocialVerificationRequest = require("../model/socialVerificationRequest");
-const { InstagramData, facebookData, buildInstagramHistory, buildFacebookHistory } = require("../utils/influencerAnalytics");
+const { InstagramData, facebookData, buildInstagramHistory, buildFacebookHistory, buildContentInsights } = require("../utils/influencerAnalytics");
 
 const MAX_MONTHS = 10; // keep the last 10 snapshots, same as the analytics cron
 
@@ -191,6 +191,24 @@ exports.fetchLatestStats = async (req, res) => {
     influencer[field] = updated;
     // Persist the handle so future fetches (and the cron) know it.
     if (!influencer[profileField]) influencer[profileField] = handle;
+
+    // AI content insights (non-blocking — never fail the refresh over this).
+    try {
+      const insightUrl =
+        platform === "instagram"
+          ? `https://www.instagram.com/${handle}/`
+          : handle.startsWith("http")
+          ? handle
+          : `https://www.facebook.com/${handle}`;
+      const insights = await buildContentInsights(insightUrl, 3);
+      if (insights) {
+        influencer.aiInsights = { ...(influencer.aiInsights || {}), [platform]: insights };
+        influencer.markModified("aiInsights");
+      }
+    } catch (e) {
+      console.warn("[fetchLatestStats] content insights failed:", e.message);
+    }
+
     await influencer.save();
 
     return res.status(200).json({

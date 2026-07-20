@@ -39,6 +39,7 @@ const influencerSignupRequestSchema = new mongoose.Schema(
     instaGraphData: [], // Instagram Graph API data (direct from Meta)
     fbData: [], // Facebook data
     ytData: {}, // YouTube data
+    aiInsights: {}, // AI content insights per platform { instagram, facebook, youtube }
     tracked: { type: String, default: "" },
     agreedToTerms: { type: Boolean, default: false },
     appliedCollabPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CollabOpening' }],

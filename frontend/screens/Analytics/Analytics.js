@@ -10,19 +10,24 @@ import {
   TextInput,
   Pressable,
   useWindowDimensions,
+  Platform,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from "expo-auth-session";
+import API_ENDPOINT from "../../config";
 import Depth1Frame7 from "../../components/Depth1Frame7";
 import Depth1Frame9 from "../../components/Depth1Frame9";
 
 import { transformFB, transformIG, transformYT } from "../../helpers/GraphData";
 import { getSocialData } from "../../controller/socialController";
+import AiInsightsCard from "./components/AiInsights/AiInsightsCard";
 import { FBStats, InstaStats, YTStats } from "./components/stats/AllStats";
 import { FBGraph, IgGraph, YTGraph } from "./components/MyGraphs/AllGraphs";
 import { InstaDemo, YTDemo, FBDemo } from "./components/Images/AllImages";
 import { AnalyticsStyles } from "./Analytics.scss";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAlert } from "../../util/AlertContext";
-import { GetInfluencerProfile, UpdateInfluencerDescription, UpdateInfluencerHashtags, UpdateInfluencerPrice } from "../../controller/InfluencerController";
+import { GetInfluencerProfile, UpdateInfluencerDescription, UpdateInfluencerHashtags, UpdateInfluencerPrice, RefreshYoutubeData } from "../../controller/InfluencerController";
 import {sendRequest} from "../../controller/connectionsController"
 import Loader from '../../shared/Loader';
 import VerifySocialModal from "../UserProfile/VerifySocialModal";
@@ -107,7 +112,7 @@ const Analytics = ({ route, navigation }) => {
 
   // Price state
   const [editingPrice, setEditingPrice] = React.useState(false)
-  const [priceInput, setPriceInput] = React.useState({ ig: "", yt: "", tt: "", tr: "" })
+  const [priceInput, setPriceInput] = React.useState({ ig: "", yt: "", fb: "", tr: "" })
   const [savingPrice, setSavingPrice] = React.useState(false)
 
   const [loading,setLoading]=React.useState(false)
@@ -289,6 +294,72 @@ const Analytics = ({ route, navigation }) => {
   }, [influencerId, clickedId]);
 
   // Re-pull social data + profile after a fresh fetch so the columns update.
+  // Verify YouTube from the profile (for users who skipped it at signup).
+  // Uses the backend OAuth code flow (gets a refresh token for the cron), with a
+  // web-friendly redirect back to the app.
+  const [ytVerifying, setYtVerifying] = React.useState(false);
+  const [ytVerify, setYtVerify] = React.useState({ visible: false, handle: "" });
+  const handleYtVerify = async () => {
+    const influencerId = myOwnId;
+    const entered = (ytVerify.handle || "").trim().replace(/^@/, "");
+    if (!entered) {
+      showAlert?.("Error", "Please enter your YouTube channel handle");
+      return;
+    }
+    if (!influencerId || ytVerifying) return;
+    setYtVerifying(true);
+    try {
+      const state = Math.random().toString(36).substring(2, 18);
+      const redirectUri =
+        Platform.OS === "web"
+          ? (typeof window !== "undefined" ? window.location.origin + "/" : "https://www.influmart.in/")
+          : AuthSession.makeRedirectUri({ scheme: "influmart", path: "auth" });
+      const url =
+        `${API_ENDPOINT}/auth/youtube?state=${state}&influencerId=${influencerId}` +
+        `&redirectUri=${encodeURIComponent(redirectUri)}&channel=${encodeURIComponent(entered)}`;
+      const result = await WebBrowser.openAuthSessionAsync(url, redirectUri);
+      if (result.type !== "success") {
+        showAlert?.("Info", "YouTube sign-in was cancelled");
+        return;
+      }
+      const params = new URLSearchParams((result.url || "").split("?")[1] || "");
+      if (params.get("error") || !params.get("ytSuccess")) {
+        const err = params.get("error");
+        const msgs = {
+          youtube_no_channel: "No YouTube channel found on this Google account.",
+          youtube_state_mismatch: "Security check failed. Please try again.",
+          youtube_channel_mismatch: `Channel does not match. Your YouTube channel is ${params.get("ytChannel") || "different"}.`,
+        };
+        showAlert?.("Error", msgs[err] || "YouTube verification failed. Please try again.");
+        return;
+      }
+      setYtVerify({ visible: false, handle: "" });
+      showAlert?.("Success", "YouTube verified!");
+      await reloadSocial(); // refreshes influencer (ytChannelId) → ✓ + ↻ appear
+    } catch (e) {
+      console.log("handleYtVerify error:", e);
+      showAlert?.("Error", "YouTube verification failed. Please try again.");
+    } finally {
+      setYtVerifying(false);
+    }
+  };
+
+  const [ytRefreshing, setYtRefreshing] = React.useState(false);
+  const handleYtRefresh = async () => {
+    const getId = clickedId || myOwnId;
+    if (!getId || ytRefreshing) return;
+    setYtRefreshing(true);
+    try {
+      const ok = await RefreshYoutubeData(getId, showAlert);
+      if (ok) {
+        await reloadSocial();
+        showAlert?.("Success", "YouTube statistics updated.");
+      }
+    } finally {
+      setYtRefreshing(false);
+    }
+  };
+
   const reloadSocial = async () => {
     const getId = clickedId || myOwnId;
     if (!getId) return;
@@ -356,7 +427,7 @@ const Analytics = ({ route, navigation }) => {
     const priceObj = {
       ig: priceInput.ig,
       yt: priceInput.yt,
-      tt: priceInput.tt,
+      fb: priceInput.fb,
       tr: priceInput.tr,
       currency: influencer?.price?.[0]?.currency || { code: "IN", currency: "INR" },
     };
@@ -535,25 +606,38 @@ const Analytics = ({ route, navigation }) => {
                   key === "instagram"
                     ? influencer?.instaData?.length > 0
                     : key === "youtube"
-                    ? influencer?.ytData != null
+                    ? !!influencer?.ytChannelId // YT is only "verified" via OAuth (signup) → ytChannelId is set
                     : influencer?.fbData?.length > 0;
 
                 let badgeType;
-                if (otpVerified.includes(key)) badgeType = "✓";
+                if (key === "youtube") {
+                  // YouTube is OAuth-only: verified → ✓ (ytChannelId set);
+                  // otherwise a tappable "?" on the owner's profile to verify now.
+                  badgeType = hasData ? "✓" : (isOwnProfile ? "?" : null);
+                } else if (otpVerified.includes(key)) badgeType = "✓";
                 else if (unverified.includes(key)) badgeType = otpVerifiable ? "?" : "!";
                 else if (hasData) badgeType = "✓";
                 else badgeType = otpVerifiable ? "?" : null;
 
-                // The "?" is tappable only on the owner's own profile.
-                const canVerify = badgeType === "?" && isOwnProfile;
+                // "?" is tappable only on the owner's own profile.
+                // IG/FB "?" opens the OTP modal; YouTube "?" launches OAuth.
+                const canVerifyOtp = badgeType === "?" && isOwnProfile && otpVerifiable;
+                const canVerifyYt = badgeType === "?" && isOwnProfile && key === "youtube";
                 return (
                   <TouchableOpacity key={key} onPress={() => setTab(key)}>
                     <View style={[styles.navItems, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
                       <Text style={[styles.navText, isSelected && styles.navSelectText]}>{label}</Text>
                       {badgeType && (
-                        canVerify ? (
+                        canVerifyOtp ? (
                           <TouchableOpacity
                             onPress={() => setVerifyModal({ visible: true, platform: key })}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <AnalyticsBadge symbol={badgeType} textColor={textColor} />
+                          </TouchableOpacity>
+                        ) : canVerifyYt ? (
+                          <TouchableOpacity
+                            onPress={() => setYtVerify({ visible: true, handle: "" })}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           >
                             <AnalyticsBadge symbol={badgeType} textColor={textColor} />
@@ -577,6 +661,17 @@ const Analytics = ({ route, navigation }) => {
                           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
                           <Text style={{ fontSize: 13, fontWeight: "700", color: textColor }}>↻</Text>
+                        </TouchableOpacity>
+                      )}
+                      {key === "youtube" && isOwnProfile && !!influencer?.ytChannelId && (
+                        <TouchableOpacity
+                          onPress={handleYtRefresh}
+                          disabled={ytRefreshing}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={{ fontSize: 13, fontWeight: "700", color: textColor }}>
+                            {ytRefreshing ? "…" : "↻"}
+                          </Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -607,15 +702,6 @@ const Analytics = ({ route, navigation }) => {
                     </View>
                   </View>
                 </View>
-                <View style={[styles.depth3Frame1, styles.depth3FramePosition]}>
-                  <View style={styles.depth4Frame010}>
-                    <View style={styles.depth5Frame0}>
-                      <Text style={[styles.contactInfo, styles.cartier1Clr]}>
-                        Contact
-                      </Text>
-                    </View>
-                  </View>
-                </View>
               </View>
             </View>
             {socialData &&
@@ -626,6 +712,10 @@ const Analytics = ({ route, navigation }) => {
               ) : tab === "facebook" ? (
                 <>{fbData && <FBGraph fbData={fbData} />}</>
               ) : null)}
+            {/* AI Content Insights — influencer-only, per platform */}
+            {isOwnProfile && socialData?.aiInsights?.[tab] && (
+              <AiInsightsCard insights={socialData.aiInsights[tab]} platform={tab} />
+            )}
             <View style={styles.recentContainer}>
               <Text style={styles.recentText}>Recent Highlights</Text>
             </View>
@@ -660,14 +750,14 @@ const Analytics = ({ route, navigation }) => {
                       setPriceInput({
                         ig: (influencer?.price?.[0]?.ig || "").toString(),
                         yt: (influencer?.price?.[0]?.yt || "").toString(),
-                        tt: (influencer?.price?.[0]?.tt || "").toString(),
+                        fb: (influencer?.price?.[0]?.fb || "").toString(),
                         tr: (influencer?.price?.[0]?.tr || "").toString(),
                       });
                       setEditingPrice(true);
                     }}
                     style={descStyles.editLinkWrap}
                   >
-                    <Text style={descStyles.editLink}>{influencer?.price?.[0]?.ig || influencer?.price?.[0]?.yt || influencer?.price?.[0]?.tt ? "Edit" : "Add"}</Text>
+                    <Text style={descStyles.editLink}>{influencer?.price?.[0]?.ig || influencer?.price?.[0]?.yt || influencer?.price?.[0]?.fb ? "Edit" : "Add"}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -676,7 +766,7 @@ const Analytics = ({ route, navigation }) => {
                   {[
                     { label: "Instagram (₹)", key: "ig" },
                     { label: "YouTube (₹)", key: "yt" },
-                    { label: "TikTok (₹)", key: "tt" },
+                    { label: "Facebook (₹)", key: "fb" },
                   ].map(({ label, key }) => (
                     <View key={key} style={{ marginBottom: 10 }}>
                       <Text style={{ fontSize: 13, fontWeight: "600", color: "#444", marginBottom: 4 }}>{label}</Text>
@@ -707,7 +797,7 @@ const Analytics = ({ route, navigation }) => {
                 <>
                   <AveragePrice platform="Instagram" price={influencer?.price?.[0]?.ig ? `₹ ${influencer.price[0].ig}` : "Add your price"} />
                   <AveragePrice platform="YouTube" price={influencer?.price?.[0]?.yt ? `₹ ${influencer.price[0].yt}` : "Add your price"} />
-                  <AveragePrice platform="TikTok" price={influencer?.price?.[0]?.tt ? `₹ ${influencer.price[0].tt}` : "Add your price"} />
+                  <AveragePrice platform="Facebook" price={influencer?.price?.[0]?.fb ? `₹ ${influencer.price[0].fb}` : "Add your price"} />
                 </>
               )}
             </View>
@@ -830,9 +920,51 @@ const Analytics = ({ route, navigation }) => {
         onSuccess={reloadSocial}
         onClose={() => setFetchModal({ visible: false, platform: null, username: "" })}
       />
+      {/* YouTube verify — enter channel handle, then Google OAuth (like signup) */}
+      <Modal visible={ytVerify.visible} transparent animationType="fade" onRequestClose={() => setYtVerify({ visible: false, handle: "" })}>
+        <View style={ytModalStyles.overlay}>
+          <View style={ytModalStyles.card}>
+            <Text style={ytModalStyles.title}>Verify YouTube</Text>
+            <Text style={ytModalStyles.body}>
+              Enter your YouTube channel handle, then sign in with the Google account that owns it.
+            </Text>
+            <TextInput
+              style={ytModalStyles.input}
+              value={ytVerify.handle}
+              onChangeText={(t) => setYtVerify((s) => ({ ...s, handle: t }))}
+              placeholder="@yourchannel"
+              placeholderTextColor="#9aa3b2"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!ytVerifying}
+            />
+            <TouchableOpacity
+              style={[ytModalStyles.primaryBtn, ytVerifying && { opacity: 0.6 }]}
+              onPress={handleYtVerify}
+              disabled={ytVerifying}
+            >
+              <Text style={ytModalStyles.primaryBtnText}>{ytVerifying ? "Verifying…" : "Verify with Google"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setYtVerify({ visible: false, handle: "" })} disabled={ytVerifying}>
+              <Text style={ytModalStyles.cancel}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
+
+const ytModalStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 20 },
+  card: { width: "100%", maxWidth: 360, backgroundColor: "#fff", borderRadius: 16, padding: 22 },
+  title: { fontSize: 18, fontWeight: "700", color: "#1c1c1e", marginBottom: 8 },
+  body: { fontSize: 14, lineHeight: 20, color: "#637087", marginBottom: 16 },
+  input: { borderWidth: 1, borderColor: "#E1E4EA", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: "#1c1c1e", marginBottom: 16 },
+  primaryBtn: { backgroundColor: "#1A80E5", borderRadius: 10, paddingVertical: 13, alignItems: "center" },
+  primaryBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  cancel: { textAlign: "center", color: "#9aa3b2", fontSize: 14, marginTop: 14 },
+});
 
 const styles = StyleSheet.create(AnalyticsStyles);
 

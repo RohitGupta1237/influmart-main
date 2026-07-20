@@ -647,7 +647,182 @@ const buildFacebookHistory = async (fbUrl, months = 10) => {
   }
 };
 
-module.exports = {facebookData,InstagramData,InstagramGraphData,trackingData,buildInstagramHistory,buildFacebookHistory}
+// ─────────────────────────────────────────────────────────────────────────
+// AI CONTENT INSIGHTS
+// Uses artemlipko /posts (multi-platform via cid) to pull recent posts + a
+// ready-made `summary` (per-format/hashtag/caption-length ER & grade). Hard
+// numbers come from that summary (rule-based, free). Gemini (free tier) reads
+// the captions to infer TOPICS and write the recommendation. If the Gemini key
+// is missing or rate-limited, we fall back to a rule-based summary — so this
+// never breaks and never costs money.
+// ─────────────────────────────────────────────────────────────────────────
+
+// /posts → { posts[], summary } for a given cid over a date range.
+const fetchPosts = async (cid, fromDate, toDate) => {
+  const fmt = (dt) =>
+    `${String(dt.getDate()).padStart(2, "0")}.${String(dt.getMonth() + 1).padStart(2, "0")}.${dt.getFullYear()}`;
+  const res = await rapidRequest({
+    method: "GET",
+    url: `https://${config.X_RAPIDAPI_HOST_INSTA}/posts`,
+    params: { cid, from: fmt(fromDate), to: fmt(toDate), type: "posts", sort: "date" },
+    headers: { "x-rapidapi-host": config.X_RAPIDAPI_HOST_INSTA },
+  });
+  if (res.status !== 200) return { posts: [], summary: null };
+  return { posts: res.data?.data?.posts || [], summary: res.data?.data?.summary || null };
+};
+
+// Ask Gemini (free tier) to infer topics + write the coaching summary.
+// Returns { summary, recommendations[], topTopics[], weakTopics[] } or null.
+const geminiInsight = async ({ platform, formats, captionLength, topPosts, bottomPosts }) => {
+  const key = config.GEMINI_API_KEY;
+  if (!key) return null;
+  const model = config.GEMINI_MODEL || "gemini-2.0-flash";
+  const slim = (p) => ({
+    type: p.type,
+    grade: p.grade,
+    engagementRate: p.er,
+    views: p.videoViews || null, // reach for videos/reels (null for photos/carousels)
+    caption: p.caption,
+  });
+  const prompt =
+    `You are a social media content coach analysing a creator's ${platform} performance.\n` +
+    `Return STRICT JSON only: {"summary": string (2-3 sentences, friendly, specific), "recommendations": string[] (3-5 short actionable tips), "topTopics": string[] (themes that perform well), "weakTopics": string[] (themes that underperform)}.\n` +
+    `Infer the TOPIC/theme of each post from its caption (e.g. gym/fitness, family, business, motivation, product promo, travel, food).\n` +
+    `Judge performance by BOTH engagementRate and views (views = reach for videos/reels). Recommend posting MORE of high-performing topics/formats and LESS of low-performing ones. Be concrete and reference the creator's actual themes.\n\n` +
+    `FORMAT PERFORMANCE (engagement rate & grade): ${JSON.stringify(formats)}\n` +
+    `CAPTION LENGTH PERFORMANCE: ${JSON.stringify(captionLength)}\n` +
+    `TOP POSTS (highest engagement): ${JSON.stringify(topPosts.map(slim))}\n` +
+    `WORST POSTS (lowest engagement): ${JSON.stringify(bottomPosts.map(slim))}`;
+  try {
+    const res = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.4 },
+      },
+      { headers: { "Content-Type": "application/json" }, timeout: 20000 }
+    );
+    const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return null;
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed.summary !== "string") return null;
+    return {
+      summary: parsed.summary,
+      recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations.slice(0, 5) : [],
+      topTopics: Array.isArray(parsed.topTopics) ? parsed.topTopics.slice(0, 6) : [],
+      weakTopics: Array.isArray(parsed.weakTopics) ? parsed.weakTopics.slice(0, 6) : [],
+    };
+  } catch (e) {
+    console.warn("[geminiInsight] failed:", e.response?.data?.error?.message || e.message);
+    return null;
+  }
+};
+
+// Free, deterministic fallback when Gemini is unavailable.
+const ruleBasedInsight = ({ bestFormat, bestCaptionLength, topHashtags }) => ({
+  summary:
+    `Your ${bestFormat || "posts"} tend to get the most engagement` +
+    (bestCaptionLength ? `, especially with ${bestCaptionLength}-length captions` : "") +
+    `. Lean into what's already working and cut the formats that underperform.`,
+  recommendations: [
+    bestFormat ? `Post more ${bestFormat} — they earn your highest engagement.` : null,
+    bestCaptionLength ? `Keep captions ${bestCaptionLength}-length for best results.` : null,
+    topHashtags && topHashtags.length
+      ? `Reuse your best-performing hashtags: ${topHashtags.slice(0, 3).map((h) => "#" + h.name).join(" ")}.`
+      : null,
+    `Review your lowest-graded posts and avoid repeating those formats/topics.`,
+  ].filter(Boolean),
+  topTopics: [],
+  weakTopics: [],
+});
+
+// Build the full content-insights object for a profile URL (IG/FB/YT).
+// months = recency window (default 3). Returns null if no cid / no posts.
+const buildContentInsights = async (url, months = 3) => {
+  try {
+    const profile = await fetchCommunityByUrl(url);
+    if (!profile || !profile.cid) return null;
+
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+    const { posts, summary } = await fetchPosts(profile.cid, from, now);
+    if (!posts.length) return null;
+
+    const norm = posts
+      .filter((p) => !p.isDeleted && !p.isAd) // exclude deleted + sponsored so advice reflects organic content
+      .map((p) => ({
+        postUrl: p.postUrl,
+        thumbnail: p.postImage,
+        caption: (p.text || "").slice(0, 200),
+        type: p.type,
+        likes: p.likes || 0,
+        comments: p.comments || 0,
+        videoViews: p.videoViews || 0,
+        er: p.er || 0,
+        grade: p.mainGrade || "",
+        date: p.date,
+      }));
+    if (!norm.length) return null;
+
+    const byPerf = [...norm].sort((a, b) => (b.er || 0) - (a.er || 0));
+    const topPosts = byPerf.slice(0, 5);
+    const bottomPosts = byPerf.slice(-5).reverse();
+
+    const formats = (summary?.types || []).map((t) => ({
+      name: t.name, count: t.count, er: t.er, grade: t.grade,
+    }));
+    const bestFormat = [...formats].sort((a, b) => (b.er || 0) - (a.er || 0))[0]?.name || null;
+
+    const captionLength = (summary?.textLength || [])
+      .filter((t) => t.count > 0)
+      .map((t) => ({ name: t.name, count: t.count, er: t.er, grade: t.grade }));
+    const bestCaptionLength = [...captionLength].sort((a, b) => (b.er || 0) - (a.er || 0))[0]?.name || null;
+
+    const hashtags = summary?.hashTags || [];
+    const topHashtags = [...hashtags]
+      .sort((a, b) => (b.grade || 0) - (a.grade || 0))
+      .slice(0, 5)
+      .map((h) => ({ name: h.name, er: h.er, grade: h.grade }));
+    const weakHashtags = [...hashtags]
+      .sort((a, b) => (a.grade || 0) - (b.grade || 0))
+      .slice(0, 5)
+      .map((h) => ({ name: h.name, er: h.er, grade: h.grade }));
+
+    const platform = String(profile.cid).startsWith("FB")
+      ? "Facebook"
+      : String(profile.cid).startsWith("YT")
+      ? "YouTube"
+      : "Instagram";
+
+    let ai = await geminiInsight({ platform, formats, captionLength, topPosts, bottomPosts });
+    let source = "gemini";
+    if (!ai) {
+      ai = ruleBasedInsight({ bestFormat, bestCaptionLength, topHashtags });
+      source = "rule-based";
+    }
+
+    return {
+      generatedAt: new Date().toISOString(),
+      window: `last ${months} months`,
+      postsAnalyzed: norm.length,
+      bestFormat,
+      formats,
+      bestCaptionLength,
+      captionLength,
+      topHashtags,
+      weakHashtags,
+      topPosts,
+      bottomPosts,
+      ai,
+      source,
+    };
+  } catch (e) {
+    console.log("[buildContentInsights] error:", e.message);
+    return null;
+  }
+};
+
+module.exports = {facebookData,InstagramData,InstagramGraphData,trackingData,buildInstagramHistory,buildFacebookHistory,buildContentInsights}
 
 
 // Facebook

@@ -25,7 +25,7 @@ const Depth1Frame9 = ({image,username,location,category,isSelectedImage}) => {
             </View>
             <View style={[styles.depth5Frame2, styles.depth5FrameLayout]}>
               <View style={styles.depth6Frame0}>
-                <Text style={styles.age27Los} numberOfLines={1}>
+                <Text style={styles.age27Los} numberOfLines={2}>
                   {category}
                 </Text>
               </View>
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   depth5FrameLayout: {
-    height: 24,
+    minHeight: 24,
     alignItems: "center",
   },
   frameLayout: {
@@ -86,10 +86,11 @@ const styles = StyleSheet.create({
   },
   age27Los: {
     fontSize: FontSize.size_base,
-    lineHeight: 24,
+    lineHeight: 22,
     fontFamily: FontFamily.beVietnamProRegular,
     color: Color.colorSlategray_200,
     textAlign: "center",
+    paddingHorizontal: 24,
   },
   depth5Frame1: {
     width: 'auto',

@@ -246,6 +246,26 @@ const InboxInterface = () => {
               </Swipeable>
             ))}
 
+            {/* Empty state — no conversations yet */}
+            {searchResults.length === 0 &&
+              (!filteredConversations || filteredConversations.length === 0) &&
+              !loading &&
+              !searching && (
+                <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 80, paddingHorizontal: 32 }}>
+                  <Text style={{ fontSize: 40, marginBottom: 12 }}>💬</Text>
+                  <Text style={{ fontSize: 17, fontWeight: "700", color: "#1c1c1e", marginBottom: 8, textAlign: "center" }}>
+                    {searchQuery ? "No matches found" : "No conversations yet"}
+                  </Text>
+                  <Text style={{ fontSize: 14, lineHeight: 20, color: "#8a94a6", textAlign: "center" }}>
+                    {searchQuery
+                      ? "Try a different name."
+                      : userType === "brand"
+                      ? "Search for an influencer above to start a conversation."
+                      : "When a brand reaches out, your chats will show up here."}
+                  </Text>
+                </View>
+              )}
+
           </View>
         </ScrollView>
       </View>

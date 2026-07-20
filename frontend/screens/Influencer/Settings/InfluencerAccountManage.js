@@ -33,7 +33,7 @@ const InfluencerManageAccount = ({ route, navigation }) => {
     isSelectedImage: false,
     priceYoutube: "",
     priceInstagram: "",
-    priceTiktok: "",
+    priceFacebook: "",
   });
   const [editFields, setEditFields] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +63,7 @@ const InfluencerManageAccount = ({ route, navigation }) => {
           isSelectedImage: data?.isSelectedImage,
           priceYoutube: price?.yt ? price.yt.toString() : "",
           priceInstagram: price?.ig ? price.ig.toString() : "",
-          priceTiktok: price?.tt ? price.tt.toString() : "",
+          priceFacebook: price?.fb ? price.fb.toString() : "",
         });
       }
     };
@@ -307,7 +307,7 @@ const InfluencerManageAccount = ({ route, navigation }) => {
           </View>
         </View>
 
-        <View style={styles.formGroup}>
+        <View style={[styles.formGroup, { zIndex: 100 }]}>
           <Text style={styles.label}>Category</Text>
           <MultiDropDown
             name={profileData.category.join(",")}
@@ -332,10 +332,11 @@ const InfluencerManageAccount = ({ route, navigation }) => {
             dropDownOptionStyle={{
               width: "100%",
               paddingVertical: 16,
+              paddingHorizontal: 8,
             }}
             dropDownContainerStyle={{ width: "100%" }}
-            dropDownItemsStyle={{ width: "100%", top: -470 }}
-            titleStyle={{ paddingStart: 12, color: "#4F7A94" }}
+            dropDownItemsStyle={{ width: "100%", top: "100%", backgroundColor: "#fff", maxHeight: 260 }}
+            titleStyle={{ paddingStart: 0, color: "#4F7A94" }}
             selectedValue={profileData.category}
             setSelectedValues={(values) =>
               setProfileData((prev) => ({ ...prev, category: values }))
@@ -390,21 +391,21 @@ const InfluencerManageAccount = ({ route, navigation }) => {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>TikTok Price Per Post (₹)</Text>
+          <Text style={styles.label}>Facebook Price Per Post (₹)</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.textInput}
-              value={profileData.priceTiktok}
-              editable={editFields.priceTiktok}
+              value={profileData.priceFacebook}
+              editable={editFields.priceFacebook}
               keyboardType="numeric"
               placeholder="Enter price"
               onChangeText={(text) =>
-                setProfileData((prev) => ({ ...prev, priceTiktok: text }))
+                setProfileData((prev) => ({ ...prev, priceFacebook: text }))
               }
             />
             <TouchableOpacity
               style={styles.editIcon}
-              onPress={() => toggleEditField("priceTiktok")}
+              onPress={() => toggleEditField("priceFacebook")}
             >
               <Icon name="pencil" size={20} color="gray" />
             </TouchableOpacity>

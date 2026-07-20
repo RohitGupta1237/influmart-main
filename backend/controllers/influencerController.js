@@ -18,6 +18,7 @@ const { generateEmbedding, cosineSimilarity, buildInfluencerText } = require("..
 const { encrypt, decrypt } = require("../utils/encryption");
 const { refundPayment } = require("./paymentController");
 const { deleteSubscription } = require("./subscriptionController");
+const { refreshYoutubeForInfluencer } = require("../cron/ytAnalyticsCron");
 
 exports.verifyUser = async (req, res) => {
   const influencerData = req.body;
@@ -249,6 +250,7 @@ exports.getSocialData = async (req, res) => {
       instaData: influencer.instaData,
       fbData: influencer.fbData,
       ytData: influencer.ytData,
+      aiInsights: influencer.aiInsights || {},
     });
   } catch (err) {
     console.error("Error getting influencer profile:", err);
@@ -335,6 +337,24 @@ exports.saveYtRefreshToken = async (req, res) => {
   } catch (err) {
     console.error("Error saving YT refresh token:", err);
     res.status(500).json({ message: "Failed to save refresh token" });
+  }
+};
+
+// Manually refresh a verified influencer's YouTube data (analytics + insights)
+// using their stored refresh token — no re-verification needed.
+exports.refreshYoutube = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const influencer = await InfluencerSignupRequest.findById(id);
+    if (!influencer) return res.status(404).json({ message: "Influencer not found" });
+    if (!influencer.ytRefreshToken || !influencer.ytChannelId) {
+      return res.status(400).json({ message: "YouTube isn't connected. Please verify YouTube first." });
+    }
+    const ytData = await refreshYoutubeForInfluencer(influencer);
+    return res.status(200).json({ message: "YouTube statistics updated", ytData });
+  } catch (err) {
+    console.error("Error refreshing YouTube:", err.response?.data || err.message);
+    return res.status(502).json({ message: "Could not refresh YouTube right now. Please try again in a moment." });
   }
 };
 

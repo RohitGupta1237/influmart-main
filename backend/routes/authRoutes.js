@@ -549,10 +549,16 @@ router.get("/auth/twitter/callback", async (req, res) => {
 // YouTube OAuth — server-side authorization code flow to obtain refresh token
 // Step 1: Frontend opens this URL → backend redirects to Google with access_type=offline
 router.get("/auth/youtube", (req, res) => {
-  const { state, influencerId } = req.query;
+  const { state, influencerId, redirectUri, channel } = req.query;
   if (!state || !influencerId) return res.status(400).send("Missing state or influencerId");
 
-  youtubeStateMap.set(state, { influencerId });
+  // redirectUri lets web (influmart.in) receive the result; native falls back to the deep link.
+  // channel (optional) = the handle the user claims; enforced against the OAuth'd channel.
+  youtubeStateMap.set(state, {
+    influencerId,
+    redirectUri: redirectUri || "influmart://auth",
+    expectedChannel: channel || "",
+  });
   setTimeout(() => youtubeStateMap.delete(state), 10 * 60 * 1000);
 
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -585,7 +591,10 @@ router.get("/auth/youtube/callback", async (req, res) => {
   youtubeStateMap.delete(state);
   if (!stateData) return res.redirect("influmart://auth?error=youtube_state_mismatch");
 
-  const { influencerId } = stateData;
+  const { influencerId, redirectUri, expectedChannel } = stateData;
+  const appRedirect = redirectUri || "influmart://auth";
+  // Append query params whether the target is a deep link or a web URL.
+  const dest = (params) => `${appRedirect}${appRedirect.includes("?") ? "&" : "?"}${params}`;
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
   const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -604,7 +613,7 @@ router.get("/auth/youtube/callback", async (req, res) => {
     );
 
     const { access_token, refresh_token } = tokenResponse.data;
-    if (!access_token) return res.redirect("influmart://auth?error=youtube_token_failed");
+    if (!access_token) return res.redirect(dest("error=youtube_token_failed"));
 
     // Fetch user email
     const userInfoRes = await axios.get("https://www.googleapis.com/userinfo/v2/me", {
@@ -618,18 +627,29 @@ router.get("/auth/youtube/callback", async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     const channel = channelRes.data.items?.[0];
-    if (!channel) return res.redirect("influmart://auth?error=youtube_no_channel");
+    if (!channel) return res.redirect(dest("error=youtube_no_channel"));
 
     const channelId = channel.id;
     const channelHandle = channel.snippet.customUrl || channel.snippet.title;
     const stats = channel.statistics;
 
-    // Fetch YouTube Analytics — last 6 months monthly breakdown
+    // If the user pre-entered a channel handle (profile/signup flow), enforce it
+    // server-side so a mismatched channel is never saved.
+    if (expectedChannel) {
+      const norm = (s) => String(s || "").toLowerCase().replace(/^@/, "").trim();
+      if (norm(expectedChannel) !== norm(channelHandle)) {
+        return res.redirect(dest(`error=youtube_channel_mismatch&ytChannel=${encodeURIComponent(channelHandle)}`));
+      }
+    }
+
+    // Fetch YouTube Analytics — last 10 months monthly breakdown (matches IG/FB)
     const now = new Date();
-    const sixMonthsAgo = new Date(now);
-    sixMonthsAgo.setMonth(now.getMonth() - 6);
-    const startDate = sixMonthsAgo.toISOString().split("T")[0];
-    const endDate = now.toISOString().split("T")[0];
+    // month dimension requires BOTH start & end to be the 1st of a month.
+    const pad2 = (n) => String(n).padStart(2, "0");
+    const startAlign = new Date(now.getFullYear(), now.getMonth() - 10, 1);
+    const endAlign = new Date(now.getFullYear(), now.getMonth(), 1); // first day of current month
+    const startDate = `${startAlign.getFullYear()}-${pad2(startAlign.getMonth() + 1)}-01`;
+    const endDate = `${endAlign.getFullYear()}-${pad2(endAlign.getMonth() + 1)}-01`;
 
     let analyticsData = [];
     let overAllAnalytics = {};
@@ -728,11 +748,11 @@ router.get("/auth/youtube/callback", async (req, res) => {
     await InfluencerSignupRequest.findByIdAndUpdate(influencerId, updatePayload);
 
     res.redirect(
-      `influmart://auth?ytSuccess=true&ytChannel=${encodeURIComponent(channelHandle)}&ytEmail=${encodeURIComponent(userEmail)}&state=${encodeURIComponent(state)}`
+      dest(`ytSuccess=true&ytChannel=${encodeURIComponent(channelHandle)}&ytEmail=${encodeURIComponent(userEmail)}&state=${encodeURIComponent(state)}`)
     );
   } catch (err) {
     console.error("[YouTube OAuth callback] Error:", err.response?.data || err.message);
-    res.redirect("influmart://auth?error=youtube_auth_failed");
+    res.redirect(dest("error=youtube_auth_failed"));
   }
 });
 

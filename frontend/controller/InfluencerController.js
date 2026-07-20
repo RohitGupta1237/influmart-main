@@ -57,7 +57,7 @@ const InfluencerUpdate = async (influencerId, payload, navigation, showAlert) =>
   data.append("price", JSON.stringify([{
     yt: payload?.priceYoutube || "0",
     ig: payload?.priceInstagram || "0",
-    tt: payload?.priceTiktok || "0",
+    fb: payload?.priceFacebook || "0",
     tr: "0",
   }]));
 
@@ -227,6 +227,22 @@ const UpdateInfluencerPrice = async (influencerId, price, showAlert) => {
   }
 };
 
+// Manually refresh YouTube data (uses the stored refresh token — no re-verify)
+const RefreshYoutubeData = async (influencerId, showAlert) => {
+  const token = await AsyncStorage.getItem("token");
+  try {
+    const response = await axios.post(
+      `${API_ENDPOINT}/influencers/${influencerId}/yt-refresh`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    showAlert?.("Error", error?.response?.data?.message || "Could not refresh YouTube right now.");
+    return false;
+  }
+};
+
 export {
   GetInfluencerProfile,
   GetAllInfluencerProfile,
@@ -236,4 +252,5 @@ export {
   UpdateInfluencerDescription,
   UpdateInfluencerHashtags,
   UpdateInfluencerPrice,
+  RefreshYoutubeData,
 };

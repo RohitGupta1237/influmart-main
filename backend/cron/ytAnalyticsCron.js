@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const axios = require("axios");
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
+const { buildContentInsights } = require("../utils/influencerAnalytics");
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -20,13 +21,15 @@ const getAccessToken = async (refreshToken) => {
   return response.data.access_token;
 };
 
-// Fetch YouTube Analytics — last 6 months monthly breakdown
+// Fetch YouTube Analytics — last 10 months monthly breakdown (matches IG/FB)
 const fetchAnalytics = async (accessToken) => {
   const now = new Date();
-  const sixMonthsAgo = new Date(now);
-  sixMonthsAgo.setMonth(now.getMonth() - 6);
-  const startDate = sixMonthsAgo.toISOString().split("T")[0];
-  const endDate = now.toISOString().split("T")[0];
+  // month dimension requires BOTH start & end to be the 1st of a month.
+  const pad = (n) => String(n).padStart(2, "0");
+  const start = new Date(now.getFullYear(), now.getMonth() - 10, 1);
+  const end = new Date(now.getFullYear(), now.getMonth(), 1); // first day of current month
+  const startDate = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`;
+  const endDate = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-01`;
 
   const response = await axios.get("https://youtubeanalytics.googleapis.com/v2/reports", {
     params: {
@@ -85,6 +88,70 @@ const fetchRecentVideos = async (accessToken, channelId) => {
   }));
 };
 
+// Refresh one influencer's YouTube data (analytics + channel + highlights +
+// AI insights) using their stored refresh token, and persist it. Shared by the
+// monthly cron and the manual ↻ refresh endpoint. Returns the ytData object.
+const refreshYoutubeForInfluencer = async (influencer) => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    throw new Error("YouTube OAuth not configured on the server");
+  }
+  if (!influencer.ytRefreshToken || !influencer.ytChannelId) {
+    throw new Error("This account isn't connected to YouTube. Verify YouTube first.");
+  }
+
+  const accessToken = await getAccessToken(influencer.ytRefreshToken);
+  const [analyticsData, channelStats, highlights] = await Promise.all([
+    fetchAnalytics(accessToken).catch((e) => {
+      console.warn("[YT] analytics failed:", e.response?.data?.error?.message || e.message);
+      return [];
+    }),
+    fetchChannelStats(accessToken, influencer.ytChannelId),
+    fetchRecentVideos(accessToken, influencer.ytChannelId).catch(() => []),
+  ]);
+
+  const totalViews = analyticsData.reduce((s, r) => s + r.views, 0);
+  const totalWatchTime = analyticsData.reduce((s, r) => s + r.watchTime, 0);
+  const totalLikes = analyticsData.reduce((s, r) => s + r.likes, 0);
+  const totalComments = analyticsData.reduce((s, r) => s + r.comments, 0);
+  const totalShares = analyticsData.reduce((s, r) => s + r.shares, 0);
+  const totalSubsGained = analyticsData.reduce((s, r) => s + r.subscribersGained, 0);
+  const totalSubsLost = analyticsData.reduce((s, r) => s + r.subscribersLost, 0);
+  const engagementRate = totalViews > 0
+    ? parseFloat(((totalLikes + totalComments + totalShares) / totalViews * 100).toFixed(2))
+    : 0;
+
+  const overAll = {
+    totalViews,
+    totalWatchTime,
+    totalSubscribersGained: totalSubsGained,
+    totalSubscribersLost: totalSubsLost,
+    totalLikes,
+    totalComments,
+    totalShares,
+    engagementRate,
+    subscriberCount: channelStats.subscriberCount,
+    videoCount: channelStats.videoCount,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  const ytData = { overAll, analytics: analyticsData, highlights, ytChannelId: influencer.ytChannelId };
+  const ytUpdate = { ytData: [JSON.stringify(ytData)] };
+
+  // AI content insights via artemlipko (non-blocking)
+  try {
+    const ytInsights = await buildContentInsights(
+      `https://www.youtube.com/channel/${influencer.ytChannelId}`,
+      3
+    );
+    if (ytInsights) ytUpdate["aiInsights.youtube"] = ytInsights;
+  } catch (e) {
+    console.warn(`[YT] insights failed for ${influencer._id}:`, e.message);
+  }
+
+  await InfluencerSignupRequest.findByIdAndUpdate(influencer._id, ytUpdate);
+  return ytData;
+};
+
 // Main job: runs on the 1st of every month at 2am
 const startYtAnalyticsCron = () => {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -104,53 +171,8 @@ const startYtAnalyticsCron = () => {
 
     for (const influencer of influencers) {
       try {
-        // Get fresh access token using the stored refresh token
-        const accessToken = await getAccessToken(influencer.ytRefreshToken);
-
-        const [analyticsData, channelStats, highlights] = await Promise.all([
-          fetchAnalytics(accessToken),
-          fetchChannelStats(accessToken, influencer.ytChannelId),
-          fetchRecentVideos(accessToken, influencer.ytChannelId),
-        ]);
-
-        // Compute overall totals from analytics data
-        const totalViews = analyticsData.reduce((s, r) => s + r.views, 0);
-        const totalWatchTime = analyticsData.reduce((s, r) => s + r.watchTime, 0);
-        const totalLikes = analyticsData.reduce((s, r) => s + r.likes, 0);
-        const totalComments = analyticsData.reduce((s, r) => s + r.comments, 0);
-        const totalShares = analyticsData.reduce((s, r) => s + r.shares, 0);
-        const totalSubsGained = analyticsData.reduce((s, r) => s + r.subscribersGained, 0);
-        const totalSubsLost = analyticsData.reduce((s, r) => s + r.subscribersLost, 0);
-        const engagementRate = totalViews > 0
-          ? parseFloat(((totalLikes + totalComments + totalShares) / totalViews * 100).toFixed(2))
-          : 0;
-
-        const overAll = {
-          totalViews,
-          totalWatchTime,
-          totalSubscribersGained: totalSubsGained,
-          totalSubscribersLost: totalSubsLost,
-          totalLikes,
-          totalComments,
-          totalShares,
-          engagementRate,
-          subscriberCount: channelStats.subscriberCount,
-          videoCount: channelStats.videoCount,
-          lastUpdated: new Date().toISOString(),
-        };
-
-        const ytData = {
-          overAll,
-          analytics: analyticsData,
-          highlights,
-          ytChannelId: influencer.ytChannelId,
-        };
-
-        await InfluencerSignupRequest.findByIdAndUpdate(influencer._id, {
-          ytData: [JSON.stringify(ytData)],
-        });
-
-        console.log(`[YT Cron] Updated ${influencer._id} — ${channelStats.subscriberCount} subscribers, engagement ${engagementRate}%`);
+        const ytData = await refreshYoutubeForInfluencer(influencer);
+        console.log(`[YT Cron] Updated ${influencer._id} — ${ytData.overAll.subscriberCount} subscribers, engagement ${ytData.overAll.engagementRate}%`);
       } catch (err) {
         console.error(`[YT Cron] Failed for influencer ${influencer._id}:`, err.response?.data || err.message);
       }
@@ -162,4 +184,4 @@ const startYtAnalyticsCron = () => {
   console.log("[YT Cron] Scheduled — runs on 1st of every month at 2am");
 };
 
-module.exports = { startYtAnalyticsCron };
+module.exports = { startYtAnalyticsCron, refreshYoutubeForInfluencer };

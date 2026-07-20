@@ -14,6 +14,7 @@ const {
   filterInfluencers,
   aiSearchInfluencers,
   saveYtRefreshToken,
+  refreshYoutube,
   changePassword,
   updateDescription,
   updateHashtags,
@@ -77,6 +78,9 @@ router.post("/ai-search", aiSearchInfluencers);
 
 // Save YouTube refresh token for cron job
 router.put("/:id/yt-refresh-token", influencerAuthenticationMiddleware, saveYtRefreshToken);
+
+// Manually refresh YouTube data (uses stored refresh token — no re-verify)
+router.post("/:id/yt-refresh", influencerAuthenticationMiddleware, refreshYoutube);
 
 // Change password
 router.post("/change-password", influencerAuthenticationMiddleware, changePassword);
