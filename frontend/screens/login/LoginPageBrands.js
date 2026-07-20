@@ -1,4 +1,5 @@
 import * as React from "react";
+import { openPrivacyPolicy, openTerms } from "../../util/legalLinks";
 import { Image } from "expo-image";
 import {
   StyleSheet,
@@ -163,11 +164,11 @@ const LoginPageBrand = () => {
               <Text style={styles.termsText}>
                 By joining, you agree to our{" "}
               </Text>
-              <TouchableOpacity onPress={()=>navigation.navigate("TosScreen",{navigate:"LoginPageBrands"})}>
+              <TouchableOpacity onPress={()=>openTerms()}>
                 <Text style={styles.linkText}>Terms of Service</Text>
               </TouchableOpacity>
               <Text style={styles.termsText}> and </Text>
-              <TouchableOpacity onPress={()=>navigation.navigate("PPScreen",{navigate:"LoginPageBrands"})}>
+              <TouchableOpacity onPress={()=>openPrivacyPolicy()}>
                 <Text style={styles.linkText}>Privacy Policy</Text>
               </TouchableOpacity>
             </View>

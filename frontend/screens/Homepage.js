@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, Image, StyleSheet, View, Text, TouchableOpacity, Pressable } from "react-native";
+import { ScrollView, Image, StyleSheet, View, Text, TouchableOpacity, Pressable, Linking, Platform } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import Depth1Frame4 from "../components/Depth1Frame4";
 import Depth1Frame from "../components/Depth1Frame";
@@ -52,6 +52,14 @@ const Homepage = ({ route, navigation }) => {
     { value: "500+", label: "Brands" },
     { value: "₹1Cr+", label: "Campaigns" },
   ]
+
+  const openPrivacy = () => {
+    const url =
+      Platform.OS === "web" && typeof window !== "undefined"
+        ? window.location.origin + "/privacy.html"
+        : "https://www.influmart.in/privacy.html";
+    Linking.openURL(url);
+  };
 
   return (
     <View style={[styles.homepage, { backgroundColor: theme.bg }]} onLayout={(evt) => {
@@ -145,6 +153,18 @@ const Homepage = ({ route, navigation }) => {
                 <AccountCard account={account} key={index} />
               ))}
             </ScrollView>
+          </View>
+
+          {/* Footer — subtle privacy policy link (required for OAuth/Play verification) */}
+          <View style={{ alignItems: "center", paddingTop: 24, paddingBottom: 12 }}>
+            <TouchableOpacity onPress={openPrivacy}>
+              <Text style={{ fontSize: 12, color: theme.isDark ? "#8a94a6" : "#9aa3b2", textDecorationLine: "underline" }}>
+                Privacy Policy
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 11, color: theme.isDark ? "#6b7280" : "#b5bcc9", marginTop: 6 }}>
+              © 2026 Influmart
+            </Text>
           </View>
 
           <View style={{ height: 20 }} />

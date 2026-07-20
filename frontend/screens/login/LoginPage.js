@@ -1,4 +1,5 @@
 import * as React from "react";
+import { openPrivacyPolicy, openTerms } from "../../util/legalLinks";
 import { Image } from "expo-image";
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -131,11 +132,11 @@ const LoginPage = () => {
               <Text style={styles.termsText}>
                 By joining, you agree to our{" "}
               </Text>
-              <TouchableOpacity onPress={()=>navigation.navigate("TosScreen",{navigate:"LoginPage"})}>
+              <TouchableOpacity onPress={()=>openTerms()}>
                 <Text style={styles.linkText}>Terms of Service</Text>
               </TouchableOpacity>
               <Text style={styles.termsText}> and </Text>
-              <TouchableOpacity onPress={()=>navigation.navigate("PPScreen",{navigate:"LoginPage"})}>
+              <TouchableOpacity onPress={()=>openPrivacyPolicy()}>
                 <Text style={styles.linkText}>Privacy Policy</Text>
               </TouchableOpacity>
             </View>

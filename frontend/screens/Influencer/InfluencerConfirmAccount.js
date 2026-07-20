@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { openPrivacyPolicy, openTerms } from "../../util/legalLinks";
 import {
   StyleSheet,
   View,
@@ -103,11 +104,11 @@ const InfluencerConfirmAccount = ({ route, navigation }) => {
         </TouchableOpacity>
         <View style={styles.termsContainer}>
           <Text style={styles.termsText}>By joining, you agree to our </Text>
-          <TouchableOpacity onPress={()=>navigation.navigate("TosScreen",{navigate:"InfluencerConfirmAccount"})}>
+          <TouchableOpacity onPress={()=>openTerms()}>
             <Text style={styles.linkText}>Terms of Service</Text>
           </TouchableOpacity>
           <Text style={styles.termsText}> and </Text>
-          <TouchableOpacity onPress={()=>navigation.navigate("PPScreen",{navigate:"InfluencerConfirmAccount"})}>
+          <TouchableOpacity onPress={()=>openPrivacyPolicy()}>
             <Text style={styles.linkText}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>

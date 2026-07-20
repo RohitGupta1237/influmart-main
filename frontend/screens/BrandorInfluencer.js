@@ -1,4 +1,5 @@
 import React from "react";
+import { openPrivacyPolicy, openTerms } from "../util/legalLinks";
 import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 import { BrandorInfluencerStyles } from "./BrandorInfluencer.scss";
 
@@ -24,11 +25,11 @@ const BrandorInfluencer = ({ navigation }) => {
       </View>
       <View style={styles.termsContainer}>
         <Text style={styles.termsText}>By joining, you agree to our </Text>
-        <TouchableOpacity onPress={()=>navigation.navigate("TosScreen",{navigate:"BrandorInfluencer"})}>
+        <TouchableOpacity onPress={()=>openTerms()}>
           <Text style={styles.linkText}>Terms of Service</Text>
         </TouchableOpacity>
         <Text style={styles.termsText}> and </Text>
-        <TouchableOpacity onPress={()=>navigation.navigate("PPScreen",{navigate:"BrandorInfluencer"})}>
+        <TouchableOpacity onPress={()=>openPrivacyPolicy()}>
           <Text style={styles.linkText}>Privacy Policy</Text>
         </TouchableOpacity>
       </View>
