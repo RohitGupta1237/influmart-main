@@ -28,7 +28,7 @@
         "foregroundImage": "./assets/influmart_icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.influmart.app",
+      "package": "com.influmartsocial.app",
       "versionCode": 13,
       "permissions": [
         "android.permission.RECORD_AUDIO",
