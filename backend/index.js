@@ -5,6 +5,13 @@ var cookies = require("cookie-parser");
 const { app, io, server } = require("./socket/socket");
 
 
+// Ensure upload directories exist (needed when a fresh persistent volume is
+// mounted at /app/uploads — it starts empty and shadows the image's folders).
+const fs = require("fs");
+["uploads/influencerProfiles", "uploads/brandProfiles", "uploads/brandCollabPhoto"].forEach((dir) => {
+  fs.mkdirSync(dir, { recursive: true });
+});
+
 // Making uploads folder public
 app.use(express.static("uploads"));
 
