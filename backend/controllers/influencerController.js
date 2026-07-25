@@ -310,6 +310,15 @@ exports.updateProfile = async (req, res) => {
       new: false,
     });
 
+    // Keep the subscription record in sync when the username changes, otherwise the
+    // login subscription check (keyed by userName) would wrongly report "expired".
+    if (userName && userName !== influencer.userName) {
+      await Subscription.updateMany(
+        { userName: influencer.userName },
+        { userName }
+      );
+    }
+
     res.status(200).json({
       message: "Influencer profile updated successfully",
       influencer: {
