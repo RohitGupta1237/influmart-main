@@ -29,7 +29,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.influmartsocial.app",
-      "versionCode": 13,
+      "versionCode": 15,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.INTERNET",
@@ -63,6 +63,16 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow Influmart to use your location to auto-fill your profile location."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
         }
       ]
     ],

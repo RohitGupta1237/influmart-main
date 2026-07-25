@@ -1,0 +1,749 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+index 458465c..fa3803f 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+@@ -316,7 +316,7 @@ class ScreenStack(context: Context?) : ScreenContainer(context) {
+     }
+ 
+     private fun obtainDrawingOp(): DrawingOp =
+-        if (drawingOpPool.isEmpty()) DrawingOp() else drawingOpPool.removeLast()
++        if (drawingOpPool.isEmpty()) DrawingOp() else drawingOpPool.removeAt(drawingOpPool.lastIndex)
+ 
+     private inner class DrawingOp {
+         var canvas: Canvas? = null
+diff --git a/node_modules/react-native-screens/lib/commonjs/native-stack/views/FontProcessor(1).js b/node_modules/react-native-screens/lib/commonjs/native-stack/views/FontProcessor(1).js
+new file mode 100644
+index 0000000..95aa191
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/commonjs/native-stack/views/FontProcessor(1).js
+@@ -0,0 +1,20 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++exports.processFonts = processFonts;
++var _ReactNativeStyleAttributes = _interopRequireDefault(require("react-native/Libraries/Components/View/ReactNativeStyleAttributes"));
++function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
++// @ts-ignore: No declaration available
++// eslint-disable-next-line import/no-named-as-default, import/default, import/no-named-as-default-member, import/namespace
++
++function processFonts(fontFamilies) {
++  // @ts-ignore: React Native types are incorrect here and don't consider fontFamily a style value
++  const fontFamilyProcessor = _ReactNativeStyleAttributes.default.fontFamily?.process;
++  if (typeof fontFamilyProcessor === 'function') {
++    return fontFamilies.map(fontFamilyProcessor);
++  }
++  return fontFamilies;
++}
++//# sourceMappingURL=FontProcessor.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/commonjs/native-stack/views/FontProcessor(2).js b/node_modules/react-native-screens/lib/commonjs/native-stack/views/FontProcessor(2).js
+new file mode 100644
+index 0000000..95aa191
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/commonjs/native-stack/views/FontProcessor(2).js
+@@ -0,0 +1,20 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++exports.processFonts = processFonts;
++var _ReactNativeStyleAttributes = _interopRequireDefault(require("react-native/Libraries/Components/View/ReactNativeStyleAttributes"));
++function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
++// @ts-ignore: No declaration available
++// eslint-disable-next-line import/no-named-as-default, import/default, import/no-named-as-default-member, import/namespace
++
++function processFonts(fontFamilies) {
++  // @ts-ignore: React Native types are incorrect here and don't consider fontFamily a style value
++  const fontFamilyProcessor = _ReactNativeStyleAttributes.default.fontFamily?.process;
++  if (typeof fontFamilyProcessor === 'function') {
++    return fontFamilies.map(fontFamilyProcessor);
++  }
++  return fontFamilies;
++}
++//# sourceMappingURL=FontProcessor.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/commonjs/native-stack/views/HeaderConfig.js(1).map b/node_modules/react-native-screens/lib/commonjs/native-stack/views/HeaderConfig.js(1).map
+new file mode 100644
+index 0000000..e4886cc
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/commonjs/native-stack/views/HeaderConfig.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["_native","require","React","_interopRequireWildcard","_reactNative","_reactNativeScreens","_useBackPressSubscription","_FontProcessor","_warnOnce","_interopRequireDefault","obj","__esModule","default","_getRequireWildcardCache","e","WeakMap","r","t","has","get","n","__proto__","a","Object","defineProperty","getOwnPropertyDescriptor","u","prototype","hasOwnProperty","call","i","set","HeaderConfig","_ref","backButtonImage","backButtonInCustomView","direction","disableBackButtonMenu","headerBackTitle","headerBackTitleStyle","headerBackTitleVisible","headerCenter","headerHideBackButton","headerHideShadow","headerLargeStyle","headerLargeTitle","headerLargeTitleHideShadow","headerLargeTitleStyle","headerLeft","headerRight","headerShown","headerStyle","headerTintColor","headerTitle","headerTitleStyle","headerTopInsetEnabled","headerTranslucent","route","searchBar","title","colors","useTheme","tintColor","primary","handleAttached","handleDetached","clearSubscription","createSubscription","useBackPressSubscription","onBackPress","executeNativeBackPress","isDisabled","disableBackButtonOverride","backTitleFontFamily","largeTitleFontFamily","titleFontFamily","processFonts","fontFamily","useEffect","processedSearchBarOptions","useMemo","Platform","OS","onFocus","_len","arguments","length","args","Array","_key","onClose","_len2","_key2","isVisionOS","isVision","warnOnce","color","undefined","createElement","ScreenStackHeaderConfig","backgroundColor","card","backTitle","backTitleFontSize","fontSize","backTitleVisible","blurEffect","hidden","hideBackButton","hideShadow","largeTitle","largeTitleBackgroundColor","largeTitleColor","largeTitleFontSize","largeTitleFontWeight","fontWeight","largeTitleHideShadow","name","titleColor","text","titleFontSize","titleFontWeight","topInsetEnabled","translucent","onAttached","onDetached","ScreenStackHeaderRightView","ScreenStackHeaderBackButtonImage","key","source","ScreenStackHeaderLeftView","ScreenStackHeaderCenterView","isSearchBarAvailableForCurrentPlatform","ScreenStackHeaderSearchBarView","SearchBar"],"sourceRoot":"../../../../src","sources":["native-stack/views/HeaderConfig.tsx"],"mappings":"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"}
+diff --git a/node_modules/react-native-screens/lib/commonjs/native-stack/views/HeaderConfig.js(2).map b/node_modules/react-native-screens/lib/commonjs/native-stack/views/HeaderConfig.js(2).map
+new file mode 100644
+index 0000000..e4886cc
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/commonjs/native-stack/views/HeaderConfig.js(2).map
+@@ -0,0 +1 @@
++{"version":3,"names":["_native","require","React","_interopRequireWildcard","_reactNative","_reactNativeScreens","_useBackPressSubscription","_FontProcessor","_warnOnce","_interopRequireDefault","obj","__esModule","default","_getRequireWildcardCache","e","WeakMap","r","t","has","get","n","__proto__","a","Object","defineProperty","getOwnPropertyDescriptor","u","prototype","hasOwnProperty","call","i","set","HeaderConfig","_ref","backButtonImage","backButtonInCustomView","direction","disableBackButtonMenu","headerBackTitle","headerBackTitleStyle","headerBackTitleVisible","headerCenter","headerHideBackButton","headerHideShadow","headerLargeStyle","headerLargeTitle","headerLargeTitleHideShadow","headerLargeTitleStyle","headerLeft","headerRight","headerShown","headerStyle","headerTintColor","headerTitle","headerTitleStyle","headerTopInsetEnabled","headerTranslucent","route","searchBar","title","colors","useTheme","tintColor","primary","handleAttached","handleDetached","clearSubscription","createSubscription","useBackPressSubscription","onBackPress","executeNativeBackPress","isDisabled","disableBackButtonOverride","backTitleFontFamily","largeTitleFontFamily","titleFontFamily","processFonts","fontFamily","useEffect","processedSearchBarOptions","useMemo","Platform","OS","onFocus","_len","arguments","length","args","Array","_key","onClose","_len2","_key2","isVisionOS","isVision","warnOnce","color","undefined","createElement","ScreenStackHeaderConfig","backgroundColor","card","backTitle","backTitleFontSize","fontSize","backTitleVisible","blurEffect","hidden","hideBackButton","hideShadow","largeTitle","largeTitleBackgroundColor","largeTitleColor","largeTitleFontSize","largeTitleFontWeight","fontWeight","largeTitleHideShadow","name","titleColor","text","titleFontSize","titleFontWeight","topInsetEnabled","translucent","onAttached","onDetached","ScreenStackHeaderRightView","ScreenStackHeaderBackButtonImage","key","source","ScreenStackHeaderLeftView","ScreenStackHeaderCenterView","isSearchBarAvailableForCurrentPlatform","ScreenStackHeaderSearchBarView","SearchBar"],"sourceRoot":"../../../../src","sources":["native-stack/views/HeaderConfig.tsx"],"mappings":"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"}
+diff --git a/node_modules/react-native-screens/lib/commonjs/native-stack/views/NativeStackView(1).js b/node_modules/react-native-screens/lib/commonjs/native-stack/views/NativeStackView(1).js
+new file mode 100644
+index 0000000..785fe45
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/commonjs/native-stack/views/NativeStackView(1).js
+@@ -0,0 +1,369 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++exports.default = NativeStackView;
++var React = _interopRequireWildcard(require("react"));
++var _reactNative = require("react-native");
++var _AppContainer = _interopRequireDefault(require("react-native/Libraries/ReactNative/AppContainer"));
++var _warnOnce = _interopRequireDefault(require("warn-once"));
++var _reactNativeScreens = require("react-native-screens");
++var _native = require("@react-navigation/native");
++var _reactNativeSafeAreaContext = require("react-native-safe-area-context");
++var _HeaderConfig = _interopRequireDefault(require("./HeaderConfig"));
++var _SafeAreaProviderCompat = _interopRequireDefault(require("../utils/SafeAreaProviderCompat"));
++var _getDefaultHeaderHeight = _interopRequireDefault(require("../utils/getDefaultHeaderHeight"));
++var _getStatusBarHeight = _interopRequireDefault(require("../utils/getStatusBarHeight"));
++var _HeaderHeightContext = _interopRequireDefault(require("../utils/HeaderHeightContext"));
++var _AnimatedHeaderHeightContext = _interopRequireDefault(require("../utils/AnimatedHeaderHeightContext"));
++function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
++function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
++function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
++function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); } // @ts-ignore Getting private component
++// eslint-disable-next-line import/no-named-as-default, import/default, import/no-named-as-default-member, import/namespace
++const isAndroid = _reactNative.Platform.OS === 'android';
++let Container = _reactNative.View;
++if (__DEV__) {
++  const DebugContainer = props => {
++    const {
++      stackPresentation,
++      ...rest
++    } = props;
++    if (_reactNative.Platform.OS === 'ios' && stackPresentation !== 'push') {
++      return /*#__PURE__*/React.createElement(_AppContainer.default, null, /*#__PURE__*/React.createElement(_reactNative.View, rest));
++    }
++    return /*#__PURE__*/React.createElement(_reactNative.View, rest);
++  };
++  // @ts-ignore Wrong props
++  Container = DebugContainer;
++}
++const MaybeNestedStack = _ref => {
++  let {
++    options,
++    route,
++    stackPresentation,
++    children
++  } = _ref;
++  const {
++    colors
++  } = (0, _native.useTheme)();
++  const {
++    headerShown = true,
++    contentStyle
++  } = options;
++  const Screen = React.useContext(_reactNativeScreens.ScreenContext);
++  const isHeaderInModal = isAndroid ? false : stackPresentation !== 'push' && headerShown === true;
++  const headerShownPreviousRef = React.useRef(headerShown);
++  React.useEffect(() => {
++    (0, _warnOnce.default)(!isAndroid && stackPresentation !== 'push' && headerShownPreviousRef.current !== headerShown, `Dynamically changing 'headerShown' in modals will result in remounting the screen and losing all local state. See options for the screen '${route.name}'.`);
++    headerShownPreviousRef.current = headerShown;
++  }, [headerShown, stackPresentation, route.name]);
++  const content = /*#__PURE__*/React.createElement(Container, {
++    style: [styles.container, stackPresentation !== 'transparentModal' && stackPresentation !== 'containedTransparentModal' && {
++      backgroundColor: colors.background
++    }, contentStyle]
++    // @ts-ignore Wrong props passed to View
++    ,
++    stackPresentation: stackPresentation
++    // This view must *not* be flattened.
++    // See https://github.com/software-mansion/react-native-screens/pull/1825
++    // for detailed explanation.
++    ,
++    collapsable: false
++  }, children);
++  const dimensions = (0, _reactNativeSafeAreaContext.useSafeAreaFrame)();
++  const topInset = (0, _reactNativeSafeAreaContext.useSafeAreaInsets)().top;
++  const isStatusBarTranslucent = options.statusBarTranslucent ?? false;
++  const statusBarHeight = (0, _getStatusBarHeight.default)(topInset, dimensions, isStatusBarTranslucent);
++  const hasLargeHeader = options.headerLargeTitle ?? false;
++  const headerHeight = (0, _getDefaultHeaderHeight.default)(dimensions, statusBarHeight, stackPresentation, hasLargeHeader);
++  if (isHeaderInModal) {
++    return /*#__PURE__*/React.createElement(_reactNativeScreens.ScreenStack, {
++      style: styles.container
++    }, /*#__PURE__*/React.createElement(Screen, {
++      enabled: true,
++      isNativeStack: true,
++      hasLargeHeader: hasLargeHeader,
++      style: _reactNative.StyleSheet.absoluteFill
++    }, /*#__PURE__*/React.createElement(_HeaderHeightContext.default.Provider, {
++      value: headerHeight
++    }, /*#__PURE__*/React.createElement(_HeaderConfig.default, _extends({}, options, {
++      route: route
++    })), content)));
++  }
++  return content;
++};
++const RouteView = _ref2 => {
++  let {
++    descriptors,
++    route,
++    index,
++    navigation,
++    stateKey,
++    screensRefs
++  } = _ref2;
++  const {
++    options,
++    render: renderScene
++  } = descriptors[route.key];
++  const {
++    gestureEnabled,
++    headerShown,
++    hideKeyboardOnSwipe,
++    homeIndicatorHidden,
++    sheetAllowedDetents = 'large',
++    sheetLargestUndimmedDetent = 'all',
++    sheetGrabberVisible = false,
++    sheetCornerRadius = -1.0,
++    sheetExpandsWhenScrolledToEdge = true,
++    nativeBackButtonDismissalEnabled = false,
++    navigationBarColor,
++    navigationBarHidden,
++    replaceAnimation = 'pop',
++    screenOrientation,
++    statusBarAnimation,
++    statusBarColor,
++    statusBarHidden,
++    statusBarStyle,
++    statusBarTranslucent,
++    swipeDirection = 'horizontal',
++    transitionDuration,
++    freezeOnBlur
++  } = options;
++  let {
++    customAnimationOnSwipe,
++    fullScreenSwipeEnabled,
++    gestureResponseDistance,
++    stackAnimation,
++    stackPresentation = 'push'
++  } = options;
++  if (swipeDirection === 'vertical') {
++    // for `vertical` direction to work, we need to set `fullScreenSwipeEnabled` to `true`
++    // so the screen can be dismissed from any point on screen.
++    // `customAnimationOnSwipe` needs to be set to `true` so the `stackAnimation` set by user can be used,
++    // otherwise `simple_push` will be used.
++    // Also, the default animation for this direction seems to be `slide_from_bottom`.
++    if (fullScreenSwipeEnabled === undefined) {
++      fullScreenSwipeEnabled = true;
++    }
++    if (customAnimationOnSwipe === undefined) {
++      customAnimationOnSwipe = true;
++    }
++    if (stackAnimation === undefined) {
++      stackAnimation = 'slide_from_bottom';
++    }
++  }
++  if (index === 0) {
++    // first screen should always be treated as `push`, it resolves problems with no header animation
++    // for navigator with first screen as `modal` and the next as `push`
++    stackPresentation = 'push';
++  }
++  const dimensions = (0, _reactNativeSafeAreaContext.useSafeAreaFrame)();
++  const topInset = (0, _reactNativeSafeAreaContext.useSafeAreaInsets)().top;
++  const isStatusBarTranslucent = options.statusBarTranslucent ?? false;
++  const statusBarHeight = (0, _getStatusBarHeight.default)(topInset, dimensions, isStatusBarTranslucent);
++  const hasLargeHeader = options.headerLargeTitle ?? false;
++  const defaultHeaderHeight = (0, _getDefaultHeaderHeight.default)(dimensions, statusBarHeight, stackPresentation, hasLargeHeader);
++  const parentHeaderHeight = React.useContext(_HeaderHeightContext.default);
++  const isHeaderInPush = isAndroid ? headerShown : stackPresentation === 'push' && headerShown !== false;
++  const staticHeaderHeight = isHeaderInPush !== false ? defaultHeaderHeight : parentHeaderHeight ?? 0;
++
++  // We need to ensure the first retrieved header height will be cached and set in animatedHeaderHeight.
++  // We're caching the header height here, as on iOS native side events are not always coming to the JS on first notify.
++  // TODO: Check why first event is not being received once it is cached on the native side.
++  const cachedAnimatedHeaderHeight = React.useRef(defaultHeaderHeight);
++  const animatedHeaderHeight = React.useRef(new _reactNative.Animated.Value(staticHeaderHeight, {
++    useNativeDriver: true
++  })).current;
++  const Screen = React.useContext(_reactNativeScreens.ScreenContext);
++  const {
++    dark
++  } = (0, _native.useTheme)();
++  const screenRef = React.useRef(null);
++  React.useEffect(() => {
++    screensRefs.current[route.key] = screenRef;
++    return () => {
++      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
++      delete screensRefs.current[route.key];
++    };
++  });
++  return /*#__PURE__*/React.createElement(Screen, {
++    key: route.key,
++    ref: screenRef,
++    enabled: true,
++    isNativeStack: true,
++    hasLargeHeader: hasLargeHeader,
++    style: _reactNative.StyleSheet.absoluteFill,
++    sheetAllowedDetents: sheetAllowedDetents,
++    sheetLargestUndimmedDetent: sheetLargestUndimmedDetent,
++    sheetGrabberVisible: sheetGrabberVisible,
++    sheetCornerRadius: sheetCornerRadius,
++    sheetExpandsWhenScrolledToEdge: sheetExpandsWhenScrolledToEdge,
++    customAnimationOnSwipe: customAnimationOnSwipe,
++    freezeOnBlur: freezeOnBlur,
++    fullScreenSwipeEnabled: fullScreenSwipeEnabled,
++    hideKeyboardOnSwipe: hideKeyboardOnSwipe,
++    homeIndicatorHidden: homeIndicatorHidden,
++    gestureEnabled: isAndroid ? false : gestureEnabled,
++    gestureResponseDistance: gestureResponseDistance,
++    nativeBackButtonDismissalEnabled: nativeBackButtonDismissalEnabled,
++    navigationBarColor: navigationBarColor,
++    navigationBarHidden: navigationBarHidden,
++    replaceAnimation: replaceAnimation,
++    screenOrientation: screenOrientation,
++    stackAnimation: stackAnimation,
++    stackPresentation: stackPresentation,
++    statusBarAnimation: statusBarAnimation,
++    statusBarColor: statusBarColor,
++    statusBarHidden: statusBarHidden,
++    statusBarStyle: statusBarStyle ?? (dark ? 'light' : 'dark'),
++    statusBarTranslucent: statusBarTranslucent,
++    swipeDirection: swipeDirection,
++    transitionDuration: transitionDuration,
++    onHeaderBackButtonClicked: () => {
++      navigation.dispatch({
++        ..._native.StackActions.pop(),
++        source: route.key,
++        target: stateKey
++      });
++    },
++    onWillAppear: () => {
++      navigation.emit({
++        type: 'transitionStart',
++        data: {
++          closing: false
++        },
++        target: route.key
++      });
++    },
++    onWillDisappear: () => {
++      navigation.emit({
++        type: 'transitionStart',
++        data: {
++          closing: true
++        },
++        target: route.key
++      });
++    },
++    onAppear: () => {
++      navigation.emit({
++        type: 'appear',
++        target: route.key
++      });
++      navigation.emit({
++        type: 'transitionEnd',
++        data: {
++          closing: false
++        },
++        target: route.key
++      });
++    },
++    onDisappear: () => {
++      navigation.emit({
++        type: 'transitionEnd',
++        data: {
++          closing: true
++        },
++        target: route.key
++      });
++    },
++    onHeaderHeightChange: e => {
++      const headerHeight = e.nativeEvent.headerHeight;
++      if (cachedAnimatedHeaderHeight.current !== headerHeight) {
++        // Currently, we're setting value by Animated#setValue, because we want to cache animated value.
++        // Also, in React Native 0.72 there was a bug on Fabric causing a large delay between the screen transition,
++        // which should not occur.
++        // TODO: Check if it's possible to replace animated#setValue to Animated#event.
++        animatedHeaderHeight.setValue(headerHeight);
++        cachedAnimatedHeaderHeight.current = headerHeight;
++      }
++    },
++    onDismissed: e => {
++      navigation.emit({
++        type: 'dismiss',
++        target: route.key
++      });
++      const dismissCount = e.nativeEvent.dismissCount > 0 ? e.nativeEvent.dismissCount : 1;
++      navigation.dispatch({
++        ..._native.StackActions.pop(dismissCount),
++        source: route.key,
++        target: stateKey
++      });
++    },
++    onGestureCancel: () => {
++      navigation.emit({
++        type: 'gestureCancel',
++        target: route.key
++      });
++    }
++  }, /*#__PURE__*/React.createElement(_AnimatedHeaderHeightContext.default.Provider, {
++    value: animatedHeaderHeight
++  }, /*#__PURE__*/React.createElement(_HeaderHeightContext.default.Provider, {
++    value: staticHeaderHeight
++  }, /*#__PURE__*/React.createElement(MaybeNestedStack, {
++    options: options,
++    route: route,
++    stackPresentation: stackPresentation
++  }, renderScene()), /*#__PURE__*/React.createElement(_HeaderConfig.default, _extends({}, options, {
++    route: route,
++    headerShown: isHeaderInPush
++  })))));
++};
++function NativeStackViewInner(_ref3) {
++  let {
++    state,
++    navigation,
++    descriptors
++  } = _ref3;
++  const {
++    key,
++    routes
++  } = state;
++  const currentRouteKey = routes[state.index].key;
++  const {
++    goBackGesture,
++    transitionAnimation,
++    screenEdgeGesture
++  } = descriptors[currentRouteKey].options;
++  const gestureDetectorBridge = React.useRef({
++    stackUseEffectCallback: _stackRef => {
++      // this method will be override in GestureDetector
++    }
++  });
++  const screensRefs = React.useRef({});
++  const ScreenGestureDetector = React.useContext(_reactNativeScreens.GHContext);
++  React.useEffect(() => {
++    if (ScreenGestureDetector.name !== 'GHWrapper' && goBackGesture !== undefined) {
++      console.warn('Cannot detect GestureDetectorProvider in a screen that uses `goBackGesture`. Make sure your navigator is wrapped in GestureDetectorProvider.');
++    }
++  }, [ScreenGestureDetector.name, goBackGesture]);
++  return /*#__PURE__*/React.createElement(ScreenGestureDetector, {
++    gestureDetectorBridge: gestureDetectorBridge,
++    goBackGesture: goBackGesture,
++    transitionAnimation: transitionAnimation,
++    screenEdgeGesture: screenEdgeGesture ?? false,
++    screensRefs: screensRefs,
++    currentRouteKey: currentRouteKey
++  }, /*#__PURE__*/React.createElement(_reactNativeScreens.ScreenStack, {
++    style: styles.container,
++    gestureDetectorBridge: gestureDetectorBridge
++  }, routes.map((route, index) => /*#__PURE__*/React.createElement(RouteView, {
++    key: route.key,
++    descriptors: descriptors,
++    route: route,
++    index: index,
++    navigation: navigation,
++    stateKey: key,
++    screensRefs: screensRefs
++  }))));
++}
++function NativeStackView(props) {
++  return /*#__PURE__*/React.createElement(_SafeAreaProviderCompat.default, null, /*#__PURE__*/React.createElement(NativeStackViewInner, props));
++}
++const styles = _reactNative.StyleSheet.create({
++  container: {
++    flex: 1
++  }
++});
++//# sourceMappingURL=NativeStackView.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext(1).js b/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext(1).js
+new file mode 100644
+index 0000000..7a5024f
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext(1).js
+@@ -0,0 +1,4 @@
++import React from 'react';
++// context to be used when the user wants full screen swipe (see `gesture-handler` folder in repo)
++export const GHContext = /*#__PURE__*/React.createContext(props => /*#__PURE__*/React.createElement(React.Fragment, null, props.children));
++//# sourceMappingURL=GHContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext(2).js b/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext(2).js
+new file mode 100644
+index 0000000..7a5024f
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext(2).js
+@@ -0,0 +1,4 @@
++import React from 'react';
++// context to be used when the user wants full screen swipe (see `gesture-handler` folder in repo)
++export const GHContext = /*#__PURE__*/React.createContext(props => /*#__PURE__*/React.createElement(React.Fragment, null, props.children));
++//# sourceMappingURL=GHContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext.js(1).map b/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext.js(1).map
+new file mode 100644
+index 0000000..d0a4243
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/contexts/GHContext.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","GHContext","createContext","props","createElement","Fragment","children"],"sourceRoot":"../../../../src","sources":["native-stack/contexts/GHContext.tsx"],"mappings":"AAAA,OAAOA,KAAK,MAA6B,OAAO;AAGhD;AACA,OAAO,MAAMC,SAAS,gBAAGD,KAAK,CAACE,aAAa,CACzCC,KAA8C,iBAAKH,KAAA,CAAAI,aAAA,CAAAJ,KAAA,CAAAK,QAAA,QAAGF,KAAK,CAACG,QAAW,CAC1E,CAAC"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/AnimatedHeaderHeightContext(1).js b/node_modules/react-native-screens/lib/module/native-stack/utils/AnimatedHeaderHeightContext(1).js
+new file mode 100644
+index 0000000..6ce0b04
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/AnimatedHeaderHeightContext(1).js
+@@ -0,0 +1,4 @@
++import * as React from 'react';
++const AnimatedHeaderHeightContext = /*#__PURE__*/React.createContext(undefined);
++export default AnimatedHeaderHeightContext;
++//# sourceMappingURL=AnimatedHeaderHeightContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/AnimatedHeaderHeightContext(2).js b/node_modules/react-native-screens/lib/module/native-stack/utils/AnimatedHeaderHeightContext(2).js
+new file mode 100644
+index 0000000..6ce0b04
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/AnimatedHeaderHeightContext(2).js
+@@ -0,0 +1,4 @@
++import * as React from 'react';
++const AnimatedHeaderHeightContext = /*#__PURE__*/React.createContext(undefined);
++export default AnimatedHeaderHeightContext;
++//# sourceMappingURL=AnimatedHeaderHeightContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/HeaderHeightContext(1).js b/node_modules/react-native-screens/lib/module/native-stack/utils/HeaderHeightContext(1).js
+new file mode 100644
+index 0000000..d6770ed
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/HeaderHeightContext(1).js
+@@ -0,0 +1,4 @@
++import * as React from 'react';
++const HeaderHeightContext = /*#__PURE__*/React.createContext(undefined);
++export default HeaderHeightContext;
++//# sourceMappingURL=HeaderHeightContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/HeaderHeightContext(2).js b/node_modules/react-native-screens/lib/module/native-stack/utils/HeaderHeightContext(2).js
+new file mode 100644
+index 0000000..d6770ed
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/HeaderHeightContext(2).js
+@@ -0,0 +1,4 @@
++import * as React from 'react';
++const HeaderHeightContext = /*#__PURE__*/React.createContext(undefined);
++export default HeaderHeightContext;
++//# sourceMappingURL=HeaderHeightContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat(1).js b/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat(1).js
+new file mode 100644
+index 0000000..87dae1c
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat(1).js
+@@ -0,0 +1,54 @@
++// code taken from
++// https://github.com/react-navigation/react-navigation/blob/ec0d113eb25c39ef9defb6c7215640f44e3569ae/packages/elements/src/SafeAreaProviderCompat.tsx
++import * as React from 'react';
++import { Dimensions, Platform, StyleSheet, View } from 'react-native';
++import { initialWindowMetrics, SafeAreaInsetsContext, SafeAreaProvider } from 'react-native-safe-area-context';
++const {
++  width = 0,
++  height = 0
++} = Dimensions.get('window');
++
++// To support SSR on web, we need to have empty insets for initial values
++// Otherwise there can be mismatch between SSR and client output
++// We also need to specify empty values to support tests environments
++const initialMetrics = Platform.OS === 'web' || initialWindowMetrics == null ? {
++  frame: {
++    x: 0,
++    y: 0,
++    width,
++    height
++  },
++  insets: {
++    top: 0,
++    left: 0,
++    right: 0,
++    bottom: 0
++  }
++} : initialWindowMetrics;
++export default function SafeAreaProviderCompat(_ref) {
++  let {
++    children,
++    style
++  } = _ref;
++  return /*#__PURE__*/React.createElement(SafeAreaInsetsContext.Consumer, null, insets => {
++    if (insets) {
++      // If we already have insets, don't wrap the stack in another safe area provider
++      // This avoids an issue with updates at the cost of potentially incorrect values
++      // https://github.com/react-navigation/react-navigation/issues/174
++      return /*#__PURE__*/React.createElement(View, {
++        style: [styles.container, style]
++      }, children);
++    }
++    return /*#__PURE__*/React.createElement(SafeAreaProvider, {
++      initialMetrics: initialMetrics,
++      style: style
++    }, children);
++  });
++}
++SafeAreaProviderCompat.initialMetrics = initialMetrics;
++const styles = StyleSheet.create({
++  container: {
++    flex: 1
++  }
++});
++//# sourceMappingURL=SafeAreaProviderCompat.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat.js(1).map b/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat.js(1).map
+new file mode 100644
+index 0000000..c7b24bb
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","Dimensions","Platform","StyleSheet","View","initialWindowMetrics","SafeAreaInsetsContext","SafeAreaProvider","width","height","get","initialMetrics","OS","frame","x","y","insets","top","left","right","bottom","SafeAreaProviderCompat","_ref","children","style","createElement","Consumer","styles","container","create","flex"],"sourceRoot":"../../../../src","sources":["native-stack/utils/SafeAreaProviderCompat.tsx"],"mappings":"AAAA;AACA;AACA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAC9B,SACEC,UAAU,EACVC,QAAQ,EAERC,UAAU,EACVC,IAAI,QAEC,cAAc;AACrB,SACEC,oBAAoB,EACpBC,qBAAqB,EACrBC,gBAAgB,QACX,gCAAgC;AAOvC,MAAM;EAAEC,KAAK,GAAG,CAAC;EAAEC,MAAM,GAAG;AAAE,CAAC,GAAGR,UAAU,CAACS,GAAG,CAAC,QAAQ,CAAC;;AAE1D;AACA;AACA;AACA,MAAMC,cAAc,GAClBT,QAAQ,CAACU,EAAE,KAAK,KAAK,IAAIP,oBAAoB,IAAI,IAAI,GACjD;EACEQ,KAAK,EAAE;IAAEC,CAAC,EAAE,CAAC;IAAEC,CAAC,EAAE,CAAC;IAAEP,KAAK;IAAEC;EAAO,CAAC;EACpCO,MAAM,EAAE;IAAEC,GAAG,EAAE,CAAC;IAAEC,IAAI,EAAE,CAAC;IAAEC,KAAK,EAAE,CAAC;IAAEC,MAAM,EAAE;EAAE;AACjD,CAAC,GACDf,oBAAoB;AAE1B,eAAe,SAASgB,sBAAsBA,CAAAC,IAAA,EAA6B;EAAA,IAA5B;IAAEC,QAAQ;IAAEC;EAAa,CAAC,GAAAF,IAAA;EACvE,oBACEtB,KAAA,CAAAyB,aAAA,CAACnB,qBAAqB,CAACoB,QAAQ,QAC5BV,MAAM,IAAI;IACT,IAAIA,MAAM,EAAE;MACV;MACA;MACA;MACA,oBAAOhB,KAAA,CAAAyB,aAAA,CAACrB,IAAI;QAACoB,KAAK,EAAE,CAACG,MAAM,CAACC,SAAS,EAAEJ,KAAK;MAAE,GAAED,QAAe,CAAC;IAClE;IAEA,oBACEvB,KAAA,CAAAyB,aAAA,CAAClB,gBAAgB;MAACI,cAAc,EAAEA,cAAe;MAACa,KAAK,EAAEA;IAAM,GAC5DD,QACe,CAAC;EAEvB,CAC8B,CAAC;AAErC;AAEAF,sBAAsB,CAACV,cAAc,GAAGA,cAAc;AAEtD,MAAMgB,MAAM,GAAGxB,UAAU,CAAC0B,MAAM,CAAC;EAC/BD,SAAS,EAAE;IACTE,IAAI,EAAE;EACR;AACF,CAAC,CAAC"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat.js(2).map b/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat.js(2).map
+new file mode 100644
+index 0000000..c7b24bb
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/SafeAreaProviderCompat.js(2).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","Dimensions","Platform","StyleSheet","View","initialWindowMetrics","SafeAreaInsetsContext","SafeAreaProvider","width","height","get","initialMetrics","OS","frame","x","y","insets","top","left","right","bottom","SafeAreaProviderCompat","_ref","children","style","createElement","Consumer","styles","container","create","flex"],"sourceRoot":"../../../../src","sources":["native-stack/utils/SafeAreaProviderCompat.tsx"],"mappings":"AAAA;AACA;AACA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAC9B,SACEC,UAAU,EACVC,QAAQ,EAERC,UAAU,EACVC,IAAI,QAEC,cAAc;AACrB,SACEC,oBAAoB,EACpBC,qBAAqB,EACrBC,gBAAgB,QACX,gCAAgC;AAOvC,MAAM;EAAEC,KAAK,GAAG,CAAC;EAAEC,MAAM,GAAG;AAAE,CAAC,GAAGR,UAAU,CAACS,GAAG,CAAC,QAAQ,CAAC;;AAE1D;AACA;AACA;AACA,MAAMC,cAAc,GAClBT,QAAQ,CAACU,EAAE,KAAK,KAAK,IAAIP,oBAAoB,IAAI,IAAI,GACjD;EACEQ,KAAK,EAAE;IAAEC,CAAC,EAAE,CAAC;IAAEC,CAAC,EAAE,CAAC;IAAEP,KAAK;IAAEC;EAAO,CAAC;EACpCO,MAAM,EAAE;IAAEC,GAAG,EAAE,CAAC;IAAEC,IAAI,EAAE,CAAC;IAAEC,KAAK,EAAE,CAAC;IAAEC,MAAM,EAAE;EAAE;AACjD,CAAC,GACDf,oBAAoB;AAE1B,eAAe,SAASgB,sBAAsBA,CAAAC,IAAA,EAA6B;EAAA,IAA5B;IAAEC,QAAQ;IAAEC;EAAa,CAAC,GAAAF,IAAA;EACvE,oBACEtB,KAAA,CAAAyB,aAAA,CAACnB,qBAAqB,CAACoB,QAAQ,QAC5BV,MAAM,IAAI;IACT,IAAIA,MAAM,EAAE;MACV;MACA;MACA;MACA,oBAAOhB,KAAA,CAAAyB,aAAA,CAACrB,IAAI;QAACoB,KAAK,EAAE,CAACG,MAAM,CAACC,SAAS,EAAEJ,KAAK;MAAE,GAAED,QAAe,CAAC;IAClE;IAEA,oBACEvB,KAAA,CAAAyB,aAAA,CAAClB,gBAAgB;MAACI,cAAc,EAAEA,cAAe;MAACa,KAAK,EAAEA;IAAM,GAC5DD,QACe,CAAC;EAEvB,CAC8B,CAAC;AAErC;AAEAF,sBAAsB,CAACV,cAAc,GAAGA,cAAc;AAEtD,MAAMgB,MAAM,GAAGxB,UAAU,CAAC0B,MAAM,CAAC;EAC/BD,SAAS,EAAE;IACTE,IAAI,EAAE;EACR;AACF,CAAC,CAAC"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/getDefaultHeaderHeight.js(1).map b/node_modules/react-native-screens/lib/module/native-stack/utils/getDefaultHeaderHeight.js(1).map
+new file mode 100644
+index 0000000..406b7a2
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/getDefaultHeaderHeight.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["Platform","formSheetModalHeight","getDefaultHeaderHeight","layout","statusBarHeight","stackPresentation","isLargeHeader","arguments","length","undefined","headerHeight","OS","isLandscape","width","height","isFormSheetModal","isPad","isTV"],"sourceRoot":"../../../../src","sources":["native-stack/utils/getDefaultHeaderHeight.tsx"],"mappings":"AAAA,SAASA,QAAQ,QAAQ,cAAc;AAIvC,MAAMC,oBAAoB,GAAG,EAAE;AAE/B,eAAe,SAASC,sBAAsBA,CAC5CC,MAAc,EACdC,eAAuB,EACvBC,iBAAyC,EAEjC;EAAA,IADRC,aAAa,GAAAC,SAAA,CAAAC,MAAA,QAAAD,SAAA,QAAAE,SAAA,GAAAF,SAAA,MAAG,KAAK;EAErB;EACA,IAAIG,YAAY,GAAGV,QAAQ,CAACW,EAAE,KAAK,SAAS,GAAG,EAAE,GAAG,EAAE;EAEtD,IAAIX,QAAQ,CAACW,EAAE,KAAK,KAAK,EAAE;IACzB,MAAMC,WAAW,GAAGT,MAAM,CAACU,KAAK,GAAGV,MAAM,CAACW,MAAM;IAChD,MAAMC,gBAAgB,GACpBV,iBAAiB,KAAK,OAAO,IAAIA,iBAAiB,KAAK,WAAW;IACpE,IAAIU,gBAAgB,IAAI,CAACH,WAAW,EAAE;MACpC;MACAR,eAAe,GAAG,CAAC;IACrB;IAEA,IAAIJ,QAAQ,CAACgB,KAAK,IAAIhB,QAAQ,CAACiB,IAAI,EAAE;MACnCP,YAAY,GAAGK,gBAAgB,GAAGd,oBAAoB,GAAG,EAAE;IAC7D,CAAC,MAAM;MACL,IAAIW,WAAW,EAAE;QACfF,YAAY,GAAG,EAAE;MACnB,CAAC,MAAM;QACL,IAAIK,gBAAgB,EAAE;UACpBL,YAAY,GAAGT,oBAAoB;QACrC,CAAC,MAAM;UACLS,YAAY,GAAGJ,aAAa,GAAG,EAAE,GAAG,EAAE;QACxC;MACF;IACF;EACF;EAEA,OAAOI,YAAY,GAAGN,eAAe;AACvC"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/getDefaultHeaderHeight.js(2).map b/node_modules/react-native-screens/lib/module/native-stack/utils/getDefaultHeaderHeight.js(2).map
+new file mode 100644
+index 0000000..406b7a2
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/getDefaultHeaderHeight.js(2).map
+@@ -0,0 +1 @@
++{"version":3,"names":["Platform","formSheetModalHeight","getDefaultHeaderHeight","layout","statusBarHeight","stackPresentation","isLargeHeader","arguments","length","undefined","headerHeight","OS","isLandscape","width","height","isFormSheetModal","isPad","isTV"],"sourceRoot":"../../../../src","sources":["native-stack/utils/getDefaultHeaderHeight.tsx"],"mappings":"AAAA,SAASA,QAAQ,QAAQ,cAAc;AAIvC,MAAMC,oBAAoB,GAAG,EAAE;AAE/B,eAAe,SAASC,sBAAsBA,CAC5CC,MAAc,EACdC,eAAuB,EACvBC,iBAAyC,EAEjC;EAAA,IADRC,aAAa,GAAAC,SAAA,CAAAC,MAAA,QAAAD,SAAA,QAAAE,SAAA,GAAAF,SAAA,MAAG,KAAK;EAErB;EACA,IAAIG,YAAY,GAAGV,QAAQ,CAACW,EAAE,KAAK,SAAS,GAAG,EAAE,GAAG,EAAE;EAEtD,IAAIX,QAAQ,CAACW,EAAE,KAAK,KAAK,EAAE;IACzB,MAAMC,WAAW,GAAGT,MAAM,CAACU,KAAK,GAAGV,MAAM,CAACW,MAAM;IAChD,MAAMC,gBAAgB,GACpBV,iBAAiB,KAAK,OAAO,IAAIA,iBAAiB,KAAK,WAAW;IACpE,IAAIU,gBAAgB,IAAI,CAACH,WAAW,EAAE;MACpC;MACAR,eAAe,GAAG,CAAC;IACrB;IAEA,IAAIJ,QAAQ,CAACgB,KAAK,IAAIhB,QAAQ,CAACiB,IAAI,EAAE;MACnCP,YAAY,GAAGK,gBAAgB,GAAGd,oBAAoB,GAAG,EAAE;IAC7D,CAAC,MAAM;MACL,IAAIW,WAAW,EAAE;QACfF,YAAY,GAAG,EAAE;MACnB,CAAC,MAAM;QACL,IAAIK,gBAAgB,EAAE;UACpBL,YAAY,GAAGT,oBAAoB;QACrC,CAAC,MAAM;UACLS,YAAY,GAAGJ,aAAa,GAAG,EAAE,GAAG,EAAE;QACxC;MACF;IACF;EACF;EAEA,OAAOI,YAAY,GAAGN,eAAe;AACvC"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/getStatusBarHeight(1).js b/node_modules/react-native-screens/lib/module/native-stack/utils/getStatusBarHeight(1).js
+new file mode 100644
+index 0000000..bce86a2
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/getStatusBarHeight(1).js
+@@ -0,0 +1,16 @@
++import { Platform } from 'react-native';
++export default function getStatusBarHeight(topInset, dimensions, isStatusBarTranslucent) {
++  if (Platform.OS === 'ios') {
++    // It looks like some iOS devices don't have strictly set status bar height to 44.
++    // Thus, if the top inset is higher than 50, then the device should have a dynamic island.
++    // On models with Dynamic Island the status bar height is smaller than the safe area top inset by 5 pixels.
++    // See https://developer.apple.com/forums/thread/662466 for more details about status bar height.
++    const hasDynamicIsland = topInset > 50;
++    return hasDynamicIsland ? topInset - 5 : topInset;
++  } else if (Platform.OS === 'android') {
++    // On Android we should also rely on frame's y-axis position, as topInset is 0 on visible status bar.
++    return isStatusBarTranslucent ? topInset : dimensions.y;
++  }
++  return topInset;
++}
++//# sourceMappingURL=getStatusBarHeight.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/getStatusBarHeight.js(1).map b/node_modules/react-native-screens/lib/module/native-stack/utils/getStatusBarHeight.js(1).map
+new file mode 100644
+index 0000000..d4ac555
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/getStatusBarHeight.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["Platform","getStatusBarHeight","topInset","dimensions","isStatusBarTranslucent","OS","hasDynamicIsland","y"],"sourceRoot":"../../../../src","sources":["native-stack/utils/getStatusBarHeight.tsx"],"mappings":"AACA,SAASA,QAAQ,QAAQ,cAAc;AAEvC,eAAe,SAASC,kBAAkBA,CACxCC,QAAgB,EAChBC,UAAgB,EAChBC,sBAA+B,EAC/B;EACA,IAAIJ,QAAQ,CAACK,EAAE,KAAK,KAAK,EAAE;IACzB;IACA;IACA;IACA;IACA,MAAMC,gBAAgB,GAAGJ,QAAQ,GAAG,EAAE;IACtC,OAAOI,gBAAgB,GAAGJ,QAAQ,GAAG,CAAC,GAAGA,QAAQ;EACnD,CAAC,MAAM,IAAIF,QAAQ,CAACK,EAAE,KAAK,SAAS,EAAE;IACpC;IACA,OAAOD,sBAAsB,GAAGF,QAAQ,GAAGC,UAAU,CAACI,CAAC;EACzD;EAEA,OAAOL,QAAQ;AACjB"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight(1).js b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight(1).js
+new file mode 100644
+index 0000000..0c8c533
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight(1).js
+@@ -0,0 +1,10 @@
++import * as React from 'react';
++import AnimatedHeaderHeightContext from './AnimatedHeaderHeightContext';
++export default function useAnimatedHeaderHeight() {
++  const animatedValue = React.useContext(AnimatedHeaderHeightContext);
++  if (animatedValue === undefined) {
++    throw new Error("Couldn't find the header height. Are you inside a screen in a navigator with a header?");
++  }
++  return animatedValue;
++}
++//# sourceMappingURL=useAnimatedHeaderHeight.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight(2).js b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight(2).js
+new file mode 100644
+index 0000000..0c8c533
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight(2).js
+@@ -0,0 +1,10 @@
++import * as React from 'react';
++import AnimatedHeaderHeightContext from './AnimatedHeaderHeightContext';
++export default function useAnimatedHeaderHeight() {
++  const animatedValue = React.useContext(AnimatedHeaderHeightContext);
++  if (animatedValue === undefined) {
++    throw new Error("Couldn't find the header height. Are you inside a screen in a navigator with a header?");
++  }
++  return animatedValue;
++}
++//# sourceMappingURL=useAnimatedHeaderHeight.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight.js(1).map b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight.js(1).map
+new file mode 100644
+index 0000000..56fe4f7
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","AnimatedHeaderHeightContext","useAnimatedHeaderHeight","animatedValue","useContext","undefined","Error"],"sourceRoot":"../../../../src","sources":["native-stack/utils/useAnimatedHeaderHeight.tsx"],"mappings":"AAAA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAE9B,OAAOC,2BAA2B,MAAM,+BAA+B;AAEvE,eAAe,SAASC,uBAAuBA,CAAA,EAAG;EAChD,MAAMC,aAAa,GAAGH,KAAK,CAACI,UAAU,CAACH,2BAA2B,CAAC;EAEnE,IAAIE,aAAa,KAAKE,SAAS,EAAE;IAC/B,MAAM,IAAIC,KAAK,CACb,wFACF,CAAC;EACH;EAEA,OAAOH,aAAa;AACtB"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight.js(2).map b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight.js(2).map
+new file mode 100644
+index 0000000..56fe4f7
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useAnimatedHeaderHeight.js(2).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","AnimatedHeaderHeightContext","useAnimatedHeaderHeight","animatedValue","useContext","undefined","Error"],"sourceRoot":"../../../../src","sources":["native-stack/utils/useAnimatedHeaderHeight.tsx"],"mappings":"AAAA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAE9B,OAAOC,2BAA2B,MAAM,+BAA+B;AAEvE,eAAe,SAASC,uBAAuBA,CAAA,EAAG;EAChD,MAAMC,aAAa,GAAGH,KAAK,CAACI,UAAU,CAACH,2BAA2B,CAAC;EAEnE,IAAIE,aAAa,KAAKE,SAAS,EAAE;IAC/B,MAAM,IAAIC,KAAK,CACb,wFACF,CAAC;EACH;EAEA,OAAOH,aAAa;AACtB"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useBackPressSubscription.js(1).map b/node_modules/react-native-screens/lib/module/native-stack/utils/useBackPressSubscription.js(1).map
+new file mode 100644
+index 0000000..3d5c4ce
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useBackPressSubscription.js(1).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","BackHandler","useBackPressSubscription","_ref","onBackPress","isDisabled","isActive","setIsActive","useState","subscription","useRef","clearSubscription","useCallback","shouldSetActive","arguments","length","undefined","current","remove","createSubscription","addEventListener","handleAttached","handleDetached","useEffect"],"sourceRoot":"../../../../src","sources":["native-stack/utils/useBackPressSubscription.tsx"],"mappings":"AAAA,OAAOA,KAAK,MAAM,OAAO;AACzB,SAASC,WAAW,QAAiC,cAAc;AAcnE;AACA;AACA;AACA;AACA,OAAO,SAASC,wBAAwBA,CAAAC,IAAA,EAGL;EAAA,IAHM;IACvCC,WAAW;IACXC;EACI,CAAC,GAAAF,IAAA;EACL,MAAM,CAACG,QAAQ,EAAEC,WAAW,CAAC,GAAGP,KAAK,CAACQ,QAAQ,CAAC,KAAK,CAAC;EACrD,MAAMC,YAAY,GAAGT,KAAK,CAACU,MAAM,CAAsC,CAAC;EAExE,MAAMC,iBAAiB,GAAGX,KAAK,CAACY,WAAW,CAAC,YAA4B;IAAA,IAA3BC,eAAe,GAAAC,SAAA,CAAAC,MAAA,QAAAD,SAAA,QAAAE,SAAA,GAAAF,SAAA,MAAG,IAAI;IACjEL,YAAY,CAACQ,OAAO,EAAEC,MAAM,CAAC,CAAC;IAC9BT,YAAY,CAACQ,OAAO,GAAGD,SAAS;IAChC,IAAIH,eAAe,EAAEN,WAAW,CAAC,KAAK,CAAC;EACzC,CAAC,EAAE,EAAE,CAAC;EAEN,MAAMY,kBAAkB,GAAGnB,KAAK,CAACY,WAAW,CAAC,MAAM;IACjD,IAAI,CAACP,UAAU,EAAE;MACfI,YAAY,CAACQ,OAAO,EAAEC,MAAM,CAAC,CAAC;MAC9BT,YAAY,CAACQ,OAAO,GAAGhB,WAAW,CAACmB,gBAAgB,CACjD,mBAAmB,EACnBhB,WACF,CAAC;MACDG,WAAW,CAAC,IAAI,CAAC;IACnB;EACF,CAAC,EAAE,CAACF,UAAU,EAAED,WAAW,CAAC,CAAC;EAE7B,MAAMiB,cAAc,GAAGrB,KAAK,CAACY,WAAW,CAAC,MAAM;IAC7C,IAAIN,QAAQ,EAAE;MACZa,kBAAkB,CAAC,CAAC;IACtB;EACF,CAAC,EAAE,CAACA,kBAAkB,EAAEb,QAAQ,CAAC,CAAC;EAElC,MAAMgB,cAAc,GAAGtB,KAAK,CAACY,WAAW,CAAC,MAAM;IAC7CD,iBAAiB,CAAC,KAAK,CAAC;EAC1B,CAAC,EAAE,CAACA,iBAAiB,CAAC,CAAC;EAEvBX,KAAK,CAACuB,SAAS,CAAC,MAAM;IACpB,IAAIlB,UAAU,EAAE;MACdM,iBAAiB,CAAC,CAAC;IACrB;EACF,CAAC,EAAE,CAACN,UAAU,EAAEM,iBAAiB,CAAC,CAAC;EAEnC,OAAO;IACLU,cAAc;IACdC,cAAc;IACdH,kBAAkB;IAClBR;EACF,CAAC;AACH"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useBackPressSubscription.js(2).map b/node_modules/react-native-screens/lib/module/native-stack/utils/useBackPressSubscription.js(2).map
+new file mode 100644
+index 0000000..3d5c4ce
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useBackPressSubscription.js(2).map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","BackHandler","useBackPressSubscription","_ref","onBackPress","isDisabled","isActive","setIsActive","useState","subscription","useRef","clearSubscription","useCallback","shouldSetActive","arguments","length","undefined","current","remove","createSubscription","addEventListener","handleAttached","handleDetached","useEffect"],"sourceRoot":"../../../../src","sources":["native-stack/utils/useBackPressSubscription.tsx"],"mappings":"AAAA,OAAOA,KAAK,MAAM,OAAO;AACzB,SAASC,WAAW,QAAiC,cAAc;AAcnE;AACA;AACA;AACA;AACA,OAAO,SAASC,wBAAwBA,CAAAC,IAAA,EAGL;EAAA,IAHM;IACvCC,WAAW;IACXC;EACI,CAAC,GAAAF,IAAA;EACL,MAAM,CAACG,QAAQ,EAAEC,WAAW,CAAC,GAAGP,KAAK,CAACQ,QAAQ,CAAC,KAAK,CAAC;EACrD,MAAMC,YAAY,GAAGT,KAAK,CAACU,MAAM,CAAsC,CAAC;EAExE,MAAMC,iBAAiB,GAAGX,KAAK,CAACY,WAAW,CAAC,YAA4B;IAAA,IAA3BC,eAAe,GAAAC,SAAA,CAAAC,MAAA,QAAAD,SAAA,QAAAE,SAAA,GAAAF,SAAA,MAAG,IAAI;IACjEL,YAAY,CAACQ,OAAO,EAAEC,MAAM,CAAC,CAAC;IAC9BT,YAAY,CAACQ,OAAO,GAAGD,SAAS;IAChC,IAAIH,eAAe,EAAEN,WAAW,CAAC,KAAK,CAAC;EACzC,CAAC,EAAE,EAAE,CAAC;EAEN,MAAMY,kBAAkB,GAAGnB,KAAK,CAACY,WAAW,CAAC,MAAM;IACjD,IAAI,CAACP,UAAU,EAAE;MACfI,YAAY,CAACQ,OAAO,EAAEC,MAAM,CAAC,CAAC;MAC9BT,YAAY,CAACQ,OAAO,GAAGhB,WAAW,CAACmB,gBAAgB,CACjD,mBAAmB,EACnBhB,WACF,CAAC;MACDG,WAAW,CAAC,IAAI,CAAC;IACnB;EACF,CAAC,EAAE,CAACF,UAAU,EAAED,WAAW,CAAC,CAAC;EAE7B,MAAMiB,cAAc,GAAGrB,KAAK,CAACY,WAAW,CAAC,MAAM;IAC7C,IAAIN,QAAQ,EAAE;MACZa,kBAAkB,CAAC,CAAC;IACtB;EACF,CAAC,EAAE,CAACA,kBAAkB,EAAEb,QAAQ,CAAC,CAAC;EAElC,MAAMgB,cAAc,GAAGtB,KAAK,CAACY,WAAW,CAAC,MAAM;IAC7CD,iBAAiB,CAAC,KAAK,CAAC;EAC1B,CAAC,EAAE,CAACA,iBAAiB,CAAC,CAAC;EAEvBX,KAAK,CAACuB,SAAS,CAAC,MAAM;IACpB,IAAIlB,UAAU,EAAE;MACdM,iBAAiB,CAAC,CAAC;IACrB;EACF,CAAC,EAAE,CAACN,UAAU,EAAEM,iBAAiB,CAAC,CAAC;EAEnC,OAAO;IACLU,cAAc;IACdC,cAAc;IACdH,kBAAkB;IAClBR;EACF,CAAC;AACH"}
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useHeaderHeight(1).js b/node_modules/react-native-screens/lib/module/native-stack/utils/useHeaderHeight(1).js
+new file mode 100644
+index 0000000..00fac9b
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useHeaderHeight(1).js
+@@ -0,0 +1,10 @@
++import * as React from 'react';
++import HeaderHeightContext from './HeaderHeightContext';
++export default function useHeaderHeight() {
++  const height = React.useContext(HeaderHeightContext);
++  if (height === undefined) {
++    throw new Error("Couldn't find the header height. Are you inside a screen in a navigator with a header?");
++  }
++  return height;
++}
++//# sourceMappingURL=useHeaderHeight.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/module/native-stack/utils/useHeaderHeight(2).js b/node_modules/react-native-screens/lib/module/native-stack/utils/useHeaderHeight(2).js
+new file mode 100644
+index 0000000..00fac9b
+--- /dev/null
++++ b/node_modules/react-native-screens/lib/module/native-stack/utils/useHeaderHeight(2).js
+@@ -0,0 +1,10 @@
++import * as React from 'react';
++import HeaderHeightContext from './HeaderHeightContext';
++export default function useHeaderHeight() {
++  const height = React.useContext(HeaderHeightContext);
++  if (height === undefined) {
++    throw new Error("Couldn't find the header height. Are you inside a screen in a navigator with a header?");
++  }
++  return height;
++}
++//# sourceMappingURL=useHeaderHeight.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/windows/RNScreens/RNScreens.vcxproj b/node_modules/react-native-screens/windows/RNScreens/RNScreens.vcxproj.xml
+similarity index 100%
+rename from node_modules/react-native-screens/windows/RNScreens/RNScreens.vcxproj
+rename to node_modules/react-native-screens/windows/RNScreens/RNScreens.vcxproj.xml
