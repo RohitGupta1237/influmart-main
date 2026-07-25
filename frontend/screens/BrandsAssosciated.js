@@ -25,7 +25,7 @@ const BrandAssosciated = ({ active }) => {
   React.useEffect(() => {
     async function fetchData() {
       const res = await getAllBrandProfiles(showAlert)
-      setBrands(res)
+      setBrands(Array.isArray(res) ? res : [])
       setLoading(false)
     }
     setLoading(true)

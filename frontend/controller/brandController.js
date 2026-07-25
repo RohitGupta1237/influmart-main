@@ -91,14 +91,14 @@ const getAllBrandProfiles = async (showAlert) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    let data = await response.data.brands;
+    let data = (await response.data.brands) || [];
 
     data = data.map((brand) => {
       return {
         ...brand,
         profileUrl: brand.isSelectedImage
             ? brand.profileUrl
-            : brand.profileUrl.includes("uploads")
+            : brand.profileUrl?.includes("uploads")
                 ? `${API_ENDPOINT}/${brand.profileUrl
                     .replace(/\\/g, "/")
                     .replace("uploads/", "")}`
@@ -118,6 +118,7 @@ const getAllBrandProfiles = async (showAlert) => {
   } catch (error) {
     console.log(error);
     showAlert("Brand Profiles Error", "Something went wrong");
+    return [];
   }
 };
 
