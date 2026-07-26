@@ -66,6 +66,8 @@ const InfluencerUpdate = async (influencerId, payload, navigation, showAlert) =>
       data.append("profileUrl", payload?.image?.file);
       data.append("isSelectedImage", true);
     } else {
+      // Uploaded file — clear the avatar flag so it isn't treated as an avatar.
+      data.append("isSelectedImage", false);
       if (Platform.OS === "web") {
         const blob = await (await fetch(payload.image.uri)).blob();
         data.append("image", blob, payload.image.name);

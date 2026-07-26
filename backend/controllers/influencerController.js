@@ -118,6 +118,8 @@ exports.signup = async (req, res) => {
       }
     } catch (e) { console.warn("fbAnalytics parse failed:", e.message); }
 
+    // FormData sends booleans as strings; "false" is truthy in JS, so coerce.
+    const isSel = influencerData?.isSelectedImage === true || influencerData?.isSelectedImage === "true";
     const influencer = new InfluencerSignupRequest({
       ...influencerData,
       password: hashedPassword||"",
@@ -129,9 +131,8 @@ exports.signup = async (req, res) => {
       fbData,
       ytData: [influencerData.yt],
       tracked: track,
-      profileUrl: influencerData?.isSelectedImage
-        ? influencerData?.profileUrl
-        : req.file?.path,
+      isSelectedImage: isSel,
+      profileUrl: isSel ? influencerData?.profileUrl : req.file?.path,
     });
     // Save the influencer data to the database
     await influencer.save();
@@ -270,12 +271,14 @@ exports.updateProfile = async (req, res) => {
     profileUrl,
     price,
   } = req.body;
+  // FormData sends booleans as strings; "false" is truthy in JS, so coerce.
+  const isSel = isSelectedImage === true || isSelectedImage === "true";
+
   const updatedFields = {
     userName: userName || undefined,
     email: email || undefined,
     category: category || undefined,
     influencerName: influencerName || undefined,
-    isSelectedImage: isSelectedImage || undefined,
     price: price ? [price] : undefined,
   };
   try {
@@ -296,10 +299,13 @@ exports.updateProfile = async (req, res) => {
 
     // Handle profile picture update
     if (req.file) {
+      // Uploaded file wins; clear the avatar flag.
       updatedFields.profileUrl = req.file.path;
-    }
-    if (isSelectedImage) {
+      updatedFields.isSelectedImage = false;
+    } else if (isSel) {
+      // Selected a built-in avatar.
       updatedFields.profileUrl = profileUrl;
+      updatedFields.isSelectedImage = true;
     }
 
     Object.keys(updatedFields).forEach(
