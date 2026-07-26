@@ -72,8 +72,16 @@ const BrandSignUp = async (payload, navigation, showAlert) => {
   }
 
   if (payload.document?.dataUrl) {
+    // Web: base64 data URL -> Blob
     const docBlob = await (await fetch(payload.document.dataUrl)).blob();
     data.append("document", docBlob, payload.document.name);
+  } else if (payload.document?.uri) {
+    // Native (Android/iOS): file reference
+    data.append("document", {
+      uri: payload.document.uri,
+      name: payload.document.name,
+      type: payload.document.type || "image/jpeg",
+    });
   }
 
   try {

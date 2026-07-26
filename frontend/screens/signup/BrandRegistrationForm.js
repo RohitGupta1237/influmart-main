@@ -17,6 +17,7 @@ import { SendOtp } from "../../controller/signupController";
 import { signupStyles } from "./SignUpStyles.scss";
 import { useAlert } from "../../util/AlertContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons"; // Import the icon component
+import * as ImagePicker from "expo-image-picker";
 import Loader from '../../shared/Loader';
 import MultiDropDown from '../../shared/MultiDropDown';
 import API_ENDPOINT from "../../config";
@@ -58,7 +59,7 @@ const BrandRegistrationForm = ({ route, navigation }) => {
     setDocument(null);
   }, []);
 
-  const handleDocumentPick = () => {
+  const handleDocumentPick = async () => {
     if (Platform.OS === 'web') {
       const input = window.document.createElement('input');
       input.type = 'file';
@@ -74,6 +75,21 @@ const BrandRegistrationForm = ({ route, navigation }) => {
         }
       };
       input.click();
+    } else {
+      // Native (Android/iOS): pick an image of the document from the gallery
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.8,
+        });
+        if (!result.canceled && result.assets && result.assets[0]) {
+          const asset = result.assets[0];
+          const name = asset.fileName || `document_${Date.now()}.jpg`;
+          setDocument({ uri: asset.uri, name, type: asset.mimeType || 'image/jpeg' });
+        }
+      } catch (err) {
+        showAlert("Document Error", "Could not open the gallery. Please try again.");
+      }
     }
   };
 

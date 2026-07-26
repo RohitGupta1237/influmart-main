@@ -23,30 +23,14 @@ const GooglePlacesInput = ({ setData, setModalVisible }) => {
   const [predictions, setPredictions] = useState([]);
 
   const fetchPredictions = async (input) => {
-    const apiKey = GOOGLE_API_KEY;
-    if (Platform.OS == "web") {
-      const data = await searchPlaces(input)
-      data?.length==0?setPredictions([""]):setPredictions(data)
-    } else if (Platform.OS == "android" || Platform.OS == "ios") {
-      try {
-        const response = await axios.get(
-            `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${input}&key=${apiKey}`
-        );
-
-        console.log(response);
-        // Check if the response is OK
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.data;
-        console.log("Predictions:", data);
-
-        // Handle predictions
-        data?.length==0?setPredictions([""]):setPredictions(data.predictions);
-      } catch (error) {
-        console.error("Error fetching predictions:", error);
-      }
+    // Use the backend proxy on all platforms (web + native). The proxy returns a
+    // simple array of place strings and avoids Google API key referrer/CORS issues.
+    try {
+      const data = await searchPlaces(input);
+      (!data || data.length === 0) ? setPredictions([""]) : setPredictions(data);
+    } catch (error) {
+      console.error("Error fetching predictions:", error);
+      setPredictions([""]);
     }
   };
 
@@ -98,13 +82,14 @@ const GooglePlacesInput = ({ setData, setModalVisible }) => {
         </View>
         <FlatList
             data={predictions}
-            keyExtractor={(item) => item.place_id}
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={(item, index) => String(index)}
             renderItem={({ item }) => (
                 <TouchableOpacity
                     style={styles.item}
-                    onPress={() => handleClick(Platform.OS=="web"?item==""?query:item:item.description==""?query:item.description)}
+                    onPress={() => handleClick(item === "" ? query : item)}
                 >
-                  <Text>{Platform.OS=="web"? item==""?"+ Add This Place":item:item.description==""?"+ Add This Place":item.description}</Text>
+                  <Text>{item === "" ? "+ Add This Place" : item}</Text>
                 </TouchableOpacity>
             )}
         />

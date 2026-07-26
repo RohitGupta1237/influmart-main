@@ -16,10 +16,17 @@ const getBrandProfile = async (brandId, showAlert) => {
     if (response.status == 200) {
       let brand = {
         ...data.brand,
-        category: JSON.parse(data.brand.category).join(", "),
+        category: (() => {
+          try {
+            const arr = JSON.parse(data.brand.category || "[]");
+            return Array.isArray(arr) ? arr.join(", ") : String(data.brand.category || "");
+          } catch {
+            return typeof data.brand.category === "string" ? data.brand.category : "";
+          }
+        })(),
         profileUrl: data.brand.isSelectedImage
             ? data.brand.profileUrl
-            : data.brand.profileUrl.includes("uploads")
+            : data.brand.profileUrl?.includes("uploads")
                 ? `${API_ENDPOINT}/${data.brand.profileUrl
                     .replace(/\\/g, "/")
                     .replace("uploads/", "")}`

@@ -462,7 +462,7 @@ const Analytics = ({ route, navigation }) => {
           depth4Frame0Color="#121217"
         />
       </TouchableOpacity>
-      <ScrollView style={styles.scrollViewContent}>
+      <ScrollView style={styles.scrollViewContent} keyboardShouldPersistTaps="handled">
         <View style={styles.analytics}>
           <View style={styles.depth0Frame0}>
             {influencer?.profileUrl && <Depth1Frame9
