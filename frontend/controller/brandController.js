@@ -58,6 +58,9 @@ const BrandUpdate = async (brandId, payload, navigation, showAlert) => {
       data.append("profileUrl", payload?.image?.file);
       data.append("isSelectedImage", true);
     } else {
+      // Uploaded file — make sure the avatar flag is cleared so it isn't
+      // treated as a selected avatar (which would break the image display).
+      data.append("isSelectedImage", false);
       if (Platform.OS === "web") {
         const blob = await (await fetch(payload.image.uri)).blob();
         data.append("image", blob, payload.image.name);

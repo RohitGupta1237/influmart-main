@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Image, StyleSheet } from "react-native";
 
 const ImageWithFallback = ({ image, imageStyle, isSelectedImage, fallback }) => {
-  const [imageSource, setImageSource] = useState({ uri: image });
-  const [imageLoaded, setImageLoaded] = useState(true);
   const selectedImage = {
     images: {
       avatar1: require("../assets/avatars/avatar1.png"),
@@ -48,21 +46,30 @@ const ImageWithFallback = ({ image, imageStyle, isSelectedImage, fallback }) => 
     require("../assets/influencer9.jpg"),
     require("../assets/influencer10.jpg"),
   ];
-  useEffect(() => {
-    if (!image || image == null || image == undefined) {
-      handleError();
-    } else if (!isNaN(image)) {
-      handleError();
-    } else if (isSelectedImage) {
-      setImageSource(selectedImage.images[image]);
-    }
-  }, [image]);
 
-  const handleError = () => {
-    const randomFallbackImage = fallback !== undefined
+  const getFallback = () =>
+    fallback !== undefined
       ? fallback
       : fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
-    setImageSource(randomFallbackImage);
+
+  // Resolve the correct source synchronously so we never briefly try to load an
+  // avatar key (e.g. "avatar5") as a network URL, which caused a flaky race.
+  const resolveSource = () => {
+    if (!image || image == null || image == undefined) return getFallback();
+    if (!isNaN(image)) return getFallback();
+    if (isSelectedImage) return selectedImage.images[image] || getFallback();
+    return { uri: image };
+  };
+
+  const [imageSource, setImageSource] = useState(resolveSource);
+  const [imageLoaded, setImageLoaded] = useState(true);
+
+  useEffect(() => {
+    setImageSource(resolveSource());
+  }, [image, isSelectedImage]);
+
+  const handleError = () => {
+    setImageSource(getFallback());
     setImageLoaded(false);
   };
 

@@ -117,7 +117,7 @@ const BrandAccountManage = ({ route, navigation }) => {
       }
       return;
     }
-    setProfileData((prev) => ({ ...prev, image: result }));
+    setProfileData((prev) => ({ ...prev, image: result, isSelectedImage: false }));
     setChange(false);
     setSelectedImage(result.uri);
     setSelectedAvatarIndex("");
@@ -130,6 +130,7 @@ const BrandAccountManage = ({ route, navigation }) => {
       setProfileData((prev) => ({
         ...prev,
         image: { uri, name: file.name, type: file.type },
+        isSelectedImage: false,
       }));
       setChange(false);
       setSelectedImage(uri);

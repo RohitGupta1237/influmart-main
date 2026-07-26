@@ -27,15 +27,18 @@ exports.signup = async (req, res) => {
   const imageFile = req.files?.image?.[0];
   const documentFile = req.files?.document?.[0];
 
+  // FormData sends booleans as strings; "false" is truthy in JS, so coerce.
+  const isSel = isSelectedImage === true || isSelectedImage === "true";
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const brand = new Brand({
     name,
     email,
     password: hashedPassword,
     category,
-    profileUrl: isSelectedImage ? profileUrl : imageFile?.path,
+    profileUrl: isSel ? profileUrl : imageFile?.path,
     brandName,
-    isSelectedImage,
+    isSelectedImage: isSel,
   });
 
   try {
@@ -151,12 +154,15 @@ exports.updateProfile = async (req, res) => {
     profileUrl,
   } = req.body;
 
+  // FormData sends booleans as strings ("true"/"false"), so coerce properly —
+  // the string "false" is truthy in JS and previously broke image handling.
+  const isSel = isSelectedImage === true || isSelectedImage === "true";
+
   const updatedFields = {
     name: name || undefined,
     email: email || undefined,
     category: category || undefined,
     brandName: brandName || undefined,
-    isSelectedImage: isSelectedImage || undefined,
   };
 
   try {
@@ -173,10 +179,13 @@ exports.updateProfile = async (req, res) => {
 
     // Handle profile picture update
     if (req.file) {
+      // Uploaded file wins; clear the avatar flag.
       updatedFields.profileUrl = req.file.path;
-    }
-    if (isSelectedImage) {
+      updatedFields.isSelectedImage = false;
+    } else if (isSel) {
+      // Selected a built-in avatar.
       updatedFields.profileUrl = profileUrl;
+      updatedFields.isSelectedImage = true;
     }
 
     Object.keys(updatedFields).forEach(
