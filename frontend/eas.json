@@ -5,20 +5,10 @@
   "build": {
     "production": {
       "android": {
-        "image": "latest",
-        "env": {
-          "EXPO_PUBLIC_API_URL": "$EXPO_PUBLIC_API_URL",
-          "EXPO_PUBLIC_RAZORPAY_KEY_ID": "$EXPO_PUBLIC_RAZORPAY_KEY_ID",
-          "EXPO_PUBLIC_GOOGLE_API_KEY": "$EXPO_PUBLIC_GOOGLE_API_KEY"
-        }
+        "image": "latest"
       },
       "ios": {
-        "image": "latest",
-        "env": {
-          "EXPO_PUBLIC_API_URL": "$EXPO_PUBLIC_API_URL",
-          "EXPO_PUBLIC_RAZORPAY_KEY_ID": "$EXPO_PUBLIC_RAZORPAY_KEY_ID",
-          "EXPO_PUBLIC_GOOGLE_API_KEY": "$EXPO_PUBLIC_GOOGLE_API_KEY"
-        }
+        "image": "latest"
       }
     },
     "preview": {
