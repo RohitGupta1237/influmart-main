@@ -222,7 +222,14 @@ const BrandAccountManage = ({ route, navigation }) => {
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.uploadButton]}
-                onPress={() => handleImagePick("library")}
+                onPress={() => {
+                  if (Platform.OS === "web") {
+                    // Web: use the native file input (reliable) instead of expo-image-picker
+                    document.getElementById("fileInput")?.click();
+                  } else {
+                    handleImagePick("library");
+                  }
+                }}
               >
                 <Text style={styles.buttonText}>Upload Photo</Text>
               </TouchableOpacity>

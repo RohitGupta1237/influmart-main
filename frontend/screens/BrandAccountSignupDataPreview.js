@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -32,6 +33,11 @@ const BrandAccountSignupDataPreview = ({ route, navigation }) => {
   };
 
   const handleUploadPhoto = async () => {
+    if (Platform.OS === "web") {
+      // Web: use the native file input (reliable) instead of expo-image-picker
+      document.getElementById("brandSignupFileInput")?.click();
+      return;
+    }
     const result = await handleImageSelection("library");
 
     if (result.canceled) {
@@ -43,6 +49,16 @@ const BrandAccountSignupDataPreview = ({ route, navigation }) => {
 
     setPhoto(result);
     setSelectedImage(result.uri);
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const uri = URL.createObjectURL(file);
+      const img = { uri, name: file.name, type: file.type };
+      setPhoto(img);
+      setSelectedImage(uri);
+    }
   };
 
   const renderImageSection = () => (
@@ -89,6 +105,16 @@ const BrandAccountSignupDataPreview = ({ route, navigation }) => {
       <View style={styles.divider}>
         <Text style={styles.orText}>or</Text>
       </View>
+
+      {Platform.OS === "web" && (
+        <input
+          id="brandSignupFileInput"
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+      )}
 
       <View style={styles.buttonContainer}>
         <Pressable style={styles.uploadButton} onPress={handleUploadPhoto}>

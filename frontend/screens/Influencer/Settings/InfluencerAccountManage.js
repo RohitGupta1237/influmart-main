@@ -222,7 +222,13 @@ const InfluencerManageAccount = ({ route, navigation }) => {
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.uploadButton]}
-                onPress={() => handleImagePick("library")}
+                onPress={() => {
+                  if (Platform.OS === "web") {
+                    document.getElementById("fileInput")?.click();
+                  } else {
+                    handleImagePick("library");
+                  }
+                }}
               >
                 <Text style={styles.buttonText}>Upload Photo</Text>
               </TouchableOpacity>
