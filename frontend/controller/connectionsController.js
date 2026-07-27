@@ -39,14 +39,11 @@ const getAllRequests = async (userId, setRequests, showAlert) => {
     if (response.status === 200) {
       const data = response.data.user;
       const formatData = data.map((item) => ({
-        imageSource: item?.sender?.isSelectedImage? item?.sender?.profileUrl : item?.sender?.profileUrl?.includes("uploads")
-            ? {
-              uri: `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(
-                  /\\/g,
-                  "/"
-              ).replace("uploads/", "")}`,
-            }
-            : null,
+        imageSource: item?.sender?.isSelectedImage
+            ? item?.sender?.profileUrl
+            : item?.sender?.profileUrl?.includes("uploads")
+                ? `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(/\\/g, "/").replace("uploads/", "")}`
+                : null,
         postTitle: item?.sender?.name,
         isSelectedImage: item?.sender?.isSelectedImage,
         postDate: new Date(item?.requestedAt)?.toLocaleDateString(),

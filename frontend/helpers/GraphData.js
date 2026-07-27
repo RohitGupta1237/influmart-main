@@ -164,6 +164,7 @@ function transformIG(inputData) {
 }
 
 function formatNumber(num) {
+  if (num === null || num === undefined || isNaN(num)) return "0";
   let res;
   if (num >= 1000000) {
     res = (num / 1000000).toFixed(1).toString() + "M";

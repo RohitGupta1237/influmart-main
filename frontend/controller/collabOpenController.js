@@ -149,14 +149,13 @@ const getAllCollabOpenRequests = async (userId, setRequests, showAlert) => {
     if (response.status === 200) {
       const data = response.data.user;
       const formatData = data.map((item) => ({
-        imageSource: item?.sender?.isSelectedImage ? item?.sender?.profileUrl : item?.sender?.profileUrl
-            ? {
-              uri: `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(
-                  /\\/g,
-                  "/"
-              ).replace("uploads/", "")}`,
-            }
-            : require("../assets/blank-profile.png"),
+        // Always a string (or null) so ImageWithFallback can handle it. Passing an
+        // object here caused a nested {uri:{uri:...}} that crashed native <Image>.
+        imageSource: item?.sender?.isSelectedImage
+            ? item?.sender?.profileUrl
+            : item?.sender?.profileUrl
+                ? `${API_ENDPOINT}/${item?.sender?.profileUrl?.replace(/\\/g, "/").replace("uploads/", "")}`
+                : null,
         postTitle: item?.sender?.influencerName,
         isSelectedImage: item?.sender?.isSelectedImage,
         postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
