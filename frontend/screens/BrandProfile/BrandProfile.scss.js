@@ -7,6 +7,13 @@ export const BrandProfileStyles = {
     marginBottom: 40,
     overflow: "hidden",
   },
+  // Inner wrapper for the ScrollView content — must NOT use flex:1, otherwise it
+  // collapses to height 0 inside a ScrollView on native (blank screen).
+  contentWrapper: {
+    width: "100%",
+    backgroundColor: Color.colorWhitesmoke_100,
+    marginBottom: 40,
+  },
   header: {
     paddingTop: 24,
     marginBottom: 16,
