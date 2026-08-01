@@ -12,6 +12,7 @@ import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
+import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AddHandlesStyles } from "./AddHandle.scss";
 import { useAlert } from "../../../util/AlertContext";
@@ -378,17 +379,40 @@ const AddHandles = ({ route, navigation }) => {
       }
 
       const state = Math.random().toString(36).substring(2, 18);
-      const result = await WebBrowser.openAuthSessionAsync(
-        `${API_ENDPOINT}/auth/youtube?state=${state}&influencerId=${influencerId}`,
-        "influmart://"
-      );
 
-      if (result.type !== "success") {
+      // On Android, WebBrowser.openAuthSessionAsync races an internal "app became
+      // active" event against the redirect deep link and can wrongly report
+      // "cancel"/"dismiss" even though the OAuth redirect actually succeeded.
+      // Capture the redirect URL ourselves so it wins the race deterministically.
+      // (Web is unaffected: this listener never fires for the web popup redirect,
+      // and the openAuthSessionAsync call below is unchanged from the original.)
+      let capturedUrl = null;
+      const linkSub = Linking.addEventListener("url", (event) => {
+        if (event?.url && event.url.startsWith("influmart://auth")) capturedUrl = event.url;
+      });
+
+      let result;
+      try {
+        result = await WebBrowser.openAuthSessionAsync(
+          `${API_ENDPOINT}/auth/youtube?state=${state}&influencerId=${influencerId}`,
+          "influmart://"
+        );
+        // The deep link may arrive a tick after the browser resolves the race (Android only).
+        if (result?.type !== "success" && !capturedUrl) {
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+      } finally {
+        linkSub?.remove();
+      }
+
+      // Prefer the browser's own result URL; fall back to the deep link we captured.
+      const finalUrl = result?.type === "success" ? result.url : capturedUrl;
+      if (!finalUrl) {
         showAlert("Info", "YouTube sign-in was cancelled");
         return;
       }
 
-      const urlParams = new URLSearchParams(result.url.split("?")[1] || "");
+      const urlParams = new URLSearchParams(finalUrl.split("?")[1] || "");
       const ytSuccess = urlParams.get("ytSuccess");
       const ytChannel = urlParams.get("ytChannel");
       const ytEmail = urlParams.get("ytEmail");
