@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   Modal,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
@@ -365,10 +366,95 @@ const AddHandles = ({ route, navigation }) => {
     }
   };
 
+  // Android/iOS: native Google Sign-In. Google banned custom-scheme OAuth for
+  // Android clients (both the client-side expo flow and the browser redirect back
+  // into the app), so the browser-based flow can't work on the app anymore.
+  // We get an access token natively, reuse the SAME client-side pipeline the web
+  // signup uses (handleGoogleEffect), and hand the serverAuthCode to the backend
+  // so the analytics cron still gets a refresh token. Web is left untouched below.
+  const handleYouTubeVerifyNative = async () => {
+    try {
+      // Lazy require so the web bundle never evaluates the native module.
+      const { GoogleSignin } = require("@react-native-google-signin/google-signin");
+      GoogleSignin.configure({
+        webClientId:
+          "382205507716-9m2339559me6bm5uu0sue6eukfmgf3ab.apps.googleusercontent.com",
+        offlineAccess: true,
+        scopes: [
+          "profile",
+          "email",
+          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/yt-analytics.readonly",
+        ],
+      });
+
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      // Sign out first so the account chooser + consent show and a fresh
+      // serverAuthCode is always returned.
+      try {
+        await GoogleSignin.signOut();
+      } catch (e) {}
+
+      const res = await GoogleSignin.signIn();
+      // v13 returns { type, data }; older versions return the userInfo directly.
+      if (res?.type === "cancelled") {
+        showAlert("Info", "YouTube sign-in was cancelled");
+        return;
+      }
+      const info = res?.data ?? res;
+      const serverAuthCode = info?.serverAuthCode;
+
+      const tokens = await GoogleSignin.getTokens();
+      const accessToken = tokens?.accessToken;
+      if (!accessToken) {
+        showAlert("Error", "Could not get Google access token. Please try again.");
+        return;
+      }
+
+      // Reuse the exact client-side pipeline the web signup flow uses:
+      // fetch channel + analytics, cache to AsyncStorage, verify handle, save channelId.
+      await handleGoogleEffect(accessToken);
+
+      // Best-effort: hand the serverAuthCode to the backend so it can store a
+      // refresh token for the analytics cron. Non-blocking — verify already ran.
+      const influencerId = await AsyncStorage.getItem("influencerId");
+      if (serverAuthCode && influencerId) {
+        try {
+          const authToken = await AsyncStorage.getItem("token");
+          await fetch(`${API_ENDPOINT}/auth/youtube/native-token`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+            },
+            body: JSON.stringify({ serverAuthCode, influencerId }),
+          });
+        } catch (e) {
+          console.warn("[YT native] refresh-token save failed (non-blocking):", e?.message);
+        }
+      }
+    } catch (error) {
+      const code = String(error?.code || "");
+      if (code === "SIGN_IN_CANCELLED" || code === "12501" || code === "-5") {
+        showAlert("Info", "YouTube sign-in was cancelled");
+      } else if (code === "DEVELOPER_ERROR" || code === "10") {
+        console.error("[YT native] DEVELOPER_ERROR — SHA-1 / OAuth client mismatch:", error);
+        showAlert("Error", "YouTube sign-in isn't configured for this build yet.");
+      } else {
+        console.error("[YT native] verification error:", error);
+        showAlert("Error", "YouTube verification failed. Please try again.");
+      }
+    }
+  };
+
   // YouTube OAuth — two paths:
   //   Signup (no influencerId in storage): use GoogleAuthManager (access token, client-side analytics)
   //   Profile edit (influencerId exists): use backend OAuth route to get refresh token for cron jobs
   const handleYouTubeVerify = async () => {
+    // App (Android/iOS) uses native Google Sign-In; web keeps the browser flow below.
+    if (Platform.OS !== "web") {
+      return handleYouTubeVerifyNative();
+    }
     try {
       const influencerId = await AsyncStorage.getItem("influencerId");
 

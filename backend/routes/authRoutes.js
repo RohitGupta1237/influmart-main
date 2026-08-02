@@ -756,6 +756,42 @@ router.get("/auth/youtube/callback", async (req, res) => {
   }
 });
 
+// Native Google Sign-In (Android/iOS app): the app signs in natively and sends us
+// the serverAuthCode. We exchange it for a refresh token and store it so the
+// analytics cron can keep refreshing YouTube stats. The app already fetches the
+// channel/analytics client-side and saves the channelId, so this is additive.
+router.post("/auth/youtube/native-token", async (req, res) => {
+  const { serverAuthCode, influencerId } = req.body || {};
+  if (!serverAuthCode || !influencerId) {
+    return res.status(400).json({ error: "Missing serverAuthCode or influencerId" });
+  }
+  try {
+    const tokenResponse = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      new URLSearchParams({
+        code: serverAuthCode,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        // serverAuthCode from native Google Sign-In is exchanged with an empty redirect_uri.
+        redirect_uri: "",
+        grant_type: "authorization_code",
+      }).toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    const { refresh_token } = tokenResponse.data || {};
+    if (refresh_token) {
+      await InfluencerSignupRequest.findByIdAndUpdate(influencerId, {
+        ytRefreshToken: refresh_token,
+      });
+    }
+    return res.json({ ok: true, hasRefreshToken: !!refresh_token });
+  } catch (err) {
+    console.error("[YT native-token] exchange error:", err.response?.data || err.message);
+    return res.status(500).json({ error: "token_exchange_failed" });
+  }
+});
+
 // TikTok token exchange — must be done server-side because client_secret cannot be exposed
 router.post("/auth/tiktok/verify", async (req, res) => {
   const { code, redirectUri, codeVerifier } = req.body;
