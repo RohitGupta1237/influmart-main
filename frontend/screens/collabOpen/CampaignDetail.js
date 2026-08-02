@@ -21,6 +21,24 @@ const CampaignDetail = ({ route, navigation }) => {
   const [influencers, setInfluencers] = useState(data.collaboratedInfluencers || []);
   const [adding, setAdding] = useState(false);
 
+  // Safely derive the category text — collab openings can have missing or
+  // malformed category data, and an unguarded JSON.parse here crashes the whole
+  // screen (web + app). Handle: missing, non-JSON string, or plain array.
+  const categoryText = (() => {
+    try {
+      const c = data?.category;
+      if (!Array.isArray(c) || c.length === 0) return "";
+      const first = c[0];
+      const parsed =
+        typeof first === "string" && first.trim().startsWith("[")
+          ? JSON.parse(first)
+          : first;
+      return Array.isArray(parsed) ? parsed.join(", ") : String(parsed ?? "");
+    } catch {
+      return "";
+    }
+  })();
+
   const handleAddInfluencer = async () => {
     const trimmed = username.trim();
     if (!trimmed) return;
@@ -94,9 +112,7 @@ const CampaignDetail = ({ route, navigation }) => {
         <View style={styles.dividerLine} />
         <View style={styles.brandRow}>
           <Text style={styles.brandLabel}>Category</Text>
-          <Text style={styles.brandValue}>
-            {data?.category != [] ? JSON.parse(data.category[0]).join(", ") : ""}
-          </Text>
+          <Text style={styles.brandValue}>{categoryText}</Text>
         </View>
       </View>
 

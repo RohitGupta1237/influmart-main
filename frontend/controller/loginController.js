@@ -13,14 +13,15 @@ export const handleInfluencerLogin = async (username,password) => {
         body: JSON.stringify({ username, password })
       });
       const data = await response.json()
-      await AsyncStorage.setItem('token', data?.token);
-      await AsyncStorage.setItem('influencerId', data?.influencer?._id);
-      await AsyncStorage.removeItem('brandId');
-      if (response.status == 200){
+      // Only persist auth data when login actually succeeded — otherwise data.token
+      // is undefined and AsyncStorage.setItem throws an ugly error popup.
+      if (response.status == 200 && data?.token) {
+        await AsyncStorage.setItem('token', data.token);
+        if (data?.influencer?._id) await AsyncStorage.setItem('influencerId', data.influencer._id);
+        await AsyncStorage.removeItem('brandId');
         return {success:true,message:data.message}
       }
-      else
-        return {success:false,message:data.message}
+      return {success:false,message:data?.message || "Invalid username or password"}
     }
     catch (error) {
       console.log(error)
@@ -40,14 +41,18 @@ export const handleBrandLogin = async (email, password) => {
           { email, password }
       );
       const data = await response.data;
-      await AsyncStorage.setItem('token', data.token);
-      await AsyncStorage.setItem('brandId', data.brandId);
-      await AsyncStorage.removeItem('influencerId');
-      if (response.status == 200) {
+      // Only persist auth data when login actually succeeded.
+      if (response.status == 200 && data?.token) {
+        await AsyncStorage.setItem('token', data.token);
+        if (data?.brandId) await AsyncStorage.setItem('brandId', data.brandId);
+        await AsyncStorage.removeItem('influencerId');
         return { success: true, message: data.message, id: data?.brand?._id };
-      } else return { success: false, message: data.message };
+      }
+      return { success: false, message: data?.message || "Invalid email or password" };
     } catch (error) {
-      return { success: false, message: error.message };
+      // axios throws on non-2xx (e.g. 401) — surface the server's message cleanly.
+      const msg = error?.response?.data?.message || "Invalid email or password";
+      return { success: false, message: msg };
     }
 
 
