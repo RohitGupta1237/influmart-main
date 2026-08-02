@@ -36,6 +36,7 @@ const CollabPost = ({ navigation }) => {
 
   const isAppliedTab = selectedCategory === "Applied";
   const isAllTab = selectedCategory === "All";
+  const isOpenTab = selectedCategory === "Open";
 
   // Re-fetch every time screen comes into focus
   useFocusEffect(
@@ -60,7 +61,10 @@ const CollabPost = ({ navigation }) => {
     }
 
     let filtered = data;
-    if (!isAllTab) {
+    if (isOpenTab) {
+      // Show only active (not closed) openings.
+      filtered = filtered.filter(post => !isCampaignClosed(post.campaignTimelines));
+    } else if (!isAllTab) {
       filtered = filtered.filter(post =>
         post.campaignType?.toLowerCase().includes(selectedCategory.toLowerCase())
       );
@@ -112,7 +116,7 @@ const CollabPost = ({ navigation }) => {
         <View style={styles.categories}>
           <Text style={styles.categoryTitle}>Categories</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {["All", "Lifestyle & Personal Branding", "Fashion & Beauty", "Food & Cooking", "Fitness & Health", "Travel & Exploration", "Tech & Gaming", "Education & Knowledge", "Entertainment & Comedy", "Business & Entrepreneurship", "Art & Creativity", "Parenting & Family", "Regional/Local Culture Creators", "Home Decor / Interior Creators", "Others", "Applied"].map(
+            {["All", "Open", "Lifestyle & Personal Branding", "Fashion & Beauty", "Food & Cooking", "Fitness & Health", "Travel & Exploration", "Tech & Gaming", "Education & Knowledge", "Entertainment & Comedy", "Business & Entrepreneurship", "Art & Creativity", "Parenting & Family", "Regional/Local Culture Creators", "Home Decor / Interior Creators", "Others", "Applied"].map(
               (category, index) => (
                 <Pressable
                   key={index}
