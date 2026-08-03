@@ -123,50 +123,71 @@ const allCollabOpenRequests = async (req, res) => {
 
 // Accept a connection request
 const acceptCollabOpen = async (req, res, next) => {
-  const { requestId } = req.body;
-  const request = await CollabOpenRequest.findById(requestId).populate("sender receiver");
+  try {
+    const { requestId } = req.body;
+    const request = await CollabOpenRequest.findById(requestId).populate("sender receiver");
 
-  // Send automatic message
-  const autoMessage = new Message({
-    sender: request.receiver._id,
-    receiver: request.sender._id,
-    content: "Thank you for applying to our collaboration opening. We are interested in collaborating with you.",
-  });
+    // The request, or the influencer (sender) / brand (receiver) it points to, may
+    // have been deleted — populate returns null in that case. Guard before using them.
+    if (!request || !request.sender || !request.receiver) {
+      return res.status(404).json({
+        message: "This collaboration request is no longer valid. The influencer or brand may have been removed.",
+      });
+    }
 
-  // Find or create a conversation
-  let conversation = await Conversation.findOne({
-    participants: { $all: [request.sender._id, request.receiver._id] },
-  });
-  if (!conversation) {
-    conversation = await Conversation.create({
-      participants: [request.sender._id, request.receiver._id],
+    // Send automatic message
+    const autoMessage = new Message({
+      sender: request.receiver._id,
+      receiver: request.sender._id,
+      content: "Thank you for applying to our collaboration opening. We are interested in collaborating with you.",
     });
+
+    // Find or create a conversation
+    let conversation = await Conversation.findOne({
+      participants: { $all: [request.sender._id, request.receiver._id] },
+    });
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [request.sender._id, request.receiver._id],
+      });
+    }
+    conversation.messages.push(autoMessage._id);
+
+    // Add conversation to both users — $addToSet prevents duplicates
+    await Brand.findByIdAndUpdate(request.receiver._id, {
+      $addToSet: { conversations: conversation._id }
+    });
+    await InfluencerSignupRequest.findByIdAndUpdate(request.sender._id, {
+      $addToSet: { conversations: conversation._id }
+    });
+
+    await Promise.all([
+      autoMessage.save(),
+      conversation.save(),
+      CollabOpenRequest.findByIdAndUpdate(requestId, { status: 'accepted' }),
+    ]);
+
+    res.status(200).json({ message: "Request accepted and message sent", senderId: request.sender._id, receiverId: request.receiver._id });
+  } catch (err) {
+    console.error("[acceptCollabOpen] error:", err.message);
+    res.status(500).json({ message: "Something went wrong while accepting the request." });
   }
-  conversation.messages.push(autoMessage._id);
-
-  // Add conversation to both users — $addToSet prevents duplicates
-  await Brand.findByIdAndUpdate(request.receiver._id, {
-    $addToSet: { conversations: conversation._id }
-  });
-  await InfluencerSignupRequest.findByIdAndUpdate(request.sender._id, {
-    $addToSet: { conversations: conversation._id }
-  });
-
-  await Promise.all([
-    autoMessage.save(),
-    conversation.save(),
-    CollabOpenRequest.findByIdAndUpdate(requestId, { status: 'accepted' }),
-  ]);
-
-  res.status(200).json({ message: "Request accepted and message sent", senderId: request.sender._id, receiverId: request.receiver._id });
 };
 
 // Reject a application/connection request
 
 const rejectCollabOpen = async (req, res) => {
-  const { requestId } = req.body;
-  await CollabOpenRequest.findByIdAndDelete(requestId);
-  res.status(200).json({ message: "Request rejected" });
+  try {
+    const { requestId } = req.body;
+    if (!requestId) {
+      return res.status(400).json({ message: "Missing requestId" });
+    }
+    await CollabOpenRequest.findByIdAndDelete(requestId);
+    res.status(200).json({ message: "Request rejected" });
+  } catch (err) {
+    console.error("[rejectCollabOpen] error:", err.message);
+    res.status(500).json({ message: "Something went wrong while rejecting the request." });
+  }
 };
 
 

@@ -52,7 +52,8 @@ export const BrandProfileStyles = {
   },
   profileInfoContainer: {
     width: "100%",
-    flex: 1,
+    // No flex:1 — inside a ScrollView column it collapses to height 0 on Android,
+    // hiding the brand name + category (they render on web but vanish on the app).
     alignItems: "center",
   },
   brandName: {

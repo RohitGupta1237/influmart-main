@@ -192,7 +192,7 @@ const InfluencersList = ({ route, navigation }) => {
           </View>
 
           <View style={[styles.scrollContainer, { backgroundColor: theme.bg }]}>
-            <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.scrollView, { backgroundColor: theme.bg }]}>
+            <ScrollView onScroll={handleScroll} scrollEventThrottle={16} style={[styles.scrollView, { backgroundColor: theme.bg }]} contentContainerStyle={{ paddingBottom: 40 }}>
               <View style={{ width: "100%", height: "auto", display: "flex", flexDirection: "row", alignItems: "center", padding: Padding.p_base }}>
                 <Image style={styles.filterIcon} contentFit="cover" tintColor={theme.iconTint} source={require("../../assets/filter-icon.png")} />
                 <ScrollView showsHorizontalScrollIndicator={false} horizontal contentContainerStyle={{ paddingRight: 10 }} style={{ width: "auto", paddingVertical: 8, height: "auto" }}>

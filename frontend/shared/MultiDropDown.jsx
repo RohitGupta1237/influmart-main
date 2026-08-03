@@ -53,6 +53,14 @@ function MultiDropDown({
                 </Pressable>
             </View>
             <ScrollView style={[styles.dropDownItemsContainer, dropDownItemsStyle, { display: `${close ? "flex" : "none"}` }]}>
+                {/* Same arrow, at the top of the open list, so it's always reachable to close
+                    (the list overlays the header arrow when open). */}
+                <Pressable onPress={() => setClose(false)} style={styles.dropDownCloseRow} hitSlop={10}>
+                    <Image
+                        style={[styles.arrowAndCloseIcon, { transform: [{ rotate: "180deg" }] }]}
+                        source={require("../assets/depth-3-frame-2.png")}
+                    />
+                </Pressable>
                 {items.length > 0 && items ? (
                     <View style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         {items.map(({ key, value }) => {
@@ -120,6 +128,11 @@ const styles = StyleSheet.create({
     arrowAndCloseIcon: {
         width: 16,
         height: 16,
+    },
+    dropDownCloseRow: {
+        width: "100%",
+        alignItems: "flex-end",
+        paddingBottom: 8,
     },
     dropDownItemsContainer: {
         width: 160,

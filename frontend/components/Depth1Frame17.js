@@ -29,7 +29,7 @@ const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollow
         <ImageWithFallback imageStyle={styles.avatar} image={image} isSelectedImage={isSelectedImage} />
         <View style={styles.profileInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.username}>{toTitleCase(username)}</Text>
+            <Text style={styles.username} numberOfLines={1} ellipsizeMode="tail">{toTitleCase(username)}</Text>
             <Text style={styles.separator}> | </Text>
             <Text style={styles.role}>Influencer</Text>
           </View>
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     color: "#444",
     fontSize: FontSize.size_sm,
     fontFamily: FontFamily.beVietnamProRegular,
+    flexShrink: 0,
   },
   username: {
     fontSize: FontSize.size_3xl,
@@ -103,12 +104,14 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.beVietnamProBold,
     fontWeight: "700",
     color: Color.colorWhite,
+    flexShrink: 1,
   },
   role: {
     fontSize: FontSize.size_sm,
     fontFamily: FontFamily.beVietnamProRegular,
     color: Color.colorLightgray,
     lineHeight: 28,
+    flexShrink: 0,
   },
   categoryRow: {
     flexDirection: "row",
