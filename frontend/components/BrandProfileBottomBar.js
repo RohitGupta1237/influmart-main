@@ -135,7 +135,7 @@ const BrandProfileBottomBar = ({
   return (
     <View style={[styles.depth1Frame13, depth1Frame13Style, style]}>
       <View style={styles.depth2Frame0}>
-        <TouchableOpacity onPress={() => navigation.navigate('CollabForm',{navigation})}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('CollabForm',{navigation})}>
 
           <View
             style={[
@@ -166,7 +166,7 @@ const BrandProfileBottomBar = ({
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('InfluencersList')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('InfluencersList')}>
 
           <View
             style={[
@@ -198,7 +198,7 @@ const BrandProfileBottomBar = ({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('BrandsAssosciated')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('BrandsAssosciated')}>
 
           <View
             style={[
@@ -229,7 +229,7 @@ const BrandProfileBottomBar = ({
             </View>
           </View>
         </TouchableOpacity >
-        <TouchableOpacity onPress={() => navigation.navigate('BrandCampaigns')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('BrandCampaigns')}>
           <View style={[styles.depth3Frame1, styles.depth3FrameLayout]}>
             <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
               <Image
@@ -248,7 +248,7 @@ const BrandProfileBottomBar = ({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => handleProfileClick()}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => handleProfileClick()}>
           <View
             style={[
               styles.depth3Frame1,
@@ -287,31 +287,38 @@ const styles = StyleSheet.create({
   depth3FrameLayout: {
     width: "auto",
     alignItems: "center",
-    height: 55,
+    height: 44,
+  },
+  // Equal-width cell so the 5 tabs are evenly spaced.
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
   },
   depth4FrameFlexBox: {
-    height: 32,
+    height: 26,
     justifyContent:"center",
     alignItems: "center",
     flexDirection: "row",
   },
   depth4FrameSpaceBlock: {
-    marginTop: 4,
-    height: 18,
+    marginTop: 2,
+    height: 16,
     alignItems: "center",
   },
   homeTypo: {
     textAlign: "center",
     fontFamily: FontFamily.lexendMedium,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: 16,
     letterSpacing: 0,
-    fontSize: FontSize.size_xs,
+    // Smaller so longer labels ("Campaigns", "Influencer") fit in equal cells.
+    fontSize: 10,
     width: "auto"
   },
   depth5Frame0: {
-    height: 24,
-    width: 24,
+    height: 22,
+    width: 22,
+    tintColor: Color.colorSlategray_300,
   },
   depth4Frame0: {
     borderRadius: Border.br_base,
@@ -343,35 +350,41 @@ const styles = StyleSheet.create({
     width: "auto",
   },
   depth3Frame1: {
-    marginLeft: 8,
     alignItems: "center",
   },
   depth4Frame12: {
-    width: 70,
+    width: "auto",
   },
   depth4Frame13: {
-    width: 45,
+    width: "auto",
   },
   depth2Frame0: {
     width: "100%",
     display: "flex",
     flexDirection: "row",
-    height: 54,
-    justifyContent: "space-evenly",
-    gap: 20
+    height: 46,
+    justifyContent: "space-around",
+    alignItems: "center",
   },
+  // Floating translucent pill (light brand screens) — matches the homepage bar.
   depth1Frame13: {
-    backgroundColor: Color.colorWhite,
-    borderStyle: "solid",
-    borderColor: Color.colorGhostwhite,
-    borderTopWidth: 1,
-    width: "100%",
-    height: 80,
-    paddingHorizontal: Padding.p_base,
-    paddingTop: Padding.p_5xs,
-    paddingBottom: Padding.p_xs,
+    backgroundColor: "rgba(255,255,255,0.72)",
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
+    height: 58,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     position: "absolute",
-    bottom: 0
+    bottom: 16,
+    left: 12,
+    right: 12,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 14,
   },
 });
 

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { FontFamily, FontSize, Border, Color, Padding } from "../GlobalStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "../util/ThemeContext";
 
 const getStyleValue = (key, value) => {
   if (value === undefined) return;
@@ -44,6 +45,17 @@ const Depth1Frame = ({
   style,
 }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+
+  // Theme-aware floating pill: dark translucent on dark mode, light on light mode,
+  // so it aligns with the screen background instead of a white pill on black.
+  const pillStyle = theme?.isDark
+    ? { backgroundColor: "rgba(30,30,34,0.85)", borderColor: "rgba(255,255,255,0.12)" }
+    : { backgroundColor: "rgba(255,255,255,0.72)", borderColor: "rgba(0,0,0,0.08)" };
+
+  // Icon/label color adapts to the theme so they're never invisible
+  // (slate on the light pill, light gray on the dark pill).
+  const uiColor = theme?.isDark ? "#D0D5DD" : Color.colorSlategray_300;
 
   const depth1Frame13Style = useMemo(() => {
     return {
@@ -151,7 +163,7 @@ const Depth1Frame = ({
     }
   };
   return (
-    <View style={[styles.depth1Frame13, depth1Frame13Style, style]}>
+    <View style={[styles.depth1Frame13, depth1Frame13Style, pillStyle, style]}>
       <View style={styles.depth2Frame0}>
         <View
           style={[
@@ -162,7 +174,8 @@ const Depth1Frame = ({
         >
           <View style={[styles.depth4Frame0, styles.depth4FrameFlexBox]}>
             <Image
-              style={styles.depth5Frame0}
+              style={styles.homeIcon}
+              tintColor={uiColor}
               contentFit="cover"
               source={depth5Frame0}
             />
@@ -175,7 +188,7 @@ const Depth1Frame = ({
             ]}
           >
             <View style={styles.depth5Frame01}>
-              <Text style={[styles.home, styles.homeTypo, homeStyle]}>
+              <Text style={[styles.home, styles.homeTypo, homeStyle, { color: uiColor }]}>
                 Home
               </Text>
             </View>
@@ -193,7 +206,7 @@ const Depth1Frame = ({
           >
             <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
               <Image
-                style={styles.depth5Frame0}
+                style={styles.depth5Frame0} tintColor={uiColor}
                 contentFit="cover"
                 source={depth5Frame01}
               />
@@ -206,7 +219,7 @@ const Depth1Frame = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, searchStyle]}>
+                <Text style={[styles.search, styles.homeTypo, searchStyle, { color: uiColor }]}>
                   {search}
                 </Text>
               </View>
@@ -226,7 +239,7 @@ const Depth1Frame = ({
           >
             <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
               <Image
-                style={styles.depth5Frame0}
+                style={styles.depth5Frame0} tintColor={uiColor}
                 contentFit="cover"
                 source={depth5Frame02}
               />
@@ -239,7 +252,7 @@ const Depth1Frame = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, myBrandsStyle]}>
+                <Text style={[styles.search, styles.homeTypo, myBrandsStyle, { color: uiColor }]}>
                   {myBrands}
                 </Text>
               </View>
@@ -257,7 +270,7 @@ const Depth1Frame = ({
           >
             <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
               <Image
-                style={styles.depth5Frame0}
+                style={styles.depth5Frame0} tintColor={uiColor}
                 contentFit="cover"
                 source={depth5Frame03}
               />
@@ -270,7 +283,7 @@ const Depth1Frame = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, profileStyle]}>
+                <Text style={[styles.search, styles.homeTypo, profileStyle, { color: uiColor }]}>
                   Login
                 </Text>
               </View>
@@ -286,16 +299,16 @@ const styles = StyleSheet.create({
   depth3FrameLayout: {
     width: "auto",
     alignItems: "center",
-    height: 55,
+    height: 44,
   },
   depth4FrameFlexBox: {
-    height: 32,
+    height: 26,
     alignItems: "center",
     flexDirection: "row",
   },
   depth4FrameSpaceBlock: {
-    marginTop: 4,
-    height: 18,
+    marginTop: 2,
+    height: 16,
     alignItems: "center",
   },
   homeTypo: {
@@ -308,8 +321,14 @@ const styles = StyleSheet.create({
     width: "auto",
   },
   depth5Frame0: {
-    height: 24,
-    width: 24,
+    height: 22,
+    width: 22,
+  },
+  // Home icon tinted to the same muted gray as the other tabs, so Home doesn't
+  // look permanently "selected/black" (this bar only shows on the homepage).
+  homeIcon: {
+    height: 22,
+    width: 22,
   },
   depth4Frame0: {
     borderRadius: Border.br_base,
@@ -317,7 +336,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   home: {
-    color: Color.colorGray_500,
+    color: Color.colorSlategray_300,
   },
   depth5Frame01: {
     alignSelf: "stretch",
@@ -354,22 +373,34 @@ const styles = StyleSheet.create({
     width: "100%",
     display: "flex",
     flexDirection: "row",
-    height: 54,
+    height: 46,
     justifyContent: "space-around",
-    gap: 20,
+    alignItems: "center",
   },
+  // Instagram-style floating pill: detached from the edges, fully rounded,
+  // translucent white with a soft shadow so it floats over the content.
   depth1Frame13: {
-    backgroundColor: Color.colorWhite,
-    borderStyle: "solid",
-    borderColor: Color.colorGhostwhite,
-    borderTopWidth: 1,
-    width: "100%",
-    height: 80,
-    paddingHorizontal: Padding.p_base,
-    paddingTop: Padding.p_5xs,
-    paddingBottom: Padding.p_xs,
+    // Translucent so content shows through; a visible border + stronger shadow
+    // make it read as a distinct floating pill on the light page (instead of
+    // blending into the white background and looking like a flat bar).
+    backgroundColor: "rgba(255,255,255,0.72)",
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
+    height: 58,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     position: "absolute",
-    bottom: 0,
+    bottom: 16,
+    left: 12,
+    right: 12,
+    justifyContent: "center",
+    // Floating shadow (iOS/web) + elevation (Android)
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 14,
   },
 });
 

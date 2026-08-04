@@ -4,7 +4,8 @@ export const BrandProfileStyles = {
   container: {
     flex: 1,
     backgroundColor: Color.colorWhitesmoke_100,
-    marginBottom: 40,
+    // No marginBottom — it left a band at the bottom that the floating bar sat on.
+    // The content's own bottom margin (contentWrapper) clears the floating bar.
     overflow: "hidden",
   },
   // Inner wrapper for the ScrollView content — must NOT use flex:1, otherwise it
@@ -12,7 +13,7 @@ export const BrandProfileStyles = {
   contentWrapper: {
     width: "100%",
     backgroundColor: Color.colorWhitesmoke_100,
-    marginBottom: 40,
+    marginBottom: 100,
   },
   header: {
     paddingTop: 24,
@@ -170,8 +171,9 @@ export const BrandProfileStyles = {
     color: "#333",
   },
   bottomBar: {
+    // Let the bar's own floating position (bottom:16, side margins) apply —
+    // don't override bottom to 0, or it sticks flush to the screen edge.
     position: "absolute",
-    bottom: 0,
   },
   depth1Frame2: {
     height: 60,

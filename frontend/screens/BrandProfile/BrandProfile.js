@@ -90,7 +90,7 @@ const BrandProfile = ({ route, navigation }) => {
   }, [brandId, token, clickedId,isFocused]);
 
   return (
-    <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+    <View style={{ flex: 1, width: "100%" }}>
       {loading && <Loader loading={loading} />}
       <ScrollView style={styles.container}>
         <View style={styles.contentWrapper}>

@@ -318,7 +318,7 @@ const UserProfile = ({ navigation }) => {
         depth4Frame0FontFamily="BeVietnamPro-Bold"
         depth4Frame0Color="#fff"
       />
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={[styles.depth0Frame0, styles.frameLayout1]}>
           {influencer &&<Depth1Frame17
             image={influencer?.profileUrl}

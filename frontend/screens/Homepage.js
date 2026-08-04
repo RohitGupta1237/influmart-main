@@ -67,7 +67,7 @@ const Homepage = ({ route, navigation }) => {
     }}>
       <View style={[styles.depth0Frame0, { backgroundColor: theme.bg }]}>
         <Depth1Frame4 isSearch={true} onChange={(value) => { setSearchValue(value) }} />
-        <ScrollView style={{ marginBottom: 80 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
 
           {/* ── HERO ── */}
           <View style={styles.heroContainer}>
@@ -167,7 +167,7 @@ const Homepage = ({ route, navigation }) => {
             </Text>
           </View>
 
-          <View style={{ height: 20 }} />
+          <View style={{ height: 110 }} />
         </ScrollView>
 
         <ThemeToggle />
@@ -225,8 +225,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   bottomBar: {
+    // Floating pill — positioned by the component's own style; keep this minimal
+    // so it doesn't override the detached bottom/left/right.
     position: "absolute",
-    bottom: 0,
   },
 
   // HERO

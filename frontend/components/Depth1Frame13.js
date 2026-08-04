@@ -30,7 +30,7 @@ const Depth1Frame13 = ({ active }) => {
   return (
     <View style={styles.depth1Frame8}>
       <View style={styles.depth2Frame0}>
-        <TouchableOpacity onPress={()=>{handleClick("list")}}>
+        <TouchableOpacity style={styles.tabItem} onPress={()=>{handleClick("list")}}>
           <View style={styles.depth3Frame0}>
             <View style={[styles.depth4Frame0, styles.depth4FrameFlexBox]}>
               <Image
@@ -46,7 +46,7 @@ const Depth1Frame13 = ({ active }) => {
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={()=>{handleClick("partnership")}}>
+        <TouchableOpacity style={styles.tabItem} onPress={()=>{handleClick("partnership")}}>
         <View style={[styles.depth3Frame1, styles.depth3FrameSpaceBlock]}>
           <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
             <Image
@@ -64,7 +64,7 @@ const Depth1Frame13 = ({ active }) => {
           </View>
         </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {handleClick("settings")}}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => {handleClick("settings")}}>
 
           <View style={[styles.depth3Frame2, styles.depth3FrameSpaceBlock]}>
             <View style={[styles.depth4Frame0, styles.depth4FrameFlexBox]}>
@@ -82,7 +82,7 @@ const Depth1Frame13 = ({ active }) => {
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={()=>{handleClick("network")}}>
+        <TouchableOpacity style={styles.tabItem} onPress={()=>{handleClick("network")}}>
           <View style={[styles.depth3Frame2, styles.depth3FrameSpaceBlock]}>
             <View style={[styles.depth4Frame0, styles.depth4FrameFlexBox]}>
               <Image
@@ -93,12 +93,12 @@ const Depth1Frame13 = ({ active }) => {
             </View>
             <View style={[styles.depth4Frame13, styles.depth4FrameSpaceBlock]}>
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.home, styles.homeTypo, { color: `${activeTab == "network" ? "#fff" : "#ccc"}` }]}>Opportunity</Text>
+                <Text style={[styles.home, styles.homeTypo, { color: `${activeTab == "network" ? "#fff" : "#ccc"}` }]}>Collabs</Text>
               </View>
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {handleClick("profile")}}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => {handleClick("profile")}}>
 
           <View style={[styles.depth3Frame2, styles.depth3FrameSpaceBlock]}>
             <View style={[styles.depth4Frame0, styles.depth4FrameFlexBox]}>
@@ -123,7 +123,7 @@ const Depth1Frame13 = ({ active }) => {
 
 const styles = StyleSheet.create({
   depth4FrameFlexBox: {
-    height: 32,
+    height: 24,
     alignItems: "center",
     flexDirection: "row",
     width:"auto"
@@ -136,18 +136,23 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: FontFamily.beVietnamProMedium,
     fontWeight: "500",
-    lineHeight: 18,
+    lineHeight: 16,
     letterSpacing: 0,
-    fontSize: FontSize.size_xs,
+    // Slightly smaller so labels fit in an equal-width cell.
+    fontSize: 10,
   },
   depth3FrameSpaceBlock: {
-    marginLeft: 8,
     alignItems: "center",
-    height: 72,
+  },
+  // Each tab is an equal-width cell so the 5 items are evenly spaced
+  // (previously variable widths + a stray marginLeft crowded the right side).
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
   },
   depth5Frame0: {
-    height: 24,
-    width: 24,
+    height: 20,
+    width: 20,
   },
   depth4Frame0: {
     paddingHorizontal: 0,
@@ -169,7 +174,6 @@ const styles = StyleSheet.create({
   depth3Frame0: {
     alignItems: "center",
     width: "auto",
-    height: 72,
   },
   depth4Frame01: {
     borderRadius: Border.br_base,
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
     color: Color.colorLightgray,
   },
   depth4Frame11: {
-    width: 77,
+    width: "auto",
     height: 18,
     marginTop: 4,
   },
@@ -204,22 +208,36 @@ const styles = StyleSheet.create({
     height: 18,
     marginTop: 4,
   },
+  // The row is now the floating pill (frosted dark capsule for the dark screens).
   depth2Frame0: {
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",
-    height: 72,
+    alignItems: "center",
+    height: 58,
+    backgroundColor: "rgba(30,30,34,0.92)",
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+    paddingHorizontal: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 12,
   },
+  // Transparent wrapper, absolutely positioned so the pill floats OVER the
+  // scrolling content (content shows through/around it) instead of sitting on a
+  // solid black footer band. The screen adds bottom padding so nothing hides.
   depth1Frame8: {
-    backgroundColor: Color.colorBlack,
-    borderStyle: "solid",
-    borderColor: Color.colorDarkslategray_200,
-    borderTopWidth: 1,
-    width: "100%",
-    height: 93,
-    paddingHorizontal: Padding.p_base,
-    paddingTop: Padding.p_5xs,
-    paddingBottom: Padding.p_xs,
+    backgroundColor: "transparent",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingTop: 6,
+    paddingBottom: 12,
   },
   activeTab: {
     colorolor: Color.colorWhite
