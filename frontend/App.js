@@ -1,6 +1,7 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -102,6 +103,10 @@ const App = () => {
     "PlusJakartaSans-Medium": require("./assets/fonts/PlusJakartaSans-Medium.ttf"),
     "PlusJakartaSans-Bold": require("./assets/fonts/PlusJakartaSans-Bold.ttf"),
     "PlusJakartaSans-ExtraBold": require("./assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
+    // Explicitly bundle the Ionicons glyph font. The dev server auto-registers it,
+    // but the static web export does not — without this, icons render as empty
+    // tofu boxes on the deployed site (influmart.in). Native is unaffected.
+    ...Ionicons.font,
   });
 
   React.useEffect(() => {
