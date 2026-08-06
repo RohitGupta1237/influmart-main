@@ -17,6 +17,10 @@ import * as AuthSession from "expo-auth-session";
 import API_ENDPOINT from "../../config";
 import Depth1Frame7 from "../../components/Depth1Frame7";
 import Depth1Frame9 from "../../components/Depth1Frame9";
+import { useTheme } from "../../util/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import ProfileAnalytics from "../UserProfile/ProfileAnalytics";
+import { buildStatItems } from "../../helpers/profileStats";
 
 import { transformFB, transformIG, transformYT } from "../../helpers/GraphData";
 import { getSocialData } from "../../controller/socialController";
@@ -61,11 +65,13 @@ const AnalyticsBadge = ({ symbol, textColor }) => {
   );
 };
 
-const AveragePrice = ({ platform, price }) => (
-  <View style={styles.averagePriceContainer}>
+const AveragePrice = ({ platform, price }) => {
+  const { theme } = useTheme();
+  return (
+  <View style={[styles.averagePriceContainer, { backgroundColor: theme.card, borderColor: theme.cardBorder, borderWidth: 1 }]}>
     <View style={styles.platformContainer}>
-      <Text style={styles.platformText}>{platform}</Text>
-      <Text style={styles.priceText}>{price}</Text>
+      <Text style={[styles.platformText, { color: theme.text }]}>{platform}</Text>
+      <Text style={[styles.priceText, { color: theme.subText }]}>{price}</Text>
     </View>
     <View style={styles.priceContainer}>
       <Image
@@ -75,7 +81,8 @@ const AveragePrice = ({ platform, price }) => (
       />
     </View>
   </View>
-);
+  );
+};
 
 const Analytics = ({ route, navigation }) => {
   // Highlight cards: responsive to the current viewport but capped so they stay
@@ -85,6 +92,8 @@ const Analytics = ({ route, navigation }) => {
   const CARD_WIDTH = Math.min(Math.round(winWidth * 0.8), 320);
   const YT_CARD_HEIGHT = Math.round(CARD_WIDTH * (9 / 16));
   const IG_CARD_HEIGHT = Math.round(CARD_WIDTH * 1.77);
+  const { theme, isDark, toggleTheme } = useTheme();
+  const isDesktop = winWidth >= 900;
   const [fbData, setFbData] = React.useState({});
   const [instaData, setInstaData] = React.useState({});
   const [ytData, setYtData] = React.useState({});
@@ -267,7 +276,7 @@ const Analytics = ({ route, navigation }) => {
             const sortedPosts = data?.instaData?.[data?.instaData.length - 1]?.lastPosts?.sort((a, b) => b.likes - a.likes);
             sortedPosts?.slice(0, 3).forEach((post) => {
               const url = post.link || post.url;
-              if (url) popular.push({ url, platform: "Instagram" });
+              if (url) popular.push({ ...post, url, platform: "Instagram" });
             });
             const fbReels = data?.fbData?.[data?.fbData.length - 1]?.lastReels || [];
             fbReels.slice(0, 3).forEach((reel) => {
@@ -450,21 +459,27 @@ const Analytics = ({ route, navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {loading&&<Loader loading={loading}/>}
-      <TouchableOpacity style={styles.menuBar} onPress={() => handleBack()}>
+      <TouchableOpacity style={styles.menuBar} onPress={() => handleBack()} activeOpacity={1}>
         <Depth1Frame7
           depth4Frame0={require("../../assets/depth-4-frame-010.png")}
           requestDetails={`Influencer`}
-          depth3Frame0BackgroundColor="#fff"
+          depth3Frame0BackgroundColor={theme.headerBg}
           requestDetailsWidth={"auto"}
           depth4Frame0FontFamily="BeVietnamPro-Bold"
-          depth4Frame0Color="#121217"
+          depth4Frame0Color={theme.text}
+          iconTintColor={theme.iconTint}
+          rightAccessory={
+            <TouchableOpacity onPress={toggleTheme} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={theme.text} />
+            </TouchableOpacity>
+          }
         />
       </TouchableOpacity>
-      <ScrollView style={styles.scrollViewContent} keyboardShouldPersistTaps="handled">
-        <View style={styles.analytics}>
-          <View style={styles.depth0Frame0}>
+      <ScrollView style={[styles.scrollViewContent, { backgroundColor: theme.bg }]} keyboardShouldPersistTaps="handled">
+        <View style={[styles.analytics, { alignItems: "center", backgroundColor: theme.bg }]}>
+          <View style={[styles.depth0Frame0, { width: "100%", maxWidth: isDesktop ? 1080 : 560, alignSelf: "center", backgroundColor: theme.bg }]}>
             {influencer?.profileUrl && <Depth1Frame9
               image={influencer?.profileUrl}
               username={influencer?.influencerName}
@@ -475,7 +490,7 @@ const Analytics = ({ route, navigation }) => {
             {/* Description Section — above hashtags */}
             <View style={styles.averagePriceSection}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={styles.averagePriceHeaderText}>About</Text>
+                <Text style={[styles.averagePriceHeaderText, { color: theme.text }]}>About</Text>
                 {isOwnProfile && !editingDesc && (
                   <TouchableOpacity
                     onPress={() => { setDescInput(description); setEditingDesc(true); }}
@@ -512,8 +527,8 @@ const Analytics = ({ route, navigation }) => {
                   </View>
                 </View>
               ) : (
-                <View style={descStyles.descCard}>
-                  <Text style={descStyles.descText}>
+                <View style={[descStyles.descCard, { backgroundColor: theme.card, borderColor: theme.cardBorder, borderWidth: 1 }]}>
+                  <Text style={[descStyles.descText, { color: theme.subText }]}>
                     {description || `Hi, I am ${influencer?.influencerName || ""}${influencer?.category ? ` and I am a ${influencer.category} influencer` : ""}.`}
                   </Text>
                 </View>
@@ -528,7 +543,7 @@ const Analytics = ({ route, navigation }) => {
               return (
                 <View style={styles.averagePriceSection}>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <Text style={styles.averagePriceHeaderText}>Frequently used hashtags</Text>
+                    <Text style={[styles.averagePriceHeaderText, { color: theme.text }]}>Frequently used hashtags</Text>
                     {isOwnProfile && !editingTags && (
                       <TouchableOpacity onPress={() => { setHashtags(displayTags); setEditingTags(true); }} style={descStyles.editLinkWrap}>
                         <Text style={descStyles.editLink}>{hasAny ? "Edit" : "Add"}</Text>
@@ -540,8 +555,8 @@ const Analytics = ({ route, navigation }) => {
                     <View>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.tagContainer, { paddingHorizontal: 0 }]}>
                         {hashtags.map((tag, index) => (
-                          <View key={index} style={[styles.tagItem, { flexDirection: "row", alignItems: "center", gap: 4 }]}>
-                            <Text style={styles.tagText}>#{tag}</Text>
+                          <View key={index} style={[styles.tagItem, { backgroundColor: theme.pill, borderColor: theme.pillBorder, flexDirection: "row", alignItems: "center", gap: 4 }]}>
+                            <Text style={[styles.tagText, { color: theme.text }]}>#{tag}</Text>
                             <TouchableOpacity onPress={() => handleRemoveTag(tag)}>
                               <Text style={{ color: "#888", fontSize: 12, fontWeight: "700" }}>×</Text>
                             </TouchableOpacity>
@@ -580,25 +595,25 @@ const Analytics = ({ route, navigation }) => {
                   ) : hasAny ? (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.tagContainer, { paddingHorizontal: 0 }]}>
                       {displayTags.map((tag, index) => (
-                        <View key={index} style={styles.tagItem}>
-                          <Text style={styles.tagText}>#{tag}</Text>
+                        <View key={index} style={[styles.tagItem, { backgroundColor: theme.pill, borderColor: theme.pillBorder }]}>
+                          <Text style={[styles.tagText, { color: theme.text }]}>#{tag}</Text>
                         </View>
                       ))}
                     </ScrollView>
                   ) : (
-                    <Text style={descStyles.descText}>No hashtags added yet.</Text>
+                    <Text style={[descStyles.descText, { color: theme.subText }]}>No hashtags added yet.</Text>
                   )}
                 </View>
               );
             })()}
-            <View style={styles.nav}>
+            <View style={[styles.nav, { borderColor: theme.divider }]}>
               {[
                 { key: "instagram", label: "Instagram" },
                 { key: "youtube",   label: "YouTube"   },
                 { key: "facebook",  label: "Facebook"  },
               ].map(({ key, label }) => {
                 const isSelected = tab === key;
-                const textColor = isSelected ? "black" : "#637087";
+                const textColor = isSelected ? theme.text : theme.subText;
                 const otpVerified = influencer?.otpVerifiedAccounts || [];
                 const unverified = influencer?.unverifiedAccounts || [];
                 const otpVerifiable = key === "instagram" || key === "facebook";
@@ -625,8 +640,8 @@ const Analytics = ({ route, navigation }) => {
                 const canVerifyYt = badgeType === "?" && isOwnProfile && key === "youtube";
                 return (
                   <TouchableOpacity key={key} onPress={() => setTab(key)}>
-                    <View style={[styles.navItems, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
-                      <Text style={[styles.navText, isSelected && styles.navSelectText]}>{label}</Text>
+                    <View style={[styles.navItems, { flexDirection: "row", alignItems: "center", gap: 3 }, isSelected && { borderColor: "#ec4899" }, !isSelected && { borderColor: "transparent" }]}>
+                      <Text style={[styles.navText, { color: isSelected ? "#ec4899" : theme.subText }]}>{label}</Text>
                       {badgeType && (
                         canVerifyOtp ? (
                           <TouchableOpacity
@@ -679,31 +694,16 @@ const Analytics = ({ route, navigation }) => {
                 );
               })}
             </View>
-            {tab === "instagram" ? (
-              <>{instaData && <InstaStats instaData={instaData} />}</>
-            ) : tab === "youtube" ? (
-              <>{ytData && <YTStats ytData={ytData} />}</>
-            ) : tab === "facebook" ? (
-              <>{fbData && <FBStats fbData={fbData} />}</>
-            ) : null}
-            <View style={styles.depth1Frame4}>
-              <View style={styles.depth2Frame02}>
-                <View style={[styles.depth3Frame09, styles.depth3FramePosition]}>
-                  <View style={styles.depth4Frame09}>
-                    <View style={styles.depth5Frame0}>
-                      <Text
-                        style={[
-                          styles.pastCollaborations,
-                          styles.contactInfoTypo,
-                        ]}
-                      >
-                        Collaborations
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
+            {/* Classy dashboard (tiles + gauge + charts + audience) — same as
+                the influencer profile, fed from the raw socialData. */}
+            <ProfileAnalytics
+              influencer={socialData || undefined}
+              tab={tab}
+              statItems={buildStatItems(socialData, influencer?.price, tab)}
+              showEmpty
+              hideTrend
+            />
+            {/* Full detailed graph set (over-time line charts per platform). */}
             {socialData &&
               (tab === "instagram" ? (
                 <>{instaData && <IgGraph instaData={instaData} />}</>
@@ -717,7 +717,7 @@ const Analytics = ({ route, navigation }) => {
               <AiInsightsCard insights={socialData.aiInsights[tab]} platform={tab} />
             )}
             <View style={styles.recentContainer}>
-              <Text style={styles.recentText}>Recent Highlights</Text>
+              <Text style={[styles.recentText, { color: theme.text }]}>Recent Highlights</Text>
             </View>
             <ScrollView
               style={styles.ScrollCards}
@@ -727,8 +727,8 @@ const Analytics = ({ route, navigation }) => {
               {popularPosts &&
                 popularPosts.map((item, index) =>
                   item.platform == "Instagram" && tab == "instagram" ? (
-                    <View key={index} style={[styles.frame, { width: CARD_WIDTH, height: IG_CARD_HEIGHT }]}>
-                      <InstaDemo url={item.url} width={CARD_WIDTH} height={IG_CARD_HEIGHT} />
+                    <View key={index} style={[styles.frame, { width: CARD_WIDTH }]}>
+                      <InstaDemo item={item} url={item.url} width={CARD_WIDTH} height={IG_CARD_HEIGHT} />
                     </View>
                   ) : item.platform == "YouTube" && tab == "youtube" ? (
                     <View key={index} style={[styles.frame, { width: CARD_WIDTH, height: YT_CARD_HEIGHT }]}>
@@ -743,7 +743,7 @@ const Analytics = ({ route, navigation }) => {
             </ScrollView>
             <View style={styles.averagePriceSection}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={styles.averagePriceHeaderText}>Average Price Per Post</Text>
+                <Text style={[styles.averagePriceHeaderText, { color: theme.text }]}>Average Price Per Post</Text>
                 {isOwnProfile && !editingPrice && (
                   <TouchableOpacity
                     onPress={() => {

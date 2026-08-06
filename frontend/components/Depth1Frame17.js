@@ -1,15 +1,21 @@
 import * as React from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
+import { LinearGradient } from "expo-linear-gradient";
+import { FontFamily, FontSize, Padding } from "../GlobalStyles";
 import ImageWithFallback from "../util/ImageWithFallback";
 import { formatNumber } from "../helpers/GraphData";
+import { useTheme } from "../util/ThemeContext";
+
+const PINK = "#ec4899";
+const PURPLE = "#7c3aed";
 
 const toTitleCase = (str) =>
   str ? str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : str;
 
-const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollowers, ytFollowers, fbFollowers }) => {
+const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollowers, ytFollowers, fbFollowers, isDesktop }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   const categories = category
     ? category.split(",").map(c => c.trim()).filter(Boolean)
@@ -22,18 +28,28 @@ const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollow
   ];
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
 
       {/* ROW 1: avatar + profile info */}
-      <View style={styles.row1}>
-        <ImageWithFallback imageStyle={styles.avatar} image={image} isSelectedImage={isSelectedImage} />
-        <View style={styles.profileInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.username} numberOfLines={1} ellipsizeMode="tail">{toTitleCase(username)}</Text>
-            <Text style={styles.separator}> | </Text>
-            <Text style={styles.role}>Influencer</Text>
+      <View style={[styles.row1, isDesktop && styles.row1Desktop]}>
+        {/* Gradient ring around the avatar — the homepage pink→purple accent. */}
+        <LinearGradient
+          colors={[PINK, PINK]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.avatarRing, isDesktop && styles.avatarRingDesktop]}
+        >
+          <View style={[styles.avatarInner, isDesktop && styles.avatarInnerDesktop, { backgroundColor: theme.card }]}>
+            <ImageWithFallback imageStyle={[styles.avatar, isDesktop && styles.avatarDesktop]} image={image} isSelectedImage={isSelectedImage} />
           </View>
-          <View style={styles.categoryRow}>
+        </LinearGradient>
+        <View style={[styles.profileInfo, isDesktop && styles.profileInfoDesktop]}>
+          <View style={[styles.nameRow, isDesktop && styles.nameRowDesktop]}>
+            <Text style={[styles.username, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">{toTitleCase(username)}</Text>
+            <Text style={[styles.separator, { color: theme.subText }]}> | </Text>
+            <Text style={[styles.role, { color: theme.subText }]}>Influencer</Text>
+          </View>
+          <View style={[styles.categoryRow, isDesktop && styles.categoryRowDesktop]}>
             {categories.map((cat, i) => (
               <View key={i} style={styles.categoryPill}>
                 <Text style={styles.categoryPillText}>{cat}</Text>
@@ -44,21 +60,23 @@ const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollow
       </View>
 
       {/* ROW 2: social stats full width */}
-      <View style={styles.statsRow}>
+      <View style={[styles.statsRow, { borderColor: theme.divider }]}>
         {socials.map((s, i) => (
           <React.Fragment key={i}>
             <View style={styles.statItem}>
-              <Text style={styles.statCount}>{s.count ? formatNumber(s.count) : "N/A"}</Text>
-              <Text style={styles.statLabel}>{s.label}</Text>
+              <Text style={[styles.statCount, { color: theme.text }]}>{s.count ? formatNumber(s.count) : "N/A"}</Text>
+              <Text style={[styles.statLabel, { color: theme.subText }]}>{s.label}</Text>
             </View>
-            {i < socials.length - 1 && <View style={styles.statDivider} />}
+            {i < socials.length - 1 && <View style={[styles.statDivider, { backgroundColor: theme.divider }]} />}
           </React.Fragment>
         ))}
       </View>
 
-      {/* Message button */}
-      <TouchableOpacity onPress={() => navigation.navigate('InboxInterface')} style={styles.messageBtn}>
-        <Text style={styles.messageText}>Message</Text>
+      {/* Message button — pink→purple gradient CTA (matches homepage). */}
+      <TouchableOpacity onPress={() => navigation.navigate('InboxInterface')} activeOpacity={0.85} style={styles.messageBtnWrap}>
+        <LinearGradient colors={[PINK, PURPLE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.messageBtn}>
+          <Text style={styles.messageText}>Message</Text>
+        </LinearGradient>
       </TouchableOpacity>
 
     </View>
@@ -72,28 +90,67 @@ const styles = StyleSheet.create({
     paddingVertical: Padding.p_xl,
     gap: 16,
   },
+  // Desktop: sits inside the full-height left sidebar panel — no card chrome.
+  wrapperDesktop: {
+    paddingTop: 32,
+    paddingHorizontal: 24,
+  },
   row1: {
     flexDirection: "row",
     alignItems: "center",
     gap: 20,
   },
+  // Desktop: stack avatar over info, centered — reads as a profile card.
+  row1Desktop: {
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 16,
+  },
+  // Gradient ring wrapper (mobile: rounded-rect, desktop: circle).
+  avatarRing: {
+    padding: 3,
+    borderRadius: 19,
+    flexShrink: 0,
+  },
+  avatarRingDesktop: {
+    borderRadius: 70,
+  },
+  avatarInner: {
+    padding: 3,
+    borderRadius: 17,
+  },
+  avatarInnerDesktop: {
+    borderRadius: 67,
+  },
   avatar: {
     width: 90,
     height: 110,
-    borderRadius: 16,
+    borderRadius: 14,
     overflow: "hidden",
     flexShrink: 0,
+  },
+  avatarDesktop: {
+    width: 128,
+    height: 128,
+    borderRadius: 64,
   },
   profileInfo: {
     flex: 1,
     gap: 5,
   },
+  profileInfoDesktop: {
+    flex: 0,
+    alignItems: "center",
+  },
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
   },
+  nameRowDesktop: {
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
   separator: {
-    color: "#444",
     fontSize: FontSize.size_sm,
     fontFamily: FontFamily.beVietnamProRegular,
     flexShrink: 0,
@@ -103,13 +160,11 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontFamily: FontFamily.beVietnamProBold,
     fontWeight: "700",
-    color: Color.colorWhite,
     flexShrink: 1,
   },
   role: {
     fontSize: FontSize.size_sm,
     fontFamily: FontFamily.beVietnamProRegular,
-    color: Color.colorLightgray,
     lineHeight: 28,
     flexShrink: 0,
   },
@@ -118,25 +173,28 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 6,
   },
+  categoryRowDesktop: {
+    justifyContent: "center",
+  },
   categoryPill: {
-    backgroundColor: "#1e1e1e",
     borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingHorizontal: 11,
+    paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "#333",
+    // Neutral pill — restrained, lets the Message CTA be the only pink moment.
+    backgroundColor: "rgba(127,127,127,0.10)",
+    borderColor: "rgba(127,127,127,0.22)",
   },
   categoryPillText: {
-    color: "#ccc",
     fontSize: 11,
-    fontFamily: FontFamily.beVietnamProRegular,
+    fontFamily: FontFamily.beVietnamProMedium,
+    color: "#8a8f98",
   },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#1e1e1e",
     paddingVertical: 12,
   },
   statItem: {
@@ -147,29 +205,35 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 32,
-    backgroundColor: "#2a2a2a",
   },
   statCount: {
-    color: Color.colorWhite,
     fontSize: 15,
     fontFamily: FontFamily.beVietnamProBold,
     fontWeight: "700",
   },
   statLabel: {
-    color: "#666",
     fontSize: 10,
     fontFamily: FontFamily.beVietnamProRegular,
   },
+  messageBtnWrap: {
+    width: "100%",
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: PINK,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.20,
+    shadowRadius: 12,
+    elevation: 5,
+  },
   messageBtn: {
     width: "100%",
-    height: 40,
-    backgroundColor: Color.colorDarkslategray_200,
-    borderRadius: Border.br_xl,
+    height: 46,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   messageText: {
-    color: Color.colorWhite,
+    color: "#ffffff",
     fontFamily: FontFamily.beVietnamProBold,
     fontWeight: "700",
     fontSize: FontSize.size_sm,

@@ -8,7 +8,70 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
+import { useTheme } from "../../util/ThemeContext";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import ImageWithFallback from "../../util/ImageWithFallback";
+
+// Desktop-only top navigation (mirrors the mobile floating bottom bar routes).
+const NAV_ITEMS = [
+  { key: "list", label: "Influencers", icon: "search", route: "InfluencersList" },
+  { key: "partnership", label: "Brands", icon: "briefcase", route: "BrandsAssosciated" },
+  { key: "settings", label: "Settings", icon: "settings-sharp", route: "AdminPanel" },
+  { key: "network", label: "Collabs", icon: "people", route: "CollabPost" },
+  { key: "profile", label: "Profile", icon: "person-circle", route: "Analytics" },
+];
+
+const ProfileTopNav = ({ navigation, theme, isDark, toggleTheme, avatar, isSelectedImage }) => {
+  const active = "profile"; // this screen is the Profile tab
+  return (
+    <View style={[styles.topNav, { backgroundColor: theme.headerBg, borderColor: theme.headerBorder }]}>
+      <View style={styles.topNavInner}>
+        {/* Left: brand */}
+        <View style={styles.navLeft}>
+          <Text style={styles.brandPink}>Influmart</Text>
+        </View>
+
+        {/* Center: nav links */}
+        <View style={styles.navCenter}>
+          {NAV_ITEMS.map((it) => {
+            const on = it.key === active;
+            return (
+              <TouchableOpacity
+                key={it.key}
+                style={styles.topNavItem}
+                onPress={() => navigation.navigate(it.route, it.key === "network" ? { navigation } : undefined)}
+              >
+                <Text style={[styles.topNavLabel, { color: on ? "#ec4899" : theme.text }]}>{it.label}</Text>
+                {on && <View style={styles.navActiveBar} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Right: theme toggle + account avatar */}
+        <View style={styles.navRight}>
+          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+            <Ionicons name={isDark ? "sunny" : "moon"} size={18} color={theme.text} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Analytics")}>
+            <LinearGradient colors={["#ec4899", "#7c3aed"]} style={styles.navAvatarRing}>
+              <View style={[styles.navAvatarInner, { backgroundColor: theme.headerBg }]}>
+                {avatar ? (
+                  <ImageWithFallback imageStyle={styles.navAvatarImg} image={avatar} isSelectedImage={isSelectedImage} />
+                ) : (
+                  <Ionicons name="person" size={18} color={theme.subText} />
+                )}
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
 import Depth1Frame7 from "../../components/Depth1Frame7";
 import Depth1Frame17 from "../../components/Depth1Frame17";
 import Depth1Frame16 from "../../components/Depth1Frame16";
@@ -21,7 +84,7 @@ import { GetInfluencerProfile } from "../../controller/InfluencerController";
 import { useAlert } from "../../util/AlertContext";
 import NavTab from "./NavTab";
 import VerifySocialModal from "./VerifySocialModal";
-import DropdownComponent from "./DropDownComponent";
+import ProfileAnalytics from "./ProfileAnalytics";
 import { formatNumber } from "../../helpers/GraphData";
 import { getAllRequests } from "../../controller/connectionsController";
 import ProductCard from "./ProductCard";
@@ -66,6 +129,9 @@ const cityLabel = (raw) =>
     : "";
 
 const UserProfile = ({ navigation }) => {
+  const { theme, isDark, toggleTheme } = useTheme();
+  const { width: winWidth } = useWindowDimensions();
+  const isDesktop = winWidth >= 900;
   const [influencer, setInfluencer] = React.useState(null);
   const [influencerId, setInfluencerId] = React.useState("");
   const { showAlert } = useAlert();
@@ -307,105 +373,127 @@ const UserProfile = ({ navigation }) => {
       }
     }
   }, [influencer]);
-  return (
-    <View style={styles.userprofile}>
-      {loading&&<Loader loading={loading}/>}
-      <Depth1Frame7
-        depth4Frame0={require("../../assets/depth-4-frame-010.png")}
-        requestDetails="User Profile"
-        depth3Frame0BackgroundColor="#000"
-        requestDetailsWidth="auto"
-        depth4Frame0FontFamily="BeVietnamPro-Bold"
-        depth4Frame0Color="#fff"
+  // ── Reusable content blocks (shared by mobile + desktop layouts) ──
+  const profileCard = influencer ? (
+    <Depth1Frame17
+      image={influencer?.profileUrl}
+      username={influencer?.influencerName}
+      category={influencer?.category}
+      isSelectedImage={influencer.isSelectedImage}
+      instaFollowers={influencer?.instaData?.[influencer.instaData.length - 1]?.followers}
+      ytFollowers={influencer?.ytData?.overAll?.subscriberCount}
+      fbFollowers={influencer?.fbData?.[influencer.fbData.length - 1]?.followers}
+      isDesktop={isDesktop}
+    />
+  ) : null;
+
+  const collabRequests = (
+    <View style={styles.blockGap}>
+      <View style={[styles.depth1Frame2, styles.depth1FrameSpaceBlock]}>
+        <Text style={[styles.collaborationRequests, { color: theme.text }]}>
+          Collaboration Requests{requests && requests.length > 0 ? ` (${requests.length > 100 ? "100+" : requests.length})` : ""}
+        </Text>
+      </View>
+      {requests && requests.length > 0 ? (
+        <ScrollView
+          style={{ flexGrow: 0, maxHeight: isDesktop ? 460 : 320, paddingHorizontal: Padding.p_base }}
+          contentContainerStyle={{ flexGrow: 0 }}
+          nestedScrollEnabled={true}
+          showsVerticalScrollIndicator={false}
+        >
+          {requests?.map((item, index) => (
+            <ProductCard
+              key={index}
+              imageSource={item?.imageSource}
+              postTitle={item?.postTitle}
+              postDate={item?.postDate}
+              isSelectedImage={item?.isSelectedImage}
+              productName={item?.productName}
+              id={item?.requestId}
+              cardWidth="100%"
+              postTitleWidth="auto"
+              postDateWidth="auto"
+              productNameWidth="90%"
+              buttonWidth="auto"
+            />
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={{ width: "100%", padding: Padding.p_base }}>
+          <Text style={{ color: theme.subText }}>No request found.</Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const analytics = (
+    <View style={styles.blockGap}>
+      <NavTab
+        setTab={setTab}
+        tab={tab}
+        influencer={influencer}
+        onVerifyPress={(platform) => setVerifyModal({ visible: true, platform })}
       />
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={[styles.depth0Frame0, styles.frameLayout1]}>
-          {influencer &&<Depth1Frame17
-            image={influencer?.profileUrl}
-            username={influencer?.influencerName}
-            category={influencer?.category}
-            isSelectedImage={influencer.isSelectedImage}
-            instaFollowers={influencer?.instaData?.[influencer.instaData.length - 1]?.followers}
-            ytFollowers={influencer?.ytData?.overAll?.subscriberCount}
-            fbFollowers={influencer?.fbData?.[influencer.fbData.length - 1]?.followers}
-          />}
-          <View style={[styles.depth1Frame2, styles.depth1FrameSpaceBlock]}>
-            <View style={styles.depth2Frame01}>
-              <View style={styles.depth3Frame01}>
-                <Text style={styles.collaborationRequests}>
-                  Collaboration Requests{requests && requests.length > 0 ? ` (${requests.length > 100 ? "100+" : requests.length})` : ""}
-                </Text>
+      <ProfileAnalytics
+        influencer={influencer}
+        tab={tab}
+        statItems={tab == "instagram" ? instaData : tab == "youtube" ? ytData : fbData}
+      />
+    </View>
+  );
+
+  return (
+    <View style={[styles.userprofile, { backgroundColor: theme.bg }]}>
+      {loading&&<Loader loading={loading}/>}
+      {isDesktop ? (
+        <ProfileTopNav navigation={navigation} theme={theme} isDark={isDark} toggleTheme={toggleTheme} avatar={influencer?.profileUrl} isSelectedImage={influencer?.isSelectedImage} />
+      ) : (
+        <Depth1Frame7
+          depth4Frame0={require("../../assets/depth-4-frame-010.png")}
+          requestDetails="User Profile"
+          depth3Frame0BackgroundColor={theme.headerBg}
+          requestDetailsWidth="auto"
+          depth4Frame0FontFamily="BeVietnamPro-Bold"
+          depth4Frame0Color={theme.text}
+          iconTintColor={theme.iconTint}
+          rightAccessory={
+            <TouchableOpacity onPress={toggleTheme} style={styles.headerToggle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={theme.text} />
+            </TouchableOpacity>
+          }
+        />
+      )}
+      <ScrollView contentContainerStyle={{ paddingBottom: 100, alignItems: "center" }}>
+        <View style={[styles.contentCol, { maxWidth: isDesktop ? 1500 : 560 }]}>
+          {isDesktop ? (
+            // Website view: full-height left sidebar panel + content column.
+            <View style={styles.desktopRow}>
+              <View style={[styles.desktopLeft, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
+                {/* Soft pink glow banner at the top of the sidebar. */}
+                <LinearGradient
+                  colors={["rgba(236,72,153,0.16)", "rgba(124,58,237,0.06)", "rgba(0,0,0,0)"]}
+                  style={styles.sidebarGlow}
+                  pointerEvents="none"
+                />
+                {profileCard}
+              </View>
+              <View style={styles.desktopRight}>
+                {collabRequests}
+                {analytics}
               </View>
             </View>
-          </View>
-          {
-            requests && requests.length > 0 ?
-              <ScrollView
-                style={{ flexGrow: 0, maxHeight: 320 }}
-                contentContainerStyle={{ flexGrow: 0 }}
-                nestedScrollEnabled={true}
-                showsVerticalScrollIndicator={false}
-              >
-                {requests?.map((item, index) => (
-                  <ProductCard
-                    key={index}
-                    imageSource={item?.imageSource}
-                    postTitle={item?.postTitle}
-                    postDate={item?.postDate}
-                    isSelectedImage={item?.isSelectedImage}
-                    productName={item?.productName}
-                    id={item?.requestId}
-                    cardWidth="100%"
-                    postTitleWidth="auto"
-                    postDateWidth="auto"
-                    productNameWidth="90%"
-                    buttonWidth="auto"
-                  />
-                ))}
-              </ScrollView> :
-              <View style={{width:"100%",padding:Padding.p_base}}>
-                  <Text style={{color:Color.colorAliceblue}}>No request found.</Text>
-              </View>
-          }
-
-          <NavTab
-            setTab={setTab}
-            tab={tab}
-            influencer={influencer}
-            onVerifyPress={(platform) => setVerifyModal({ visible: true, platform })}
-          />
-          <ScrollView style={{ flex: 1, paddingHorizontal: Padding.p_base }} showsVerticalScrollIndicator={false}>
-            {tab == "instagram"
-              ? instaData &&
-              instaData.map((item, index) => (
-                <DropdownComponent
-                  title={item.heading}
-                  content={item.content}
-                  key={index}
-                />
-              ))
-              : tab == "youtube"
-                ? ytData &&
-                ytData.map((item, index) => (
-                  <DropdownComponent
-                    title={item.heading}
-                    content={item.content}
-                    key={index}
-                  />
-                ))
-                : fbData &&
-                fbData.map((item, index) => (
-                  <DropdownComponent
-                    title={item.heading}
-                    content={item.content}
-                    key={index}
-                  />
-                ))}
-          </ScrollView>
-          <View style={[styles.depth1Frame9, styles.frameLayout1]} />
+          ) : (
+            // App view: single stacked column.
+            <View style={{ width: "100%" }}>
+              {profileCard}
+              {collabRequests}
+              {analytics}
+            </View>
+          )}
+          <View style={styles.depth1Frame9} />
         </View>
       </ScrollView>
-      <Depth1Frame13 active={"list"}/>
+      {!isDesktop && <Depth1Frame13 active={"list"}/>}
       <VerifySocialModal
         visible={verifyModal.visible}
         platform={verifyModal.platform}
@@ -421,9 +509,115 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
   },
-  frameLayout1: {
+  // Desktop top navigation.
+  topNav: {
     width: "100%",
-    backgroundColor: Color.colorBlack,
+    borderBottomWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+  },
+  topNavInner: {
+    width: "100%",
+    maxWidth: 1500,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  // Three equal sections so the center links stay centered regardless of the
+  // left/right widths (Influencity layout).
+  navLeft: { flex: 1, alignItems: "flex-start" },
+  navCenter: { flexDirection: "row", alignItems: "center", gap: 34 },
+  navRight: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 12 },
+  brandPink: {
+    fontSize: 22,
+    fontWeight: "800",
+    fontFamily: FontFamily.beVietnamProBold,
+    color: "#ec4899",
+  },
+  topNavItem: {
+    alignItems: "center",
+  },
+  topNavLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: FontFamily.beVietnamProMedium,
+  },
+  navActiveBar: {
+    marginTop: 6,
+    height: 3,
+    width: "100%",
+    borderRadius: 2,
+    backgroundColor: "#ec4899",
+  },
+  themeToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerToggle: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navAvatarRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    padding: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navAvatarInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  navAvatarImg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  // Centered content column — caps width on desktop so the page reads as a
+  // website; full-width on mobile (app view).
+  contentCol: {
+    width: "100%",
+    alignSelf: "center",
+  },
+  desktopRow: {
+    flexDirection: "row",
+    // Stretch so the left sidebar panel matches the right column's height.
+    alignItems: "stretch",
+    width: "100%",
+  },
+  desktopLeft: {
+    width: 340,
+    flexShrink: 0,
+    borderRightWidth: 1,
+    // Feels like a full-height panel even when its own content is short.
+    minHeight: 640,
+    overflow: "hidden",
+  },
+  sidebarGlow: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+  },
+  desktopRight: {
+    flex: 1,
+    paddingHorizontal: 28,
+    paddingTop: 28,
+  },
+  blockGap: {
+    width: "100%",
+    marginTop: 8,
   },
   depth1FrameSpaceBlock: {
     paddingHorizontal: Padding.p_base,
@@ -476,18 +670,9 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontWeight: "700",
     fontFamily: FontFamily.beVietnamProBold,
-    color: Color.colorWhite,
     textAlign: "left",
   },
-  depth3Frame01: {
-    alignSelf: "stretch",
-  },
-  depth2Frame01: {
-    width: "auto",
-    height: 28,
-  },
   depth1Frame2: {
-    height: 60,
     paddingTop: Padding.p_xl,
     paddingBottom: Padding.p_xs,
     flexDirection: "row",
@@ -495,13 +680,7 @@ const styles = StyleSheet.create({
   depth1Frame9: {
     height: 20,
   },
-  depth0Frame0: {
-    minHeight: 900,
-    height: "100%",
-    overflow: "hidden",
-  },
   userprofile: {
-    backgroundColor: Color.colorBlack,
     flex: 1,
     width: "100%",
     height: "100%"

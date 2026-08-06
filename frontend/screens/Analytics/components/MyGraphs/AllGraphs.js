@@ -3,6 +3,7 @@ import { StyleSheet, View, Text } from "react-native";
 import { formatNumber } from "../../../../helpers/GraphData";
 import graphStyles from "./graphs.scss";
 import MyLineChart from "../../../../shared/MyLineChart";
+import { useTheme } from "../../../../util/ThemeContext";
 
 // Average across the real months only — arrays are padded with leading zeros
 // to fill the window, so we ignore zeros to avoid deflating short histories.
@@ -13,16 +14,19 @@ const avgOf = (arr) => {
 const latestOf = (arr) => (arr || []).slice(-1)[0] || 0;
 
 const YTGraph = ({ ytData }) => {
-  console.log("graph", ytData);
+  const { theme } = useTheme();
+  const ct = { backgroundColor: theme.card, borderColor: theme.cardBorder };
+  const tc = { color: theme.text };
+  const dc = { color: theme.subText };
   return (
     <View style={styles.row}>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Views Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Views Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.views && `${formatNumber(Math.max(...ytData?.views))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.views?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.views}
@@ -30,13 +34,13 @@ const YTGraph = ({ ytData }) => {
           tracking={ytData?.trackingData}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Likes Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Likes Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.likes && `${formatNumber(Math.max(...ytData?.likes))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.likes?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.likes}
@@ -44,13 +48,13 @@ const YTGraph = ({ ytData }) => {
           tracking={ytData?.trackingData}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Comments Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Comments Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.comments && `${formatNumber(Math.max(...ytData?.comments))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.comments?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.comments}
@@ -58,13 +62,13 @@ const YTGraph = ({ ytData }) => {
           tracking={ytData?.trackingData}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Shares Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Shares Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.shares && `${formatNumber(Math.max(...ytData?.shares))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.shares?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.shares}
@@ -72,14 +76,14 @@ const YTGraph = ({ ytData }) => {
           tracking={ytData?.trackingData}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Subscribers Gained Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Subscribers Gained Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.subscribersGained &&
             `${formatNumber(Math.max(...ytData?.subscribersGained))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.subscribersGained?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.subscribersGained}
@@ -87,14 +91,14 @@ const YTGraph = ({ ytData }) => {
           tracking={ytData?.trackingData}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Subscribers Lost Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Subscribers Lost Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.subscribersLost &&
             `${formatNumber(Math.max(...ytData?.subscribersLost))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.subscribersLost?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.subscribersLost}
@@ -102,14 +106,14 @@ const YTGraph = ({ ytData }) => {
           tracking={ytData?.trackingData}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Engagement Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Engagement Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {ytData?.engagementRate &&
             `${formatNumber(Math.max(...ytData?.engagementRate))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${ytData?.engagementRate?.length} Months`}</Text>
         <MyLineChart
           data={ytData?.engagementRate}
@@ -120,15 +124,15 @@ const YTGraph = ({ ytData }) => {
 
       {/* Monthly Net Subscribers Gained */}
       {ytData?.subscribersNetGained && (
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Last Month Subscribers Gained</Text>
-          <Text style={styles.chartValue}>
+        <View style={[styles.chartContainer, ct]}>
+          <Text style={[styles.chartTitle, tc]}>Last Month Subscribers Gained</Text>
+          <Text style={[styles.chartValue, tc]}>
             {(() => {
               const latest = ytData.subscribersNetGained[ytData.subscribersNetGained.length - 1] || 0;
               return (latest >= 0 ? "+" : "") + formatNumber(latest);
             })()}
           </Text>
-          <Text style={styles.chartDesc}>Last 6 Months</Text>
+          <Text style={[styles.chartDesc, dc]}>Last 6 Months</Text>
           <MyLineChart
             data={ytData.subscribersNetGained}
             tracking={ytData.trackingData}
@@ -140,67 +144,71 @@ const YTGraph = ({ ytData }) => {
   );
 };
 const FBGraph = ({ fbData }) => {
+  const { theme } = useTheme();
+  const ct = { backgroundColor: theme.card, borderColor: theme.cardBorder };
+  const tc = { color: theme.text };
+  const dc = { color: theme.subText };
   const months = fbData?.followers?.length || 0;
   const window = `Last ${months} Months`;
   return (
     <View style={styles.row}>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Followers Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Followers Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {`${formatNumber((fbData?.followers || [0]).slice(-1)[0] || 0)}`}
         </Text>
-        <Text style={styles.chartDesc}>{window}</Text>
+        <Text style={[styles.chartDesc, dc]}>{window}</Text>
         <MyLineChart
           data={fbData?.followers}
           tracking={fbData?.trackingData}
           title={"Followers data"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Post Reactions Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Post Reactions Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {`${formatNumber(avgOf(fbData?.avgPostReactions))}`}
         </Text>
-        <Text style={styles.chartDesc}>{window}</Text>
+        <Text style={[styles.chartDesc, dc]}>{window}</Text>
         <MyLineChart
           data={fbData?.avgPostReactions}
           tracking={fbData?.trackingData}
           title={"Avg Post Reactions"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Post Comments Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Post Comments Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {`${formatNumber(avgOf(fbData?.avgPostComments))}`}
         </Text>
-        <Text style={styles.chartDesc}>{window}</Text>
+        <Text style={[styles.chartDesc, dc]}>{window}</Text>
         <MyLineChart
           data={fbData?.avgPostComments}
           tracking={fbData?.trackingData}
           title={"Avg Post Comments"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Post Shares Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Post Shares Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {`${formatNumber(avgOf(fbData?.avgPostShares))}`}
         </Text>
-        <Text style={styles.chartDesc}>{window}</Text>
+        <Text style={[styles.chartDesc, dc]}>{window}</Text>
         <MyLineChart
           data={fbData?.avgPostShares}
           tracking={fbData?.trackingData}
           title={"Avg Post Shares"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Engagement Rate Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Engagement Rate Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {`${avgOf(fbData?.avgER).toFixed(2)}%`}
         </Text>
-        <Text style={styles.chartDesc}>
+        <Text style={[styles.chartDesc, dc]}>
           {`≈ ${(avgOf(fbData?.avgER) * 10).toFixed(1)} engaged per 1,000 followers`}
         </Text>
-        <Text style={styles.chartDesc}>{window}</Text>
+        <Text style={[styles.chartDesc, dc]}>{window}</Text>
         <MyLineChart
           data={fbData?.avgER}
           tracking={fbData?.trackingData}
@@ -210,15 +218,15 @@ const FBGraph = ({ fbData }) => {
 
       {/* Monthly Gained Followers */}
       {fbData?.followersGained && (
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Last Month Followers Gained</Text>
-          <Text style={styles.chartValue}>
+        <View style={[styles.chartContainer, ct]}>
+          <Text style={[styles.chartTitle, tc]}>Last Month Followers Gained</Text>
+          <Text style={[styles.chartValue, tc]}>
             {(() => {
               const latest = fbData.followersGained[fbData.followersGained.length - 1] || 0;
               return (latest >= 0 ? "+" : "") + formatNumber(latest);
             })()}
           </Text>
-          <Text style={styles.chartDesc}>{window}</Text>
+          <Text style={[styles.chartDesc, dc]}>{window}</Text>
           <MyLineChart
             data={fbData.followersGained}
             tracking={fbData.trackingData}
@@ -230,21 +238,25 @@ const FBGraph = ({ fbData }) => {
   );
 };
 function IgGraph({ instaData }) {
+  const { theme } = useTheme();
+  const ct = { backgroundColor: theme.card, borderColor: theme.cardBorder };
+  const tc = { color: theme.text };
+  const dc = { color: theme.subText };
   return (
     <View style={styles.row}>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Engagement Rate Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Engagement Rate Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {instaData?.avgER &&
             `${avgOf(instaData?.avgER).toFixed(2)}%`}
         </Text>
         {instaData?.avgER && (
-          <Text style={styles.chartDesc}>
+          <Text style={[styles.chartDesc, dc]}>
             {`≈ ${(avgOf(instaData?.avgER) * 10).toFixed(1)} engaged per 1,000 followers`}
           </Text>
         )}
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${instaData?.avgER?.length} Months`}</Text>
         <MyLineChart
           data={instaData?.avgER}
@@ -252,14 +264,14 @@ function IgGraph({ instaData }) {
           title={"Followers data"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Likes Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Likes Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {instaData?.avgLikes &&
             `${formatNumber(avgOf(instaData?.avgLikes))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${instaData?.avgLikes?.length} Months`}</Text>
         <MyLineChart
           data={instaData?.avgLikes}
@@ -267,14 +279,14 @@ function IgGraph({ instaData }) {
           title={"Average Likes data"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Comments Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Comments Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {instaData?.avgComments &&
             `${formatNumber(avgOf(instaData?.avgComments))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${instaData?.avgComments?.length} Months`}</Text>
         <MyLineChart
           data={instaData?.avgComments}
@@ -282,14 +294,14 @@ function IgGraph({ instaData }) {
           title={"Average Comments data"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Avg Interactions Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Avg Interactions Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {instaData?.avgInteractions &&
             `${formatNumber(avgOf(instaData?.avgInteractions))}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${instaData?.avgInteractions?.length} Months`}</Text>
         <MyLineChart
           data={instaData?.avgInteractions}
@@ -297,14 +309,14 @@ function IgGraph({ instaData }) {
           title={"Average Interactions data"}
         />
       </View>
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Followers Over Time</Text>
-        <Text style={styles.chartValue}>
+      <View style={[styles.chartContainer, ct]}>
+        <Text style={[styles.chartTitle, tc]}>Followers Over Time</Text>
+        <Text style={[styles.chartValue, tc]}>
           {instaData?.followers &&
             `${formatNumber(instaData.followers.slice(-1)[0] || 0)}`}
         </Text>
         <Text
-          style={styles.chartDesc}
+          style={[styles.chartDesc, dc]}
         >{`Last ${instaData?.followers?.length} Months`}</Text>
         <MyLineChart
           data={instaData?.followers}
@@ -315,15 +327,15 @@ function IgGraph({ instaData }) {
 
       {/* Monthly Gained Followers */}
       {instaData?.followersGained && (
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Last Month Followers Gained</Text>
-          <Text style={styles.chartValue}>
+        <View style={[styles.chartContainer, ct]}>
+          <Text style={[styles.chartTitle, tc]}>Last Month Followers Gained</Text>
+          <Text style={[styles.chartValue, tc]}>
             {(() => {
               const latest = instaData.followersGained[instaData.followersGained.length - 1] || 0;
               return (latest >= 0 ? "+" : "") + formatNumber(latest);
             })()}
           </Text>
-          <Text style={styles.chartDesc}>{`Last ${instaData?.followersGained?.length} Months`}</Text>
+          <Text style={[styles.chartDesc, dc]}>{`Last ${instaData?.followersGained?.length} Months`}</Text>
           <MyLineChart
             data={instaData.followersGained}
             tracking={instaData.trackingData}

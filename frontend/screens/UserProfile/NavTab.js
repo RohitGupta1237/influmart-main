@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
 import { FontFamily, FontSize, Padding, Color } from "../../GlobalStyles";
+import { useTheme } from "../../util/ThemeContext";
 
 // Manual OTP verification is offered only for the Meta platforms.
 const OTP_VERIFIABLE = ["instagram", "facebook"];
@@ -70,22 +71,30 @@ const Badge = ({ type, textColor, platform, onVerifyPress }) => {
 };
 
 const NavTab = ({ setTab, tab, influencer, onVerifyPress }) => {
+  const { theme } = useTheme();
   const igBadge = getBadgeType("instagram", influencer);
   const ytBadge = getBadgeType("youtube", influencer);
   const fbBadge = getBadgeType("facebook", influencer);
 
-  const activeColor = Color.colorWhite;
-  const inactiveColor = Color.colorLightgray;
+  const activeColor = theme.text;
+  const inactiveColor = theme.subText;
+
+  const cellFor = (key) => [
+    styles.cell,
+    key !== "instagram" && styles.cellWithMargin,
+    tab === key && [styles.selectedCell, { borderColor: "#ec4899" }],
+  ];
+  const textFor = (key) => [
+    styles.text,
+    { color: tab === key ? activeColor : inactiveColor },
+  ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.cell, tab === "instagram" && styles.selectedCell]}
-          onPress={() => setTab("instagram")}
-        >
+      <View style={[styles.row, { borderColor: theme.divider }]}>
+        <TouchableOpacity style={cellFor("instagram")} onPress={() => setTab("instagram")}>
           <View style={styles.textContainer}>
-            <Text style={[styles.text, tab === "instagram" && styles.selectedText]}>Instagram</Text>
+            <Text style={textFor("instagram")}>Instagram</Text>
             <Badge
               type={igBadge}
               platform="instagram"
@@ -94,21 +103,15 @@ const NavTab = ({ setTab, tab, influencer, onVerifyPress }) => {
             />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.cell, styles.cellWithMargin, tab === "youtube" && styles.selectedCell]}
-          onPress={() => setTab("youtube")}
-        >
+        <TouchableOpacity style={cellFor("youtube")} onPress={() => setTab("youtube")}>
           <View style={styles.textContainer}>
-            <Text style={[styles.text, tab === "youtube" && styles.selectedText]}>YouTube</Text>
+            <Text style={textFor("youtube")}>YouTube</Text>
             <Badge type={ytBadge} textColor={tab === "youtube" ? activeColor : inactiveColor} />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.cell, styles.cellWithMargin, tab === "facebook" && styles.selectedCell]}
-          onPress={() => setTab("facebook")}
-        >
+        <TouchableOpacity style={cellFor("facebook")} onPress={() => setTab("facebook")}>
           <View style={styles.textContainer}>
-            <Text style={[styles.text, tab === "facebook" && styles.selectedText]}>Facebook</Text>
+            <Text style={textFor("facebook")}>Facebook</Text>
             <Badge
               type={fbBadge}
               platform="facebook"

@@ -14,6 +14,8 @@ const Depth1Frame7 = ({
   requestDetailsWidth,
   depth4Frame0FontFamily,
   depth4Frame0Color,
+  iconTintColor,
+  rightAccessory,
 }) => {
   const depth1Frame0Style = useMemo(() => {
     return {
@@ -39,7 +41,7 @@ const Depth1Frame7 = ({
       <View style={styles.depth2Frame0}>
         <View style={[styles.depth3Frame0, styles.depth3FrameLayout]}>
           <Image
-            style={styles.depth4Frame0}
+            style={[styles.depth4Frame0, iconTintColor ? { tintColor: iconTintColor } : null]}
             contentFit="cover"
             source={depth4Frame0}
           />
@@ -54,7 +56,7 @@ const Depth1Frame7 = ({
           </View>
         </View>
         <View style={[styles.depth3Frame2, styles.depth3FrameLayout]}>
-          <View style={[styles.depth4Frame02, styles.depth3FrameLayout]} />
+          {rightAccessory ? rightAccessory : <View style={[styles.depth4Frame02, styles.depth3FrameLayout]} />}
         </View>
       </View>
     </View>

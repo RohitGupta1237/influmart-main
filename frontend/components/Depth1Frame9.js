@@ -1,31 +1,37 @@
 import * as React from "react";
 import { Image } from "expo-image";
 import { StyleSheet, View, Text,TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
 import ImageWithFallback from "../util/ImageWithFallback";
+import { useTheme } from "../util/ThemeContext";
 
 const toTitleCase = (str) =>
   str ? str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : str;
 
 const Depth1Frame9 = ({image,username,location,category,isSelectedImage}) => {
+  const { theme } = useTheme();
   return (
     <View style={styles.depth1Frame1}>
       <View style={styles.depth2Frame0}>
         <View style={styles.depth3Frame0}>
-          <View style={styles.depth4Frame0}>
-            <ImageWithFallback image={image} imageStyle={styles.depth5Frame0} isSelectedImage={isSelectedImage} />
-          </View>
+          {/* Gradient ring around the avatar (brand accent). */}
+          <LinearGradient colors={["#ec4899", "#ec4899"]} style={styles.avatarRing}>
+            <View style={[styles.avatarInner, { backgroundColor: theme.bg }]}>
+              <ImageWithFallback image={image} imageStyle={styles.depth5Frame0} isSelectedImage={isSelectedImage} />
+            </View>
+          </LinearGradient>
           <View style={[styles.depth4Frame1, styles.frameFlexBox]}>
             <View style={styles.depth5Frame01}>
               <View style={styles.depth6Frame0}>
-                <Text style={[styles.caroline, styles.followTypo]}>
+                <Text style={[styles.caroline, styles.followTypo, { color: theme.text }]}>
                   {toTitleCase(username)}
                 </Text>
               </View>
             </View>
             <View style={[styles.depth5Frame2, styles.depth5FrameLayout]}>
               <View style={styles.depth6Frame0}>
-                <Text style={styles.age27Los} numberOfLines={2}>
+                <Text style={[styles.age27Los, { color: theme.subText }]} numberOfLines={2}>
                   {category}
                 </Text>
               </View>
@@ -43,7 +49,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   followTypo: {
-    color: Color.colorGray_500,
+    // Colour comes from the theme at the usage site.
     fontFamily: FontFamily.beVietnamProBold,
     fontWeight: "700",
     letterSpacing: 0,
@@ -63,8 +69,16 @@ const styles = StyleSheet.create({
   depth5Frame0: {
     borderRadius: Border.br_45xl,
     overflow: "hidden",
-    height: 128,
-    width: 128,
+    height: 122,
+    width: 122,
+  },
+  avatarRing: {
+    padding: 3,
+    borderRadius: 70,
+  },
+  avatarInner: {
+    padding: 3,
+    borderRadius: 67,
   },
   depth4Frame0: {
     height: 128,
@@ -88,7 +102,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.size_base,
     lineHeight: 22,
     fontFamily: FontFamily.beVietnamProRegular,
-    color: Color.colorSlategray_200,
     textAlign: "center",
     paddingHorizontal: 24,
   },

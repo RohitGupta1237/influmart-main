@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
+  TouchableOpacity,
+  Linking,
 } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -87,8 +89,36 @@ const FBDemo = ({ item, width = 320 }) => {
   );
 };
 
-const InstaDemo = ({ url, width = 320, height = 400 }) => {
+const InstaDemo = ({ url, item = {}, width = 320, height = 400 }) => {
   const [loading, setLoading] = useState(true);
+
+  // Prefer a uniform custom card (symmetric, like the FB card) when we have a
+  // thumbnail. Fall back to the live Instagram embed only if no image exists.
+  const thumb =
+    item.displayUrl || item.thumbnail || item.thumbnailUrl || item.imageUrl ||
+    item.mediaUrl || item.image || item.coverUrl || item.thumbnailSrc || null;
+
+  if (thumb) {
+    const mediaH = Math.round(width * 1.15);
+    const likes = item.likes ?? item.likeCount ?? item.likesCount;
+    const comments = item.comments ?? item.commentCount ?? item.commentsCount;
+    const caption = item.caption ?? item.text ?? item.title ?? "";
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={() => url && Linking.openURL(url)} style={{ width, backgroundColor: "#fff" }}>
+        <View style={{ width, height: mediaH, backgroundColor: "#eef1f6" }}>
+          <Image source={{ uri: thumb }} style={{ width, height: mediaH, resizeMode: "cover" }} />
+          <View style={styles.playBadge}><Text style={styles.playBadgeIcon}>▶</Text></View>
+        </View>
+        <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 }}>
+          {caption ? <Text style={styles.caption} numberOfLines={2}>{caption}</Text> : null}
+          <View style={styles.statsRow}>
+            <StatChip icon="♥" value={likes} />
+            <StatChip icon="💬" value={comments} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   if (Platform.OS === "web") {
     return (

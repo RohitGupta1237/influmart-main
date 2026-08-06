@@ -2,9 +2,11 @@ import * as React from "react";
 import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { Color, Border, Padding, FontSize, FontFamily } from "../../GlobalStyles";
+import { useTheme } from "../../util/ThemeContext";
 
 const DropdownComponent = ({ title, content }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const { theme } = useTheme();
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -12,12 +14,12 @@ const DropdownComponent = ({ title, content }) => {
 
   const renderContent = () => {
     if (typeof content === 'string' || typeof content === 'number') {
-      return <Text style={styles.contentText}>{content}</Text>;
+      return <Text style={[styles.contentText, { color: theme.subText }]}>{content}</Text>;
     } else if (Array.isArray(content.bullet)) {
       return (
         <View>
           {content.bullet.map((item, index) => (
-            <Text key={index} style={styles.contentText}>• {item.content}</Text>
+            <Text key={index} style={[styles.contentText, { color: theme.subText }]}>• {item.content}</Text>
           ))}
         </View>
       );
@@ -25,13 +27,14 @@ const DropdownComponent = ({ title, content }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
       <TouchableOpacity onPress={toggleDropdown} style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={[styles.title, isOpen && styles.openTitle]}>{title}</Text>
+          <Text style={[styles.title, { color: isOpen ? theme.accent : theme.text }]}>{title}</Text>
           <Image
-            style={styles.icon}
-            contentFit="cover"
+            style={[styles.icon, { tintColor: theme.subText }]}
+            contentFit="contain"
+            tintColor={theme.subText}
             source={isOpen ? require("../../assets/depth-4-frame-1.png") : require("../../assets/depth-4-frame-11.png")}
           />
         </View>
@@ -45,8 +48,8 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     marginBottom: 10,
-    backgroundColor: Color.colorDarkslategray_200,
     borderRadius: Border.br_xs,
+    borderWidth: 1,
     padding: Padding.p_base,
     margin: "auto",
     paddingHorizontal:Padding.p_base,
@@ -68,28 +71,21 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: FontFamily.beVietnamProMedium,
     fontSize: FontSize.size_sm,
-    color: Color.colorWhite,
     textAlign: "left",
     lineHeight: 21,
-  },
-  openTitle: {
-    color: Color.colorPrimary,
   },
   icon: {
     width: 20,
     height: 20,
   },
   content: {
-    backgroundColor: Color.colorDarkslategray_200,
     borderRadius: Border.br_xs,
     fontFamily: FontFamily.beVietnamProRegular,
     fontSize: FontSize.size_sm,
     lineHeight: 21,
-    color: "#CCCCCC",
     marginTop: Padding.p_base,
   },
   contentText: {
-    color: "#CCCCCC",
     fontFamily: FontFamily.beVietnamProRegular,
     fontSize: FontSize.size_sm,
     lineHeight: 21,

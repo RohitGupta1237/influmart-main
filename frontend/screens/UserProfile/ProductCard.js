@@ -10,6 +10,7 @@ import {
   Padding,
 } from "../../GlobalStyles";
 import ImageWithFallback from "../../util/ImageWithFallback";
+import { useTheme } from "../../util/ThemeContext";
 
 const getStyleValue = (key, value) => {
   if (value === undefined) return;
@@ -30,6 +31,7 @@ const ProductCard = ({
   buttonWidth,
 }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   const cardStyle = useMemo(
     () => getStyleValue("width", cardWidth),
@@ -53,20 +55,20 @@ const ProductCard = ({
   );
   const[viewWidth,setViewWidth]=useState(0)
   return (
-    <View style={[styles.card, cardStyle]} onLayout={(evt)=>{
+    <View style={[styles.card, cardStyle, { backgroundColor: theme.card, borderColor: theme.cardBorder }]} onLayout={(evt)=>{
       setViewWidth(evt.nativeEvent.layout.width)
     }}>
       <View style={styles.cardContent}>
         <ImageWithFallback image={imageSource} imageStyle={styles.image} isSelectedImage={isSelectedImage} />
         <View style={{width:viewWidth<=468?"60%":"100%"}}>
           <View style={[styles.textContainer, postTitleStyle]}>
-            <Text style={styles.postTitle}>{postTitle}</Text>
+            <Text style={[styles.postTitle, { color: theme.text }]}>{postTitle}</Text>
           </View>
           <View style={[styles.textContainer, postDateStyle]}>
-            <Text style={styles.postDate}>Date: {postDate}</Text>
+            <Text style={[styles.postDate, { color: theme.subText }]}>Date: {postDate}</Text>
           </View>
           <View style={[styles.textContainer, productNameStyle]}>
-            <Text style={styles.productName}>Product: {productName}</Text>
+            <Text style={[styles.productName, { color: theme.subText }]}>Product: {productName}</Text>
           </View>
         </View>
       </View>
@@ -74,7 +76,7 @@ const ProductCard = ({
         style={[styles.buttonContainer, buttonStyle]}
         onPress={() => navigation.navigate("FriendRequestPage",{name: postTitle,requestId: id})}
       >
-        <View style={styles.button}>
+        <View style={[styles.button, { backgroundColor: theme.accent }]}>
           <Text style={styles.buttonText}>{viewWidth<=468?"View":"View Request"}</Text>
         </View>
       </TouchableOpacity>
@@ -84,7 +86,6 @@ const ProductCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Color.colorBlack,
     width: 390,
     height: 96,
     flexDirection: "row",
@@ -92,6 +93,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     justifyContent: "space-between",
+    borderRadius: Border.br_xs,
+    borderWidth: 1,
+    marginBottom: 10,
   },
   cardContent: {
     flexDirection: "row",

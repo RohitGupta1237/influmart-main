@@ -245,7 +245,8 @@ export const AnalyticsStyles = {
     fontFamily: FontFamily.lexendBold,
     fontSize: FontSize.size_base,
     lineHeight: 22.5,
-    color: Color.colorGray_200,
+    // Colour comes from the theme at the usage site (near-black base hid the
+    // title in dark mode).
     marginBottom: 16,
   },
   averagePriceContainer: {

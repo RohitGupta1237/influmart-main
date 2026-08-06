@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTheme } from "../../../../util/ThemeContext";
 
 // AI Content Insights card — influencer-only. Reads the cached aiInsights
 // object produced by the backend (code stats + Gemini topics/summary, with a
@@ -14,26 +15,29 @@ const Chip = ({ label, tone = "neutral" }) => (
 );
 
 const AiInsightsCard = ({ insights, platform }) => {
+  const { theme } = useTheme();
   if (!insights || !insights.ai) return null;
   const { ai, bestFormat, bestCaptionLength, topHashtags = [], postsAnalyzed, window, source } = insights;
+  const tc = { color: theme.text };
+  const dc = { color: theme.subText };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>✨ AI Content Insights</Text>
-        <Text style={styles.meta}>
+        <Text style={[styles.title, tc]}>✨ AI Content Insights</Text>
+        <Text style={[styles.meta, dc]}>
           {postsAnalyzed ? `${postsAnalyzed} posts · ` : ""}{window || ""}
         </Text>
       </View>
 
-      {ai.summary ? <Text style={styles.summary}>{ai.summary}</Text> : null}
+      {ai.summary ? <Text style={[styles.summary, dc]}>{ai.summary}</Text> : null}
 
       {/* What to post more / less */}
       {(ai.topTopics?.length || ai.weakTopics?.length) ? (
         <View style={styles.section}>
           {ai.topTopics?.length ? (
             <>
-              <Text style={styles.sectionLabel}>Post more of</Text>
+              <Text style={[styles.sectionLabel, dc]}>Post more of</Text>
               <View style={styles.chipRow}>
                 {ai.topTopics.map((t, i) => <Chip key={`t${i}`} label={t} tone="good" />)}
               </View>
@@ -41,7 +45,7 @@ const AiInsightsCard = ({ insights, platform }) => {
           ) : null}
           {ai.weakTopics?.length ? (
             <>
-              <Text style={[styles.sectionLabel, { marginTop: 10 }]}>Post less of</Text>
+              <Text style={[styles.sectionLabel, dc, { marginTop: 10 }]}>Post less of</Text>
               <View style={styles.chipRow}>
                 {ai.weakTopics.map((t, i) => <Chip key={`w${i}`} label={t} tone="bad" />)}
               </View>
@@ -53,11 +57,11 @@ const AiInsightsCard = ({ insights, platform }) => {
       {/* Recommendations */}
       {ai.recommendations?.length ? (
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Recommendations</Text>
+          <Text style={[styles.sectionLabel, dc]}>Recommendations</Text>
           {ai.recommendations.map((r, i) => (
             <View key={`r${i}`} style={styles.recRow}>
               <Text style={styles.recBullet}>•</Text>
-              <Text style={styles.recText}>{r}</Text>
+              <Text style={[styles.recText, tc]}>{r}</Text>
             </View>
           ))}
         </View>
@@ -67,21 +71,21 @@ const AiInsightsCard = ({ insights, platform }) => {
       <View style={styles.factsRow}>
         {bestFormat ? (
           <View style={styles.fact}>
-            <Text style={styles.factLabel}>Best format</Text>
-            <Text style={styles.factValue}>{bestFormat}</Text>
+            <Text style={[styles.factLabel, dc]}>Best format</Text>
+            <Text style={[styles.factValue, tc]}>{bestFormat}</Text>
           </View>
         ) : null}
         {bestCaptionLength ? (
           <View style={styles.fact}>
-            <Text style={styles.factLabel}>Best caption</Text>
-            <Text style={styles.factValue}>{bestCaptionLength}</Text>
+            <Text style={[styles.factLabel, dc]}>Best caption</Text>
+            <Text style={[styles.factValue, tc]}>{bestCaptionLength}</Text>
           </View>
         ) : null}
       </View>
 
       {topHashtags?.length ? (
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Top hashtags</Text>
+          <Text style={[styles.sectionLabel, dc]}>Top hashtags</Text>
           <View style={styles.chipRow}>
             {topHashtags.map((h, i) => <Chip key={`h${i}`} label={`#${h.name}`} />)}
           </View>
