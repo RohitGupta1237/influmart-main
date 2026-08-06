@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { Image, StyleSheet, View, Text, ImageSourcePropType } from "react-native";
+import { StyleSheet, View, Text, ImageSourcePropType } from "react-native";
+import { Image } from "expo-image";
 import { FontSize, FontFamily, Color, Padding } from "../GlobalStyles";
 
 const getStyleValue = (key, value) => {
@@ -41,8 +42,9 @@ const Depth1Frame7 = ({
       <View style={styles.depth2Frame0}>
         <View style={[styles.depth3Frame0, styles.depth3FrameLayout]}>
           <Image
-            style={[styles.depth4Frame0, iconTintColor ? { tintColor: iconTintColor } : null]}
-            contentFit="cover"
+            style={styles.depth4Frame0}
+            contentFit="contain"
+            tintColor={iconTintColor}
             source={depth4Frame0}
           />
         </View>
