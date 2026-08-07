@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, View, Text, ImageSourcePropType, TouchableOpacity } from "react-native";
 import { FontFamily, FontSize, Border, Color, Padding } from "../GlobalStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "../util/ThemeContext";
 
 const getStyleValue = (key, value) => {
   if (value === undefined) return;
@@ -39,6 +40,12 @@ const BrandProfileBottomBar = ({
   style
 }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const uiColor = theme.isDark ? "#D0D5DD" : "#475467";
+  const pillStyle = {
+    backgroundColor: theme.isDark ? "rgba(30,30,34,0.92)" : "rgba(255,255,255,0.90)",
+    borderColor: theme.isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)",
+  };
 
   const depth1Frame13Style = useMemo(() => {
     return {
@@ -133,7 +140,7 @@ const BrandProfileBottomBar = ({
     }
   }
   return (
-    <View style={[styles.depth1Frame13, depth1Frame13Style, style]}>
+    <View style={[styles.depth1Frame13, pillStyle, depth1Frame13Style, style]}>
       <View style={styles.depth2Frame0}>
         <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('CollabForm',{navigation})}>
 
@@ -148,6 +155,7 @@ const BrandProfileBottomBar = ({
               <Image
                 style={styles.depth5Frame0}
                 contentFit="cover"
+                tintColor={uiColor}
                 source={require('../assets/post_icon.png')}
               />
             </View>
@@ -159,7 +167,7 @@ const BrandProfileBottomBar = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, searchStyle]}>
+                <Text style={[styles.search, styles.homeTypo, searchStyle, {color: uiColor}]}>
                   Post
                 </Text>
               </View>
@@ -179,6 +187,7 @@ const BrandProfileBottomBar = ({
               <Image
                 style={styles.depth5Frame0}
                 contentFit="cover"
+                tintColor={uiColor}
                 source={depth5Frame01}
               />
             </View>
@@ -190,7 +199,7 @@ const BrandProfileBottomBar = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, searchStyle]}>
+                <Text style={[styles.search, styles.homeTypo, searchStyle, {color: uiColor}]}>
                   {search}
                 </Text>
               </View>
@@ -211,6 +220,7 @@ const BrandProfileBottomBar = ({
               <Image
                 style={styles.depth5Frame0}
                 contentFit="cover"
+                tintColor={uiColor}
                 source={depth5Frame02}
               />
             </View>
@@ -222,7 +232,7 @@ const BrandProfileBottomBar = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, myBrandsStyle]}>
+                <Text style={[styles.search, styles.homeTypo, myBrandsStyle, {color: uiColor}]}>
                   {myBrands}
                 </Text>
               </View>
@@ -235,12 +245,13 @@ const BrandProfileBottomBar = ({
               <Image
                 style={styles.depth5Frame0}
                 contentFit="cover"
+                tintColor={uiColor}
                 source={require('../assets/collab_count.png')}
               />
             </View>
             <View style={[styles.depth4Frame11, styles.depth4FrameSpaceBlock]}>
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo]}>
+                <Text style={[styles.search, styles.homeTypo, {color: uiColor}]}>
                   Campaigns
                 </Text>
               </View>
@@ -260,6 +271,7 @@ const BrandProfileBottomBar = ({
               <Image
                 style={styles.depth5Frame0}
                 contentFit="cover"
+                tintColor={uiColor}
                 source={depth5Frame03}
               />
             </View>
@@ -271,7 +283,7 @@ const BrandProfileBottomBar = ({
               ]}
             >
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, profileStyle]}>
+                <Text style={[styles.search, styles.homeTypo, profileStyle, {color: uiColor}]}>
                   Profile
                 </Text>
               </View>

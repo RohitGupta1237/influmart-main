@@ -4,7 +4,7 @@ const multer = require("multer");
 const { nanoid } = require("nanoid");
 const path = require("path");
 
-const { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount, getBrandCampaigns, updateCampaignStatus, addCollaboratedInfluencer } = require('../controllers/CollabOpenController');
+const { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, updateCollabOpenStatus, getBrandCollabOpenCount, getBrandCampaigns, updateCampaignStatus, addCollaboratedInfluencer } = require('../controllers/CollabOpenController');
 const brandAuthenticationMiddleware = require('../middleware/brands/brandAuthenticationMiddleware');
 const influencerAuthenticationMiddleware = require('../middleware/influencers/influencerAuthenticationMiddleware');
 
@@ -43,6 +43,9 @@ router.post("/accept-collab-open-request", brandAuthenticationMiddleware ,accept
 
 // Reject a application/connection request endpoint
 router.post("/reject-collab-open-request", brandAuthenticationMiddleware ,rejectCollabOpen);
+
+// Move a collab-open request through the status pipeline (brand's board)
+router.patch("/collab-open-request-status", brandAuthenticationMiddleware ,updateCollabOpenStatus);
 
 
 module.exports = router;

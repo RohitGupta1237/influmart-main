@@ -161,6 +161,7 @@ const getAllCollabOpenRequests = async (userId, setRequests, showAlert) => {
         postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
         productName: (() => { try { return JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "); } catch { return null; } })(),
         requestId: item?._id,
+        status: item?.status || "pending",
         campaignTitle: (() => {
           const title = item?.collabOpeningId?.campaignTitle;
           if (title) return title;
@@ -226,6 +227,23 @@ const rejectCollabOpen = async (requestId, showAlert) => {
   } catch (error) {
     console.log(error);
     showAlert('Error', 'Something went wrong');
+  }
+};
+
+// Move a collab-open request to a pipeline status (brand's board).
+const updateCollabOpenStatus = async (requestId, status, showAlert) => {
+  const token = await AsyncStorage.getItem('token');
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/collab-open/collab-open-request-status`,
+      { requestId, status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.log(error);
+    if (showAlert) showAlert('Error', 'Could not update status');
+    return false;
   }
 };
 
@@ -356,4 +374,4 @@ const addCollaboratedInfluencer = async (campaignId, username, showAlert) => {
   }
 };
 
-export {createCollabPost, getAllCollabPosts, getAppliedCollabPosts, sendCollabOpenRequest, getAllCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount, getBrandOwnCampaigns, updateCampaignStatus, addCollaboratedInfluencer};
+export {createCollabPost, getAllCollabPosts, getAppliedCollabPosts, sendCollabOpenRequest, getAllCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, updateCollabOpenStatus, getBrandCollabOpenCount, getBrandOwnCampaigns, updateCampaignStatus, addCollaboratedInfluencer};

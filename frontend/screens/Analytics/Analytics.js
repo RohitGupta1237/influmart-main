@@ -34,6 +34,7 @@ import { useAlert } from "../../util/AlertContext";
 import { GetInfluencerProfile, UpdateInfluencerDescription, UpdateInfluencerHashtags, UpdateInfluencerPrice, RefreshYoutubeData } from "../../controller/InfluencerController";
 import {sendRequest} from "../../controller/connectionsController"
 import Loader from '../../shared/Loader';
+import ThemeToggle from "../../shared/ThemeToggle";
 import VerifySocialModal from "../UserProfile/VerifySocialModal";
 import FetchStatsModal from "../UserProfile/FetchStatsModal";
 
@@ -470,11 +471,6 @@ const Analytics = ({ route, navigation }) => {
           depth4Frame0FontFamily="BeVietnamPro-Bold"
           depth4Frame0Color={theme.text}
           iconTintColor={theme.iconTint}
-          rightAccessory={
-            <TouchableOpacity onPress={toggleTheme} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
-              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={theme.text} />
-            </TouchableOpacity>
-          }
         />
       </TouchableOpacity>
       <ScrollView style={[styles.scrollViewContent, { backgroundColor: theme.bg }]} keyboardShouldPersistTaps="handled">
@@ -951,6 +947,7 @@ const Analytics = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
+      <ThemeToggle />
     </View>
   );
 };

@@ -4,6 +4,7 @@ const {
   allRequests,
   accept,
   reject,
+  updateRequestStatus,
   closeChat,
   sendMessage,
   getMessages,
@@ -27,6 +28,9 @@ router.post("/accept-request", influencerAuthenticationMiddleware ,accept);
 
 // Reject a connection request endpoint
 router.post("/reject-request", influencerAuthenticationMiddleware ,reject);
+
+// Move a request through the status pipeline (influencer's board)
+router.patch("/request-status", influencerAuthenticationMiddleware ,updateRequestStatus);
 
 router.post("/send-message", brandorInfluencerAuthenticationMiddleware ,sendMessage);
 

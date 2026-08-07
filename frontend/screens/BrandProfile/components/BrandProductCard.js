@@ -4,6 +4,8 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Border, Color, FontFamily, FontSize, Padding } from "../../../GlobalStyles";
 import ImageWithFallback from "../../../util/ImageWithFallback";
+import { useTheme } from "../../../util/ThemeContext";
+import { StatusMenu } from "../../../shared/CollabStatus";
 
 
 const getStyleValue = (key, value) => {
@@ -23,9 +25,12 @@ const BrandProductCard = ({
   postDateWidth,
   productNameWidth,
   buttonWidth,
-  isSelectedImage
+  isSelectedImage,
+  status,
+  onStatusChange,
 }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
 
   const cardStyle = useMemo(
     () => getStyleValue("width", cardWidth),
@@ -49,26 +54,33 @@ const BrandProductCard = ({
   );
 
   return (
-    <View style={[styles.card, cardStyle]}>
+    <View style={[styles.card, cardStyle, { backgroundColor: theme.card, borderColor: theme.cardBorder, borderWidth: 1 }]}>
       <View style={styles.cardContent}>
         <ImageWithFallback image={imageSource} isSelectedImage={isSelectedImage} imageStyle={styles.image} />
         <View style={styles.textWrapper}>
-          <Text style={styles.postTitle} numberOfLines={1}>{postTitle}</Text>
-          <Text style={styles.postDate} numberOfLines={1}>Date: {postDate}</Text>
-          <Text style={styles.productName} numberOfLines={1}>Product: {productName}</Text>
+          <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>{postTitle}</Text>
+          <Text style={[styles.postDate, { color: theme.subText }]} numberOfLines={1}>Date: {postDate}</Text>
+          <Text style={[styles.productName, { color: theme.subText }]} numberOfLines={1}>Product: {productName}</Text>
           {campaignTitle && (
-            <Text style={styles.productName} numberOfLines={1}>Campaign: {campaignTitle}</Text>
+            <Text style={[styles.productName, { color: theme.subText }]} numberOfLines={1}>Campaign: {campaignTitle}</Text>
           )}
         </View>
       </View>
-      <TouchableOpacity
-        style={[styles.buttonContainer, buttonStyle]}
-        onPress={() => navigation.navigate("BrandCollabRequestPage",{name: postTitle,requestId: id})}
-      >
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>View Request</Text>
-        </View>
-      </TouchableOpacity>
+      <View style={{ width: 132, alignItems: "stretch", justifyContent: "center", gap: 8, flexShrink: 0 }}>
+        {(status || "pending") === "pending" && (
+          <TouchableOpacity
+            style={{ height: 34, width: "100%" }}
+            onPress={() => navigation.navigate("BrandCollabRequestPage",{name: postTitle,requestId: id})}
+          >
+            <View style={[styles.button, { backgroundColor: theme.accent }]}>
+              <Text style={styles.buttonText}>View Request</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        {onStatusChange && (status || "pending") !== "pending" && (
+          <StatusMenu current={status} onSelect={(s) => onStatusChange(id, s)} />
+        )}
+      </View>
     </View>
   );
 };
@@ -134,10 +146,11 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: Color.colorRoyalblue,
-    borderRadius: Border.br_base,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+    height: 34,
+    width: "100%",
     paddingHorizontal: Padding.p_base,
   },
   buttonText: {

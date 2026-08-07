@@ -31,7 +31,24 @@ const allRequests = async (req, res) => {
       options: { select: "name category profileUrl isSelectedImage" }
     },
   });
-  res.status(200).json({ user: user?.notifications });
+  res.status(200).json({ user: user?.notifications?.filter((n) => n !== null) });
+};
+
+// Move a connection request through the status pipeline (Jira-style board).
+const PIPELINE = ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected'];
+const updateRequestStatus = async (req, res) => {
+  try {
+    const { requestId, status } = req.body;
+    if (!requestId || !PIPELINE.includes(status)) {
+      return res.status(400).json({ message: "Missing requestId or invalid status" });
+    }
+    const updated = await Request.findByIdAndUpdate(requestId, { status }, { new: true });
+    if (!updated) return res.status(404).json({ message: "Request not found" });
+    res.status(200).json({ message: "Status updated", status: updated.status });
+  } catch (err) {
+    console.error("[updateRequestStatus] error:", err.message);
+    res.status(500).json({ message: "Something went wrong while updating status." });
+  }
 };
 
 // Accept a connection request
@@ -77,7 +94,8 @@ const accept = async (req, res, next) => {
     await Promise.all([
       autoMessage.save(),
       conversation.save(),
-      Request.findByIdAndDelete(requestId),
+      // Keep the request on the board and mark it accepted (was: delete).
+      Request.findByIdAndUpdate(requestId, { status: "accepted" }),
     ]);
 
     res.status(200).json({ message: "Request accepted and message sent", senderId: request.sender._id, receiverId: request.receiver._id });
@@ -350,4 +368,4 @@ const findOrCreateConversation = async (req, res) => {
   }
 };
 
-module.exports = { sendRequest, allRequests, accept, reject, closeChat, sendMessage, getMessages, getAllConversations, searchUsers, findOrCreateConversation };
+module.exports = { sendRequest, allRequests, accept, reject, updateRequestStatus, closeChat, sendMessage, getMessages, getAllConversations, searchUsers, findOrCreateConversation };

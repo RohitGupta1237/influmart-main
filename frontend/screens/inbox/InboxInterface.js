@@ -174,7 +174,7 @@ const InboxInterface = () => {
                 />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Search for a project, brand or Influencer"
+                  placeholder="Search chats"
                   placeholderTextColor={Color.colorSlategray_200}
                   value={searchQuery}
                   onChangeText={handleSearchChange}

@@ -104,7 +104,8 @@ const allCollabOpenRequests = async (req, res) => {
   const { userId } = req.params;
   const user = await Brand.findById(userId).populate({
     path: "notifications",
-    match: { status: 'pending' },
+    // Return ALL statuses (not just pending) so the pipeline board can group them.
+    match: { status: { $ne: 'rejected' } },
     populate: [
       {
         path: "sender",
@@ -187,6 +188,23 @@ const rejectCollabOpen = async (req, res) => {
   } catch (err) {
     console.error("[rejectCollabOpen] error:", err.message);
     res.status(500).json({ message: "Something went wrong while rejecting the request." });
+  }
+};
+
+// Move a collab-open request through the status pipeline (brand's board).
+const COLLAB_PIPELINE = ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected'];
+const updateCollabOpenStatus = async (req, res) => {
+  try {
+    const { requestId, status } = req.body;
+    if (!requestId || !COLLAB_PIPELINE.includes(status)) {
+      return res.status(400).json({ message: "Missing requestId or invalid status" });
+    }
+    const updated = await CollabOpenRequest.findByIdAndUpdate(requestId, { status }, { new: true });
+    if (!updated) return res.status(404).json({ message: "Request not found" });
+    res.status(200).json({ message: "Status updated", status: updated.status });
+  } catch (err) {
+    console.error("[updateCollabOpenStatus] error:", err.message);
+    res.status(500).json({ message: "Something went wrong while updating status." });
   }
 };
 
@@ -280,4 +298,4 @@ const updateCampaignStatus = async (req, res) => {
   }
 };
 
-module.exports = { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, getBrandCollabOpenCount, getBrandCampaigns, updateCampaignStatus, addCollaboratedInfluencer };
+module.exports = { postCollabOpen, getAllCollabOpen, getAppliedCollabPosts, sendCollabOpenRequest, allCollabOpenRequests, acceptCollabOpen, rejectCollabOpen, updateCollabOpenStatus, getBrandCollabOpenCount, getBrandCampaigns, updateCampaignStatus, addCollaboratedInfluencer };

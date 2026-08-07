@@ -11,6 +11,7 @@ import {
 } from "../../GlobalStyles";
 import ImageWithFallback from "../../util/ImageWithFallback";
 import { useTheme } from "../../util/ThemeContext";
+import { StatusMenu } from "../../shared/CollabStatus";
 
 const getStyleValue = (key, value) => {
   if (value === undefined) return;
@@ -29,6 +30,8 @@ const ProductCard = ({
   postDateWidth,
   productNameWidth,
   buttonWidth,
+  status,
+  onStatusChange,
 }) => {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -72,14 +75,21 @@ const ProductCard = ({
           </View>
         </View>
       </View>
-      <TouchableOpacity
-        style={[styles.buttonContainer, buttonStyle]}
-        onPress={() => navigation.navigate("FriendRequestPage",{name: postTitle,requestId: id})}
-      >
-        <View style={[styles.button, { backgroundColor: theme.accent }]}>
-          <Text style={styles.buttonText}>{viewWidth<=468?"View":"View Request"}</Text>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.rightCol}>
+        {(status || "pending") === "pending" && (
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate("FriendRequestPage",{name: postTitle,requestId: id})}
+          >
+            <View style={[styles.button, { backgroundColor: theme.accent }]}>
+              <Text style={styles.buttonText}>View Request</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        {onStatusChange && (status || "pending") !== "pending" && (
+          <StatusMenu current={status} onSelect={(s) => onStatusChange(id, s)} />
+        )}
+      </View>
     </View>
   );
 };
@@ -87,7 +97,8 @@ const ProductCard = ({
 const styles = StyleSheet.create({
   card: {
     width: 390,
-    height: 96,
+    minHeight: 96,
+    paddingVertical: 14,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -129,16 +140,28 @@ const styles = StyleSheet.create({
     color: Color.colorLightgray,
     fontFamily: FontFamily.beVietnamProRegular,
   },
+  rightCol: {
+    width: 132,
+    alignItems: "stretch",
+    justifyContent: "center",
+    gap: 8,
+    flexShrink: 0,
+  },
+  actionBtn: {
+    height: 34,
+    width: "100%",
+  },
   buttonContainer: {
     height: 32,
     width: "auto",
   },
   button: {
     backgroundColor: Color.colorDarkslategray_200,
-    borderRadius: Border.br_base,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+    height: 34,
+    width: "100%",
     paddingHorizontal: Padding.p_base,
   },
   buttonText: {

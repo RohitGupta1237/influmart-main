@@ -12,12 +12,12 @@ const Depth1Frame13 = ({ active }) => {
 
   // Theme-aware pill + icon/label colours.
   const uiColor = theme.isDark ? "#D0D5DD" : "#475467";
-  const activeColor = "#ec4899";
   const pillStyle = {
     backgroundColor: theme.isDark ? "rgba(30,30,34,0.92)" : "rgba(255,255,255,0.90)",
     borderColor: theme.isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)",
   };
-  const labelColor = (key) => (activeTab === key ? activeColor : theme.subText);
+  // No active-tab highlight — every label uses the same neutral colour.
+  const labelColor = () => theme.subText;
 
   const [activeTab, setActiveTab] = React.useState(active)
 

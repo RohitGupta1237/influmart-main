@@ -14,6 +14,7 @@ import { useTheme } from "../../util/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import ImageWithFallback from "../../util/ImageWithFallback";
+import ThemeToggle from "../../shared/ThemeToggle";
 
 // Desktop-only top navigation (mirrors the mobile floating bottom bar routes).
 const NAV_ITEMS = [
@@ -31,31 +32,24 @@ const ProfileTopNav = ({ navigation, theme, isDark, toggleTheme, avatar, isSelec
       <View style={styles.topNavInner}>
         {/* Left: brand */}
         <View style={styles.navLeft}>
-          <Text style={styles.brandPink}>Influmart</Text>
+          <Text style={[styles.brandPink, { color: theme.text }]}>Influmart</Text>
         </View>
 
         {/* Center: nav links */}
         <View style={styles.navCenter}>
-          {NAV_ITEMS.map((it) => {
-            const on = it.key === active;
-            return (
-              <TouchableOpacity
-                key={it.key}
-                style={styles.topNavItem}
-                onPress={() => navigation.navigate(it.route, it.key === "network" ? { navigation } : undefined)}
-              >
-                <Text style={[styles.topNavLabel, { color: on ? "#ec4899" : theme.text }]}>{it.label}</Text>
-                {on && <View style={styles.navActiveBar} />}
-              </TouchableOpacity>
-            );
-          })}
+          {NAV_ITEMS.map((it) => (
+            <TouchableOpacity
+              key={it.key}
+              style={styles.topNavItem}
+              onPress={() => navigation.navigate(it.route, it.key === "network" ? { navigation } : undefined)}
+            >
+              <Text style={[styles.topNavLabel, { color: theme.subText }]}>{it.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Right: theme toggle + account avatar */}
         <View style={styles.navRight}>
-          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
-            <Ionicons name={isDark ? "sunny" : "moon"} size={18} color={theme.text} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Analytics")}>
             <LinearGradient colors={["#ec4899", "#7c3aed"]} style={styles.navAvatarRing}>
               <View style={[styles.navAvatarInner, { backgroundColor: theme.headerBg }]}>
@@ -86,7 +80,8 @@ import NavTab from "./NavTab";
 import VerifySocialModal from "./VerifySocialModal";
 import ProfileAnalytics from "./ProfileAnalytics";
 import { formatNumber } from "../../helpers/GraphData";
-import { getAllRequests } from "../../controller/connectionsController";
+import { getAllRequests, updateRequestStatus } from "../../controller/connectionsController";
+import { StatusTabs, statusLabel } from "../../shared/CollabStatus";
 import ProductCard from "./ProductCard";
 
 // Average across the real months (ignore zero/empty months). Matches the
@@ -140,7 +135,26 @@ const UserProfile = ({ navigation }) => {
   const [instaData, setInstaData] = React.useState(null);
   const [ytData, setYtData] = React.useState(null);
   const [requests, setRequests] = React.useState([]);
+  const [statusFilter, setStatusFilter] = React.useState("pending");
   const isFocused = useIsFocused();
+
+  // Counts per pipeline status for the tab badges.
+  const statusCounts = React.useMemo(() => {
+    const c = {};
+    (requests || []).forEach((r) => { const k = r.status || "pending"; c[k] = (c[k] || 0) + 1; });
+    return c;
+  }, [requests]);
+  const visibleRequests = React.useMemo(
+    () => (requests || []).filter((r) => (r.status || "pending") === statusFilter),
+    [requests, statusFilter]
+  );
+
+  // Move a request to a new status, then refresh the board.
+  const handleStatusChange = async (requestId, status) => {
+    setRequests((prev) => prev.map((r) => (r.requestId === requestId ? { ...r, status } : r)));
+    await updateRequestStatus(requestId, status, showAlert);
+    if (influencerId) getAllRequests(influencerId, setRequests, showAlert);
+  };
   const[loading,setLoading]=React.useState(false)
   const [verifyModal, setVerifyModal] = React.useState({ visible: false, platform: null });
   React.useEffect(() => {
@@ -394,14 +408,15 @@ const UserProfile = ({ navigation }) => {
           Collaboration Requests{requests && requests.length > 0 ? ` (${requests.length > 100 ? "100+" : requests.length})` : ""}
         </Text>
       </View>
-      {requests && requests.length > 0 ? (
+      <StatusTabs active={statusFilter} onChange={setStatusFilter} counts={statusCounts} />
+      {visibleRequests.length > 0 ? (
         <ScrollView
           style={{ flexGrow: 0, maxHeight: isDesktop ? 460 : 320, paddingHorizontal: Padding.p_base }}
           contentContainerStyle={{ flexGrow: 0 }}
           nestedScrollEnabled={true}
           showsVerticalScrollIndicator={false}
         >
-          {requests?.map((item, index) => (
+          {visibleRequests.map((item, index) => (
             <ProductCard
               key={index}
               imageSource={item?.imageSource}
@@ -410,6 +425,8 @@ const UserProfile = ({ navigation }) => {
               isSelectedImage={item?.isSelectedImage}
               productName={item?.productName}
               id={item?.requestId}
+              status={item?.status}
+              onStatusChange={handleStatusChange}
               cardWidth="100%"
               postTitleWidth="auto"
               postDateWidth="auto"
@@ -420,7 +437,7 @@ const UserProfile = ({ navigation }) => {
         </ScrollView>
       ) : (
         <View style={{ width: "100%", padding: Padding.p_base }}>
-          <Text style={{ color: theme.subText }}>No request found.</Text>
+          <Text style={{ color: theme.subText }}>No {statusLabel(statusFilter).toLowerCase()} requests.</Text>
         </View>
       )}
     </View>
@@ -449,18 +466,12 @@ const UserProfile = ({ navigation }) => {
         <ProfileTopNav navigation={navigation} theme={theme} isDark={isDark} toggleTheme={toggleTheme} avatar={influencer?.profileUrl} isSelectedImage={influencer?.isSelectedImage} />
       ) : (
         <Depth1Frame7
-          depth4Frame0={require("../../assets/depth-4-frame-010.png")}
           requestDetails="User Profile"
           depth3Frame0BackgroundColor={theme.headerBg}
           requestDetailsWidth="auto"
           depth4Frame0FontFamily="BeVietnamPro-Bold"
           depth4Frame0Color={theme.text}
           iconTintColor={theme.iconTint}
-          rightAccessory={
-            <TouchableOpacity onPress={toggleTheme} style={styles.headerToggle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={theme.text} />
-            </TouchableOpacity>
-          }
         />
       )}
       <ScrollView contentContainerStyle={{ paddingBottom: 100, alignItems: "center" }}>
@@ -494,6 +505,7 @@ const UserProfile = ({ navigation }) => {
         </View>
       </ScrollView>
       {!isDesktop && <Depth1Frame13 active={"list"}/>}
+      <ThemeToggle />
       <VerifySocialModal
         visible={verifyModal.visible}
         platform={verifyModal.platform}
@@ -530,17 +542,16 @@ const styles = StyleSheet.create({
   navRight: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 12 },
   brandPink: {
     fontSize: 22,
-    fontWeight: "800",
-    fontFamily: FontFamily.beVietnamProBold,
-    color: "#ec4899",
+    fontWeight: "700",
+    fontFamily: FontFamily.lexendBold,
+    letterSpacing: -0.4,
   },
   topNavItem: {
     alignItems: "center",
   },
   topNavLabel: {
-    fontSize: 15,
-    fontWeight: "700",
-    fontFamily: FontFamily.beVietnamProMedium,
+    fontSize: 14,
+    fontFamily: FontFamily.lexendMedium,
   },
   navActiveBar: {
     marginTop: 6,

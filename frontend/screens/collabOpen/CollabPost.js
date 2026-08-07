@@ -105,7 +105,7 @@ const CollabPost = ({ navigation }) => {
             />
             <TextInput
               style={styles.searchInput}
-              placeholder="Find"
+              placeholder="Search openings by brand or category"
               value={searchText}
               onChangeText={setSearchText} // Update search text on input change
             />
@@ -164,19 +164,20 @@ const CollabPost = ({ navigation }) => {
               >
                 <View style={[styles.postCard, closed && !isAppliedTab && styles.postCardClosed]}>
                   <View style={styles.postContent}>
-                    <View style={styles.postTitleRow}>
+                    {/* Status badge always on its own row above the title, so it
+                        sits in the same place whether or not a brand name exists. */}
+                    {isAppliedTab ? (
+                      <View style={[styles.underReviewBadge, { alignSelf: "flex-start", marginBottom: 6 }]}>
+                        <Text style={styles.underReviewBadgeText}>Under Review</Text>
+                      </View>
+                    ) : closed ? (
+                      <View style={[styles.closedBadge, { alignSelf: "flex-start", marginBottom: 6 }]}>
+                        <Text style={styles.closedBadgeText}>Closed</Text>
+                      </View>
+                    ) : null}
+                    {!!post.brandName && (
                       <Text style={[styles.postTitle, closed && !isAppliedTab && styles.postTitleClosed]}>{post.brandName}</Text>
-                      {closed && !isAppliedTab && (
-                        <View style={styles.closedBadge}>
-                          <Text style={styles.closedBadgeText}>Closed</Text>
-                        </View>
-                      )}
-                      {isAppliedTab && (
-                        <View style={styles.underReviewBadge}>
-                          <Text style={styles.underReviewBadgeText}>Under Review</Text>
-                        </View>
-                      )}
-                    </View>
+                    )}
                     <Text style={styles.postName}>{post.campaignType}</Text>
                     <Text style={styles.postDegree}>{`${post.numberOfInfluencers} Influencers needed`}</Text>
                   </View>

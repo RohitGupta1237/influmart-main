@@ -201,4 +201,48 @@ export const BrandProfileStyles = {
     color: "black",
     textAlign: "left",
   },
+
+  // ── Added: theming + responsive (dark/light, web + app) ──
+  mobileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 16,
+    paddingBottom: 12,
+    paddingHorizontal: Padding.p_base,
+    borderBottomWidth: 1,
+  },
+  gradBtn: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarRing: {
+    padding: 3,
+    borderRadius: 70,
+    alignSelf: "center",
+  },
+  avatarInner: {
+    padding: 3,
+    borderRadius: 67,
+  },
+  // Desktop top nav
+  topNav: { width: "100%", borderBottomWidth: 1, paddingVertical: 14, paddingHorizontal: 24 },
+  topNavInner: { width: "100%", maxWidth: 1400, alignSelf: "center", flexDirection: "row", alignItems: "center" },
+  brandPink: { flex: 1, fontSize: 22, fontWeight: "700", fontFamily: FontFamily.lexendBold, letterSpacing: -0.4 },
+  navCenter: { flexDirection: "row", alignItems: "center", gap: 34 },
+  navRight: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 12 },
+  topNavItem: { alignItems: "center" },
+  topNavLabel: { fontSize: 14, fontFamily: FontFamily.lexendMedium },
+  navActiveBar: { marginTop: 6, height: 3, width: "100%", borderRadius: 2, backgroundColor: "#ec4899" },
+  navToggle: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
+  navAvatarRing: { width: 40, height: 40, borderRadius: 20, padding: 2, alignItems: "center", justifyContent: "center" },
+  navAvatarInner: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  navAvatarImg: { width: 36, height: 36, borderRadius: 18 },
+  // Desktop two-column
+  desktopRow: { flexDirection: "row", alignItems: "stretch", width: "100%" },
+  desktopLeft: { width: 340, flexShrink: 0, borderRightWidth: 1, minHeight: 640 },
+  desktopRight: { flex: 1, paddingHorizontal: 28, paddingTop: 20 },
 };

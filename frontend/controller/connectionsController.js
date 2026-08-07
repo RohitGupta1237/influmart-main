@@ -49,6 +49,7 @@ const getAllRequests = async (userId, setRequests, showAlert) => {
         postDate: new Date(item?.requestedAt)?.toLocaleDateString(),
         productName: JSON.parse(item?.sender?.category)?.slice(0, 2)?.join(", "),
         requestId: item?._id,
+        status: item?.status || "pending",
       }));
       setRequests(formatData);
     }
@@ -101,6 +102,23 @@ const rejectRequest = async (requestId, showAlert) => {
   } catch (error) {
     console.log(error);
     showAlert("Error", "Something went wrong");
+  }
+};
+
+// Move a connection request to a pipeline status (influencer's board).
+const updateRequestStatus = async (requestId, status, showAlert) => {
+  const token = await AsyncStorage.getItem('token');
+  try {
+    const response = await axios.patch(
+      `${API_ENDPOINT}/connection/request-status`,
+      { requestId, status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.log(error);
+    if (showAlert) showAlert("Error", "Could not update status");
+    return false;
   }
 };
 
@@ -248,4 +266,4 @@ const findOrCreateConversation = async (userId, receiverId, userType) => {
   }
 };
 
-export { sendRequest, getAllRequests, acceptRequest, rejectRequest, closeChat, sendMessage, getAllConversations, getMessages, searchUsers, findOrCreateConversation };
+export { sendRequest, getAllRequests, acceptRequest, rejectRequest, updateRequestStatus, closeChat, sendMessage, getAllConversations, getMessages, searchUsers, findOrCreateConversation };

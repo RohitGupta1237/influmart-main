@@ -5,7 +5,8 @@ const CollabOpenRequestSchema = new mongoose.Schema({
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' },
   collabOpeningId: { type: mongoose.Schema.Types.ObjectId, ref: 'CollabOpening', default: null },
   requestedAt: { type: Date, default: Date.now },
-  status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
+  // Pipeline status managed by the receiver (brand) — Jira-style board.
+  status: { type: String, enum: ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected'], default: 'pending' }
 });
 
 module.exports = mongoose.model('CollabOpenRequest', CollabOpenRequestSchema);

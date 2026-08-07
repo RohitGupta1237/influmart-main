@@ -41,12 +41,14 @@ const Depth1Frame7 = ({
     <View style={[styles.depth1Frame0, depth1Frame0Style]}>
       <View style={styles.depth2Frame0}>
         <View style={[styles.depth3Frame0, styles.depth3FrameLayout]}>
-          <Image
-            style={styles.depth4Frame0}
-            contentFit="contain"
-            tintColor={iconTintColor}
-            source={depth4Frame0}
-          />
+          {depth4Frame0 ? (
+            <Image
+              style={styles.depth4Frame0}
+              contentFit="contain"
+              tintColor={iconTintColor}
+              source={depth4Frame0}
+            />
+          ) : null}
         </View>
         <View style={styles.depth3Frame1}>
           <View style={[styles.depth4Frame01, depth4Frame0Style]}>
