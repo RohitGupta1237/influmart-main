@@ -244,11 +244,19 @@ const Homepage = ({ route, navigation }) => {
           {/* ── TOP ACCOUNTS ── */}
           <View style={styles.section}>
             <SectionHeader title="Top Accounts" theme={theme} />
-            <View style={styles.accountGrid}>
-              {topAccounts && topAccounts.map((account, index) => (
-                <AccountCard account={account} key={index} />
-              ))}
-            </View>
+            {isDesktop ? (
+              <View style={styles.accountGrid}>
+                {topAccounts && topAccounts.map((account, index) => (
+                  <AccountCard account={account} key={index} />
+                ))}
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.accountRow}>
+                {topAccounts && topAccounts.map((account, index) => (
+                  <AccountCard account={account} key={index} />
+                ))}
+              </ScrollView>
+            )}
           </View>
 
           {/* ── TESTIMONIALS ── */}
@@ -1532,6 +1540,13 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 1180,
     alignSelf: "center",
+  },
+  // Mobile: single neat horizontal scroll row (no orphaned card / empty gaps).
+  accountRow: {
+    flexDirection: "row",
+    gap: 14,
+    paddingHorizontal: 16,
+    paddingRight: 24,
   },
   serveBadge: {
     color: "rgba(255,255,255,0.7)",
