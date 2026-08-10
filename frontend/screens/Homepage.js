@@ -72,9 +72,9 @@ const Homepage = ({ route, navigation }) => {
   ]
 
   const stats = [
-    { prefix: "", value: 10, suffix: "K+", label: "Creators" },
-    { prefix: "", value: 500, suffix: "+", label: "Brands" },
-    { prefix: "₹", value: 1, suffix: "Cr+", label: "Paid Out" },
+    { prefix: "", value: 10, suffix: "K", label: "Creator spots" },
+    { prefix: "", value: 500, suffix: "", label: "Founding brands" },
+    { prefix: "₹", value: 0, suffix: "", label: "Commission, ever" },
   ]
 
   // Alternating feature showcase (Influencity-style, mobile = stacked cards).
@@ -188,6 +188,7 @@ const Homepage = ({ route, navigation }) => {
           )}
 
           {/* ── STATS STRIP (animated count-up) ── */}
+          <Text style={styles.statsEyebrow}>✦ EARLY ACCESS — BE AMONG THE FIRST</Text>
           <View style={[styles.statsStrip, { backgroundColor: theme.isDark ? '#12121c' : '#f4f5fb' }]}>
             {stats.map((s, i) => (
               <React.Fragment key={i}>
@@ -819,6 +820,16 @@ const styles = StyleSheet.create({
   },
 
   // STATS
+  statsEyebrow: {
+    color: PINK,
+    fontSize: 11,
+    fontFamily: FontFamily.lexendBold,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+    textAlign: "center",
+    alignSelf: "center",
+    marginBottom: 10,
+  },
   statsStrip: {
     flexDirection: "row",
     alignItems: "center",
