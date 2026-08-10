@@ -1,6 +1,7 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import { Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -112,6 +113,25 @@ const App = () => {
 
   React.useEffect(() => {
     checkTokenValidity();
+  }, []);
+
+  // Belt-and-suspenders for web: some browsers (notably Chrome) don't reliably
+  // pick up the Ionicons family that expo-font's useFonts registers, so icons
+  // render blank. Inject an explicit @font-face pointing at the self-hosted
+  // font file. Native ignores this (no `document`).
+  React.useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+    try {
+      const { Asset } = require("expo-asset");
+      const uri = Asset.fromModule(require("./assets/fonts/Ionicons.ttf")).uri;
+      if (uri && !document.getElementById("ionicons-face")) {
+        const style = document.createElement("style");
+        style.id = "ionicons-face";
+        style.textContent =
+          `@font-face{font-family:'Ionicons';src:url("${uri}") format("truetype");font-display:block;font-weight:normal;font-style:normal;}`;
+        document.head.appendChild(style);
+      }
+    } catch (e) { /* no-op */ }
   }, []);
 
   const checkTokenValidity = async () => {
