@@ -108,7 +108,7 @@ const App = () => {
     // "/node_modules/", a path Vercel/CDNs block → the font 404'd and every icon
     // rendered as a tofu box in prod (while project fonts loaded fine). Serving
     // it from assets/fonts avoids that path entirely. Native is unaffected.
-    "Ionicons": require("./assets/fonts/Ionicons.ttf"),
+    "Ionicons": require("./assets/fonts/IoniconsApp.ttf"),
   });
 
   React.useEffect(() => {
@@ -123,7 +123,7 @@ const App = () => {
     if (Platform.OS !== "web" || typeof document === "undefined") return;
     try {
       const { Asset } = require("expo-asset");
-      const uri = Asset.fromModule(require("./assets/fonts/Ionicons.ttf")).uri;
+      const uri = Asset.fromModule(require("./assets/fonts/IoniconsApp.ttf")).uri;
       if (uri && !document.getElementById("ionicons-face")) {
         const style = document.createElement("style");
         style.id = "ionicons-face";
