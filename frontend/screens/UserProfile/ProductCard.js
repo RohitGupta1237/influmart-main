@@ -63,15 +63,15 @@ const ProductCard = ({
     }}>
       <View style={styles.cardContent}>
         <ImageWithFallback image={imageSource} imageStyle={styles.image} isSelectedImage={isSelectedImage} />
-        <View style={{width:viewWidth<=468?"60%":"100%"}}>
-          <View style={[styles.textContainer, postTitleStyle]}>
-            <Text style={[styles.postTitle, { color: theme.text }]}>{postTitle}</Text>
+        <View style={styles.cardText}>
+          <View style={styles.textContainer}>
+            <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>{postTitle}</Text>
           </View>
-          <View style={[styles.textContainer, postDateStyle]}>
-            <Text style={[styles.postDate, { color: theme.subText }]}>Date: {postDate}</Text>
+          <View style={styles.textContainer}>
+            <Text style={[styles.postDate, { color: theme.subText }]} numberOfLines={1}>Date: {postDate}</Text>
           </View>
-          <View style={[styles.textContainer, productNameStyle]}>
-            <Text style={[styles.productName, { color: theme.subText }]}>Product: {productName}</Text>
+          <View style={styles.textContainer}>
+            <Text style={[styles.productName, { color: theme.subText }]} numberOfLines={1}>Product: {productName}</Text>
           </View>
         </View>
       </View>
@@ -96,9 +96,8 @@ const ProductCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    width: 390,
+    width: "100%",
     minHeight: 96,
-    paddingVertical: 14,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -109,8 +108,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardContent: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
+  },
+  cardText: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 12,
   },
   image: {
     borderRadius: Border.br_5xs,
@@ -119,7 +125,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   textContainer: {
-    marginLeft: 16,
+    marginLeft: 0,
   },
   postTitle: {
     fontSize: FontSize.size_base,
