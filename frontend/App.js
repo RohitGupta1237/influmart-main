@@ -22,6 +22,7 @@ import Analytics from "./screens/Analytics/Analytics";
 import InfluencersList from "./screens/InfluencerList/InfluencersList";
 import InboxInterface from "./screens/inbox/InboxInterface";
 import ChatInterface from "./screens/chat/ChatInterface";
+import InfluencerDashboard from "./screens/Dashboard/InfluencerDashboard";
 import InfluencerRegistrationForm from "./screens/Influencer/InfluencerRegistrationForm";
 import PlanChooseInterface from "./screens/Influencer/PlanChooseInterface";
 import LoginPageBrand from "./screens/login/LoginPageBrands";
@@ -418,6 +419,11 @@ const App = () => {
                 <Stack.Screen
                   name="UserProfile"
                   component={UserProfile}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="InfluencerDashboard"
+                  component={InfluencerDashboard}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

@@ -7,7 +7,7 @@ const RequestSchema = new mongoose.Schema({
   // Pipeline status managed by the receiver (influencer) — Jira-style board.
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected'],
+    enum: ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected', 'closed'],
     default: 'pending',
   },
 });

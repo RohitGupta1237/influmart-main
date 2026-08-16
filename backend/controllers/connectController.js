@@ -25,6 +25,7 @@ const allRequests = async (req, res) => {
   const { userId } = req.params;
   const user = await InfluencerSignupRequest.findById(userId).populate({
     path: "notifications",
+    match: { status: { $ne: "closed" } }, // closed tickets drop off the board
     populate: {
       path: "sender",
       model: "Brand",
@@ -35,7 +36,7 @@ const allRequests = async (req, res) => {
 };
 
 // Move a connection request through the status pipeline (Jira-style board).
-const PIPELINE = ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected'];
+const PIPELINE = ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected', 'closed'];
 const updateRequestStatus = async (req, res) => {
   try {
     const { requestId, status } = req.body;
@@ -165,6 +166,13 @@ const sendMessage = async (req, res) => {
       conversation = await Conversation.create({
         participants: [senderId, receiverId],
       });
+    }
+    // Chat is closed (campaign complete) — block new messages until a new deal
+    // reopens it. System notes from the deal flow bypass this (posted directly).
+    if (conversation.closed) {
+      return res
+        .status(403)
+        .json({ message: "This chat is closed. Start a new deal to reopen it." });
     }
     const message = new Message({ sender: senderId, receiver: receiverId, content });
     if (message) {

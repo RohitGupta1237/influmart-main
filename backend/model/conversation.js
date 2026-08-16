@@ -14,6 +14,11 @@ const conversationSchema = new mongoose.Schema(
         default: [],
       },
     ],
+    // Chat close flow. When closed, neither side can message until a new deal
+    // is proposed (which reopens it). closeRequestBy holds the side ('influencer'
+    // /'brand') that requested close, pending the other side's accept/decline.
+    closed: { type: Boolean, default: false },
+    closeRequestBy: { type: String, enum: ["influencer", "brand", null], default: null },
   },
   { timestamps: true }
 );

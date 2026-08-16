@@ -49,6 +49,7 @@ const Message = require("./model/Message");
 const collabOpenRoutes = require("./routes/collabOpenRoutes");
 const socialVerificationRoutes = require("./routes/socialVerificationRoutes");
 const couponRoutes = require("./routes/couponRoutes");
+const dealRoutes = require("./routes/dealRoutes");
 
 app.use((req, res, next) => {
     req.io = io;
@@ -78,6 +79,8 @@ app.use("/collab-open", collabOpenRoutes);
 app.use("/social-verification", socialVerificationRoutes);
 
 app.use("/coupons", couponRoutes);
+
+app.use("/deals", dealRoutes);
 
 // Mount the brand routes on a specific path
 app.use("/brands", brandRoutes);

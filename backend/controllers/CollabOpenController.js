@@ -105,7 +105,7 @@ const allCollabOpenRequests = async (req, res) => {
   const user = await Brand.findById(userId).populate({
     path: "notifications",
     // Return ALL statuses (not just pending) so the pipeline board can group them.
-    match: { status: { $ne: 'rejected' } },
+    match: { status: { $nin: ['rejected', 'closed'] } },
     populate: [
       {
         path: "sender",
@@ -192,7 +192,7 @@ const rejectCollabOpen = async (req, res) => {
 };
 
 // Move a collab-open request through the status pipeline (brand's board).
-const COLLAB_PIPELINE = ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected'];
+const COLLAB_PIPELINE = ['pending', 'accepted', 'negotiation', 'in_campaign', 'brief_docs', 'rejected', 'closed'];
 const updateCollabOpenStatus = async (req, res) => {
   try {
     const { requestId, status } = req.body;

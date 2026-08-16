@@ -13,7 +13,7 @@ const PURPLE = "#7c3aed";
 const toTitleCase = (str) =>
   str ? str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : str;
 
-const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollowers, ytFollowers, fbFollowers, isDesktop }) => {
+const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollowers, ytFollowers, fbFollowers, isDesktop, showDashboard }) => {
   const navigation = useNavigation();
   const { theme } = useTheme();
 
@@ -72,12 +72,24 @@ const Depth1Frame17 = ({ image, username, category, isSelectedImage, instaFollow
         ))}
       </View>
 
-      {/* Message button — pink→purple gradient CTA (matches homepage). */}
-      <TouchableOpacity onPress={() => navigation.navigate('InboxInterface')} activeOpacity={0.85} style={styles.messageBtnWrap}>
-        <LinearGradient colors={[PINK, PURPLE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.messageBtn}>
-          <Text style={styles.messageText}>Message</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* CTA row: Message + (owner-only) Dashboard. */}
+      <View style={styles.ctaRow}>
+        <TouchableOpacity onPress={() => navigation.navigate('InboxInterface')} activeOpacity={0.85} style={[styles.messageBtnWrap, styles.ctaFlex]}>
+          <LinearGradient colors={[PINK, PURPLE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.messageBtn}>
+            <Text style={styles.messageText}>Message</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {showDashboard && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('InfluencerDashboard')}
+            activeOpacity={0.85}
+            style={[styles.dashboardBtn, styles.ctaFlex, { borderColor: theme.cardBorder, backgroundColor: theme.card }]}
+          >
+            <Text style={[styles.dashboardText, { color: theme.text }]}>Dashboard</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
     </View>
   );
@@ -214,6 +226,27 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 10,
     fontFamily: FontFamily.beVietnamProRegular,
+  },
+  ctaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    width: "100%",
+  },
+  ctaFlex: {
+    flex: 1,
+  },
+  dashboardBtn: {
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dashboardText: {
+    fontFamily: FontFamily.beVietnamProBold,
+    fontWeight: "700",
+    fontSize: FontSize.size_sm,
   },
   messageBtnWrap: {
     width: "100%",

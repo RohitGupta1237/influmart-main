@@ -12,7 +12,14 @@ export const COLLAB_STATUSES = [
   { key: "brief_docs", label: "Brief & Docs", icon: "document-text-outline" },
 ];
 
-export const statusLabel = (key) => COLLAB_STATUSES.find((s) => s.key === key)?.label || "Pending";
+// "Closed" ends a ticket and drops it off the board — a move target only,
+// never a board column/tab.
+export const CLOSED_STATUS = { key: "closed", label: "Closed", icon: "close-circle-outline" };
+
+export const statusLabel = (key) =>
+  key === "closed"
+    ? "Closed"
+    : COLLAB_STATUSES.find((s) => s.key === key)?.label || "Pending";
 
 // Horizontal status filter tabs with per-status counts.
 export const StatusTabs = ({ active, onChange, counts = {} }) => {
@@ -68,7 +75,9 @@ export const StatusMenu = ({ current = "pending", onSelect }) => {
           <Pressable style={[styles.sheet, { backgroundColor: theme.card, borderColor: theme.cardBorder }]} onPress={() => {}}>
             <Text style={[styles.sheetTitle, { color: theme.subText }]}>MOVE TO</Text>
             {/* 'Pending' is the pre-accept state — not a manual target you can move back to. */}
-            {COLLAB_STATUSES.filter((s) => s.key !== "pending").map((s) => {
+            {/* 'Pending' is the pre-accept state — not a manual target. 'Closed'
+                ends the ticket and removes it from the board. */}
+            {[...COLLAB_STATUSES.filter((s) => s.key !== "pending"), CLOSED_STATUS].map((s) => {
               const on = s.key === current;
               return (
                 <TouchableOpacity

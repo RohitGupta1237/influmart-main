@@ -398,6 +398,7 @@ const UserProfile = ({ navigation }) => {
       ytFollowers={influencer?.ytData?.overAll?.subscriberCount}
       fbFollowers={influencer?.fbData?.[influencer.fbData.length - 1]?.followers}
       isDesktop={isDesktop}
+      showDashboard
     />
   ) : null;
 

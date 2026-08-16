@@ -5,6 +5,8 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  TextInput,
 } from "react-native";
 import Depth1Frame7 from "../../components/Depth1Frame7";
 import MessageInput from "./components/MessageInput";
@@ -12,6 +14,17 @@ import {
   getMessages,
   sendMessage,
 } from "../../controller/connectionsController";
+import {
+  proposeDeal,
+  sealDeal,
+  declineDeal,
+  getConversationDeal,
+  getChatState,
+  sendPaymentPending,
+  requestCloseChat,
+  acceptCloseChat,
+  declineCloseChat,
+} from "../../controller/dealController";
 import { chatStyles } from "./ChatStyles.scss";
 import { useSocketContext } from "../../util/SocketContext";
 import { Image } from "expo-image";
@@ -61,14 +74,131 @@ const ChatInterface = ({ route, navigation }) => {
   const scrollView = useRef();
   const { showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
+
+  // ── Deal (price lock / seal) state ────────────────────────────────────────
+  const [deal, setDeal] = useState(null);
+  const [priceModal, setPriceModal] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
+  const amIInfluencer = userType === "influencer";
+  const influencerId = amIInfluencer ? userId : receiverId;
+  const brandId = amIInfluencer ? receiverId : userId;
+  const amIProposer = deal && userType === deal.proposedBy;
+  // Only the brand can start / reopen a deal; the influencer accepts or declines.
+  const canStartDeal = !amIInfluencer;
+
+  // ── Chat close / payment state ────────────────────────────────────────────
+  const [chat, setChat] = useState({ closed: false, closeRequestBy: null });
+  const amICloseRequester = chat.closeRequestBy && chat.closeRequestBy === userType;
+  const otherRequestedClose = chat.closeRequestBy && chat.closeRequestBy !== userType;
+
+  const refreshDeal = async () => {
+    if (!conversationId) return;
+    const d = await getConversationDeal(conversationId);
+    setDeal(d);
+  };
+
+  const refreshChat = async () => {
+    if (!conversationId) return;
+    const s = await getChatState(conversationId);
+    setChat(s);
+  };
+
+  const reloadThread = async () => {
+    await getMessages(conversationId, userId, userType, setMessages);
+    await refreshChat();
+  };
+
   useEffect(() => {
     const getdata = async () => {
       await getMessages(conversationId, userId, userType, setMessages);
+      await refreshDeal();
+      await refreshChat();
       setLoading(false);
     };
     setLoading(true);
     getdata();
   }, [conversationId]);
+
+  const handlePaymentPending = async () => {
+    const ok = await sendPaymentPending(
+      conversationId,
+      { senderId: userId, receiverId },
+      showAlert
+    );
+    if (ok) await reloadThread();
+  };
+
+  const handleRequestClose = async () => {
+    const r = await requestCloseChat(
+      conversationId,
+      { requestedBy: userType, senderId: userId, receiverId },
+      showAlert
+    );
+    if (r) await reloadThread();
+  };
+
+  const handleAcceptClose = async () => {
+    const r = await acceptCloseChat(
+      conversationId,
+      { userType, senderId: userId, receiverId },
+      showAlert
+    );
+    if (r) await reloadThread();
+  };
+
+  const handleDeclineClose = async () => {
+    const r = await declineCloseChat(
+      conversationId,
+      { senderId: userId, receiverId },
+      showAlert
+    );
+    if (r) await reloadThread();
+  };
+
+  const handleLockPrice = async () => {
+    const amount = Number(priceInput);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      showAlert("Error", "Enter a valid price");
+      return;
+    }
+    const d = await proposeDeal(
+      {
+        influencerId,
+        brandId,
+        conversationId,
+        price: amount,
+        proposedBy: userType,
+        senderId: userId,
+        receiverId,
+      },
+      showAlert
+    );
+    if (d) {
+      setDeal(d);
+      setPriceModal(false);
+      setPriceInput("");
+      await reloadThread(); // a new deal reopens a closed chat
+    }
+  };
+
+  const handleSealDeal = async () => {
+    if (!deal?._id) return;
+    const d = await sealDeal(deal._id, { userType, senderId: userId, receiverId }, showAlert);
+    if (d) {
+      setDeal(d);
+      await reloadThread();
+    }
+  };
+
+  const handleDeclineDeal = async () => {
+    if (!deal?._id) return;
+    const d = await declineDeal(deal._id, { senderId: userId, receiverId }, showAlert);
+    // Declined → clear the banner (getConversationDeal ignores declined).
+    if (d) {
+      setDeal(null);
+      await reloadThread();
+    }
+  };
 
   const localIdRef = useRef(0);
 
@@ -116,6 +246,146 @@ const ChatInterface = ({ route, navigation }) => {
           depth4Frame0Color="#000"
         />
       </TouchableOpacity>
+
+      {/* ── Deal bar: lock price / accept & seal / close chat / payment ── */}
+      <View style={styles.dealBar}>
+        {chat.closed ? (
+          <View style={styles.dealRow}>
+            <Text style={styles.dealClosedText} numberOfLines={1}>
+              🔒 Chat closed — start a new deal to reopen
+            </Text>
+            {canStartDeal && (
+              <TouchableOpacity style={styles.dealSealBtn} onPress={() => setPriceModal(true)}>
+                <Text style={styles.dealSealText}>New Deal</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <>
+            {!deal && (
+              <TouchableOpacity style={styles.dealPrimaryBtn} onPress={() => setPriceModal(true)}>
+                <Text style={styles.dealPrimaryText}>🤝  Seal a Deal</Text>
+              </TouchableOpacity>
+            )}
+
+            {deal?.status === "proposed" && amIProposer && (
+              <View style={styles.dealRow}>
+                <Text style={styles.dealPendingText} numberOfLines={1}>
+                  ₹{deal.price} locked · waiting for {name || "the other party"} to accept
+                </Text>
+                <TouchableOpacity style={styles.dealGhostBtn} onPress={handleDeclineDeal}>
+                  <Text style={styles.dealGhostText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {deal?.status === "proposed" && !amIProposer && (
+              <View style={styles.dealRow}>
+                <Text style={styles.dealPendingText} numberOfLines={1}>
+                  ₹{deal.price} proposed
+                </Text>
+                <View style={styles.dealActions}>
+                  <TouchableOpacity style={styles.dealGhostBtn} onPress={handleDeclineDeal}>
+                    <Text style={styles.dealGhostText}>Decline</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.dealSealBtn} onPress={handleSealDeal}>
+                    <Text style={styles.dealSealText}>Accept & Seal</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {deal?.status === "sealed" && (
+              <View style={styles.dealRow}>
+                <Text style={styles.dealSealedText} numberOfLines={1}>
+                  ✓ Deal sealed · ₹{deal.price}
+                </Text>
+                {canStartDeal && (
+                  <TouchableOpacity style={styles.dealGhostBtn} onPress={() => setPriceModal(true)}>
+                    <Text style={styles.dealGhostText}>New deal</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            {/* Close request states */}
+            {amICloseRequester && (
+              <View style={styles.chatActionRow}>
+                <Text style={styles.dealPendingText} numberOfLines={1}>
+                  Close requested · waiting for {name || "the other party"} to accept
+                </Text>
+                <TouchableOpacity style={styles.dealGhostBtn} onPress={handleDeclineClose}>
+                  <Text style={styles.dealGhostText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {otherRequestedClose && (
+              <View style={styles.chatActionRow}>
+                <Text style={styles.dealPendingText} numberOfLines={1}>
+                  {name || "The other party"} wants to close this chat
+                </Text>
+                <View style={styles.dealActions}>
+                  <TouchableOpacity style={styles.dealGhostBtn} onPress={handleDeclineClose}>
+                    <Text style={styles.dealGhostText}>Decline</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.dealSealBtn} onPress={handleAcceptClose}>
+                    <Text style={styles.dealSealText}>Accept Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Secondary actions — hidden while a close request is pending */}
+            {!chat.closeRequestBy && (
+              <View style={styles.chatLinksRow}>
+                {amIInfluencer && (
+                  <TouchableOpacity style={styles.linkBtn} onPress={handlePaymentPending}>
+                    <Text style={styles.linkText}>💰 Payment pending</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity style={styles.linkBtn} onPress={handleRequestClose}>
+                  <Text style={styles.linkText}>🔒 Close chat</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
+        )}
+      </View>
+
+      {/* Price-lock modal */}
+      <Modal visible={priceModal} transparent animationType="fade" onRequestClose={() => setPriceModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Lock the agreed price</Text>
+            <Text style={styles.modalBody}>
+              Enter the final amount you both agreed on. {name ? name : "The other party"} will
+              need to accept before the deal is sealed.
+            </Text>
+            <View style={styles.priceInputRow}>
+              <Text style={styles.rupee}>₹</Text>
+              <TextInput
+                style={styles.priceInput}
+                value={priceInput}
+                onChangeText={setPriceInput}
+                placeholder="0"
+                placeholderTextColor="#9aa1ad"
+                keyboardType="numeric"
+                autoFocus
+              />
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setPriceModal(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalConfirm} onPress={handleLockPrice}>
+                <Text style={styles.modalConfirmText}>Lock Price</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView
         ref={scrollView}
         contentContainerStyle={styles.scrollContentContainer}
@@ -151,7 +421,15 @@ const ChatInterface = ({ route, navigation }) => {
         </View>
       </ScrollView>
       <View style={styles.bottomBar}>
-        <MessageInput setNewMessage={handleSend} profileUrl={isNaN(image)==false?`${image}`:image} isSelectedImage={isSelectedImage} />
+        {chat.closed ? (
+          <View style={styles.lockedBar}>
+            <Text style={styles.lockedText}>
+              🔒 This chat is closed. Start a new deal to reopen it.
+            </Text>
+          </View>
+        ) : (
+          <MessageInput setNewMessage={handleSend} profileUrl={isNaN(image)==false?`${image}`:image} isSelectedImage={isSelectedImage} />
+        )}
       </View>
     </View>
   );
