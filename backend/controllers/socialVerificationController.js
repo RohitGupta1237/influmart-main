@@ -7,7 +7,7 @@ const MAX_MONTHS = 10; // keep the last 10 snapshots, same as the analytics cron
 // Where the OTP notifications go. Override with ADMIN_NOTIFY_EMAIL in .env.
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || "rohitgupta12371380@gmail.com";
 // The official Influmart handles the user DMs the OTP to.
-const INFLUMART_IG = process.env.INFLUMART_IG_HANDLE || "influmart";
+const INFLUMART_IG = process.env.INFLUMART_IG_HANDLE || "influmart_social";
 const INFLUMART_FB = process.env.INFLUMART_FB_HANDLE || "influmart";
 
 const SUPPORTED = ["instagram", "facebook"];

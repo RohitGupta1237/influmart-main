@@ -20,13 +20,18 @@ import Loader from "../../shared/Loader";
 import ImageWithFallback from "../../util/ImageWithFallback";
 
 // Sent messages — no avatar shown (WhatsApp style)
-const SenderMessage = ({ content, timeAgo }) => {
+const SenderMessage = ({ content, timeAgo, pending, failed, onRetry }) => {
+  const bubble = (
+    <View style={[styles.senderMessageContainer, pending && { opacity: 0.5 }, failed && { backgroundColor: "#C0392B" }]}>
+      <Text style={styles.senderMessage}>{content}</Text>
+      <Text style={styles.senderTimeAgo}>
+        {failed ? "Failed · Tap to retry" : pending ? "Sending…" : timeAgo}
+      </Text>
+    </View>
+  );
   return (
     <View style={styles.senderContainer}>
-      <View style={styles.senderMessageContainer}>
-        <Text style={styles.senderMessage}>{content}</Text>
-        <Text style={styles.senderTimeAgo}>{timeAgo}</Text>
-      </View>
+      {failed ? <TouchableOpacity activeOpacity={0.8} onPress={onRetry}>{bubble}</TouchableOpacity> : bubble}
     </View>
   );
 };
@@ -65,11 +70,35 @@ const ChatInterface = ({ route, navigation }) => {
     getdata();
   }, [conversationId]);
 
+  const localIdRef = useRef(0);
+
   const handleSend = async (message) => {
-    if (message.trim() != "") {
-      await sendMessage(userId, receiverId, message);
+    if (message.trim() === "") {
+      showAlert("Error", "Please provide proper message");
+      return;
+    }
+    // Optimistic: show the message instantly in a faded "Sending…" state.
+    const localId = ++localIdRef.current;
+    setMessages((prev) => [
+      ...prev,
+      { localId, sender: { name: "You" }, content: message, timeAgo: "Sending…", pending: true },
+    ]);
+    const ok = await sendMessage(userId, receiverId, message);
+    if (ok) {
+      // Delivered → refresh with the server list (replaces the optimistic one, un-faded).
       await getMessages(conversationId, userId, userType, setMessages);
-    } else showAlert("Error", "Please provide proper message");
+    } else {
+      // Failed → mark it red + tap-to-retry (keep it in place).
+      setMessages((prev) =>
+        prev.map((m) => (m.localId === localId ? { ...m, pending: false, failed: true } : m))
+      );
+    }
+  };
+
+  // Retry a failed message: drop the failed bubble and send it again.
+  const handleRetry = (content, localId) => {
+    setMessages((prev) => prev.filter((m) => m.localId !== localId));
+    handleSend(content);
   };
   return (
     <View style={styles.container}>
@@ -101,6 +130,9 @@ const ChatInterface = ({ route, navigation }) => {
                   name={message?.sender?.name}
                   content={message?.content}
                   timeAgo={message?.timeAgo}
+                  pending={message?.pending}
+                  failed={message?.failed}
+                  onRetry={() => handleRetry(message?.content, message?.localId)}
                   profileUrl={message?.sender?.profileUrl}
                   isSelectedImage={message?.sender?.isSelectedImage}
                 />

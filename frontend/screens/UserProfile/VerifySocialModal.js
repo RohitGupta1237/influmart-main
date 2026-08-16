@@ -21,7 +21,7 @@ const VerifySocialModal = ({ visible, platform, influencerId, onClose, showAlert
   const [username, setUsername] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [otp, setOtp] = React.useState("");
-  const [influmartHandle, setInflumartHandle] = React.useState("influmart");
+  const [influmartHandle, setInflumartHandle] = React.useState("influmart_social");
 
   // Reset whenever the modal is (re)opened for a platform.
   React.useEffect(() => {
@@ -43,7 +43,7 @@ const VerifySocialModal = ({ visible, platform, influencerId, onClose, showAlert
     try {
       const data = await requestSocialVerification(influencerId, platform, handle);
       setOtp(data.otp);
-      setInflumartHandle(data.influmartHandle || "influmart");
+      setInflumartHandle(data.influmartHandle || "influmart_social");
       setStep(2);
     } catch (err) {
       const msg = err?.response?.data?.message || "Could not create verification request";
