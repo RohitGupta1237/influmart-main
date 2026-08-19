@@ -136,6 +136,21 @@ export const declineCloseChat = async (conversationId, payload, showAlert) => {
   }
 };
 
+export const reopenChat = async (conversationId, payload, showAlert) => {
+  try {
+    const cfg = await authHeader();
+    const res = await axios.patch(
+      `${API_ENDPOINT}/deals/chat/${conversationId}/reopen`,
+      payload,
+      cfg
+    );
+    return res.data || null;
+  } catch (error) {
+    showAlert?.("Error", error?.response?.data?.message || "Could not reopen chat");
+    return null;
+  }
+};
+
 // All sealed deals for an influencer + total earnings (dashboard).
 export const getInfluencerDeals = async (influencerId) => {
   try {

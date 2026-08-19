@@ -50,6 +50,8 @@ const collabOpenRoutes = require("./routes/collabOpenRoutes");
 const socialVerificationRoutes = require("./routes/socialVerificationRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const dealRoutes = require("./routes/dealRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const trackRoutes = require("./routes/trackRoutes");
 
 app.use((req, res, next) => {
     req.io = io;
@@ -81,6 +83,10 @@ app.use("/social-verification", socialVerificationRoutes);
 app.use("/coupons", couponRoutes);
 
 app.use("/deals", dealRoutes);
+
+app.use("/admin", adminRoutes);
+
+app.use("/track", trackRoutes);
 
 // Mount the brand routes on a specific path
 app.use("/brands", brandRoutes);

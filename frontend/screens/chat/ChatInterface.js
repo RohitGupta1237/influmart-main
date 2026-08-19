@@ -24,7 +24,9 @@ import {
   requestCloseChat,
   acceptCloseChat,
   declineCloseChat,
+  reopenChat,
 } from "../../controller/dealController";
+import { track } from "../../util/analytics";
 import { chatStyles } from "./ChatStyles.scss";
 import { useSocketContext } from "../../util/SocketContext";
 import { Image } from "expo-image";
@@ -106,6 +108,7 @@ const ChatInterface = ({ route, navigation }) => {
   const reloadThread = async () => {
     await getMessages(conversationId, userId, userType, setMessages);
     await refreshChat();
+    await refreshDeal();
   };
 
   useEffect(() => {
@@ -155,6 +158,16 @@ const ChatInterface = ({ route, navigation }) => {
     if (r) await reloadThread();
   };
 
+  // Reopen a closed chat — just unlocks messaging; no deal is created.
+  const handleReopenChat = async () => {
+    const r = await reopenChat(
+      conversationId,
+      { senderId: userId, receiverId },
+      showAlert
+    );
+    if (r) await reloadThread();
+  };
+
   const handleLockPrice = async () => {
     const amount = Number(priceInput);
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -186,6 +199,7 @@ const ChatInterface = ({ route, navigation }) => {
     const d = await sealDeal(deal._id, { userType, senderId: userId, receiverId }, showAlert);
     if (d) {
       setDeal(d);
+      track("deal_sealed", { price: d.price });
       await reloadThread();
     }
   };
@@ -252,22 +266,18 @@ const ChatInterface = ({ route, navigation }) => {
         {chat.closed ? (
           <View style={styles.dealRow}>
             <Text style={styles.dealClosedText} numberOfLines={1}>
-              🔒 Chat closed — start a new deal to reopen
+              {canStartDeal
+                ? "🔒 Chat closed — reopen to message again"
+                : "🔒 Chat closed — the brand can reopen it"}
             </Text>
             {canStartDeal && (
-              <TouchableOpacity style={styles.dealSealBtn} onPress={() => setPriceModal(true)}>
-                <Text style={styles.dealSealText}>New Deal</Text>
+              <TouchableOpacity style={styles.dealSealBtn} onPress={handleReopenChat}>
+                <Text style={styles.dealSealText}>Reopen Chat</Text>
               </TouchableOpacity>
             )}
           </View>
         ) : (
           <>
-            {!deal && (
-              <TouchableOpacity style={styles.dealPrimaryBtn} onPress={() => setPriceModal(true)}>
-                <Text style={styles.dealPrimaryText}>🤝  Seal a Deal</Text>
-              </TouchableOpacity>
-            )}
-
             {deal?.status === "proposed" && amIProposer && (
               <View style={styles.dealRow}>
                 <Text style={styles.dealPendingText} numberOfLines={1}>
@@ -295,16 +305,17 @@ const ChatInterface = ({ route, navigation }) => {
               </View>
             )}
 
-            {deal?.status === "sealed" && (
+            {/* Nothing pending (no deal, or last one sealed) → can seal a (new) deal. */}
+            {deal?.status !== "proposed" && (
               <View style={styles.dealRow}>
-                <Text style={styles.dealSealedText} numberOfLines={1}>
-                  ✓ Deal sealed · ₹{deal.price}
-                </Text>
-                {canStartDeal && (
-                  <TouchableOpacity style={styles.dealGhostBtn} onPress={() => setPriceModal(true)}>
-                    <Text style={styles.dealGhostText}>New deal</Text>
-                  </TouchableOpacity>
+                {deal?.status === "sealed" && (
+                  <Text style={styles.dealSealedText} numberOfLines={1}>
+                    ✓ Last deal sealed · ₹{deal.price}
+                  </Text>
                 )}
+                <TouchableOpacity style={styles.dealPrimaryBtn} onPress={() => setPriceModal(true)}>
+                  <Text style={styles.dealPrimaryText}>🤝  Seal a Deal</Text>
+                </TouchableOpacity>
               </View>
             )}
 

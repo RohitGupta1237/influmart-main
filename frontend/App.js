@@ -116,6 +116,12 @@ const App = () => {
     checkTokenValidity();
   }, []);
 
+  // Product analytics (PostHog) — web only, no-op until a key is configured.
+  React.useEffect(() => {
+    const { initAnalytics } = require("./util/analytics");
+    initAnalytics();
+  }, []);
+
   // Belt-and-suspenders for web: some browsers (notably Chrome) don't reliably
   // pick up the Ionicons family that expo-font's useFonts registers, so icons
   // render blank. Inject an explicit @font-face pointing at the self-hosted
@@ -170,7 +176,21 @@ const App = () => {
         <ThemeProvider>
         <AlertProvider>
           <SocketContextProvider>
-            <NavigationContainer>
+            <NavigationContainer
+              onReady={() => {
+                const { trackVisit } = require("./util/analytics");
+                trackVisit("app_open");
+              }}
+              onStateChange={(state) => {
+                const getActiveRouteName = (s) => {
+                  if (!s || !s.routes) return "";
+                  const r = s.routes[s.index];
+                  return r.state ? getActiveRouteName(r.state) : r.name;
+                };
+                const { trackVisit } = require("./util/analytics");
+                trackVisit(getActiveRouteName(state));
+              }}
+            >
               <Stack.Navigator
                 initialRouteName={initialRoute}
                 screenOptions={{ headerShown: false }}

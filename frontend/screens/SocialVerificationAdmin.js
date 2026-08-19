@@ -18,6 +18,7 @@ import {
   rejectVerification,
 } from "../controller/socialVerificationController";
 import { getAllCoupons, setCoupon } from "../controller/couponController";
+import { getAdminMetrics } from "../controller/adminMetricsController";
 
 // Admin-only screen to moderate manual social-verification requests.
 // Gated by an admin secret (matches ADMIN_SECRET on the backend).
@@ -29,6 +30,16 @@ const SocialVerificationAdmin = () => {
   const [loading, setLoading] = React.useState(false);
   const [requests, setRequests] = React.useState([]);
   const [coupons, setCoupons] = React.useState([]);
+  const [metrics, setMetrics] = React.useState(null);
+  const [period, setPeriod] = React.useState("all");
+
+  // Refetch just the metrics when the period changes (once unlocked).
+  React.useEffect(() => {
+    if (!authed || !secret) return;
+    (async () => {
+      try { setMetrics(await getAdminMetrics(secret, period)); } catch (e) {}
+    })();
+  }, [period, authed]);
 
   React.useEffect(() => {
     (async () => {
@@ -48,6 +59,7 @@ const SocialVerificationAdmin = () => {
       setAuthed(true);
       await AsyncStorage.setItem("adminSecret", sec);
       try { setCoupons(await getAllCoupons(sec)); } catch (e) {}
+      try { setMetrics(await getAdminMetrics(sec, period)); } catch (e) {}
     } catch (err) {
       const msg = err?.response?.status === 401 ? "Wrong admin secret" : "Failed to load";
       showAlert("Error", msg);
@@ -112,6 +124,90 @@ const SocialVerificationAdmin = () => {
           <TouchableOpacity onPress={() => load(secret)} style={styles.refresh}>
             <Text style={styles.refreshText}>{loading ? "Refreshing..." : "↻ Refresh"}</Text>
           </TouchableOpacity>
+
+          {/* Business metrics */}
+          <Text style={styles.sectionTitle}>Overview</Text>
+          <Text style={styles.sectionHint}>
+            Live business numbers from the database. Web traffic (visitors, pageviews) lives on the
+            Vercel Analytics dashboard.
+          </Text>
+
+          {/* Period selector */}
+          <View style={styles.periodRow}>
+            {[
+              { key: "today", label: "Today" },
+              { key: "7d", label: "7 days" },
+              { key: "30d", label: "30 days" },
+              { key: "all", label: "All time" },
+            ].map((p) => (
+              <TouchableOpacity
+                key={p.key}
+                style={[styles.periodBtn, period === p.key && styles.periodBtnActive]}
+                onPress={() => setPeriod(p.key)}
+              >
+                <Text style={[styles.periodText, period === p.key && styles.periodTextActive]}>
+                  {p.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {metrics ? (
+            <>
+              {/* Website / app traffic (first-party) */}
+              <Text style={styles.subLabel}>Traffic</Text>
+              <View style={styles.statGrid}>
+                {[
+                  { label: "Unique visitors", value: metrics.traffic?.uniqueVisitors },
+                  { label: "Page/screen views", value: metrics.traffic?.pageViews },
+                  { label: "Web views", value: metrics.traffic?.webViews },
+                  { label: "App views", value: metrics.traffic?.appViews },
+                ].map((s) => (
+                  <View key={s.label} style={styles.statCard}>
+                    <Text style={styles.statValue}>{s.value ?? "—"}</Text>
+                    <Text style={styles.statLabel}>{s.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Scoped to the selected period */}
+              <Text style={styles.subLabel}>
+                {period === "all" ? "All time" : `New in ${period === "today" ? "today" : `last ${period}`}`}
+              </Text>
+              <View style={styles.statGrid}>
+                {[
+                  { label: period === "all" ? "Influencers" : "New influencers", value: metrics.window?.newInfluencers },
+                  { label: period === "all" ? "Brands" : "New brands", value: metrics.window?.newBrands },
+                  { label: period === "all" ? "Paid subscriptions" : "New paid subs", value: metrics.window?.newPaidSubscriptions },
+                  { label: "Deals sealed", value: metrics.window?.dealsSealed },
+                  { label: "GMV (₹ sealed)", value: `₹${Number(metrics.window?.gmv || 0).toLocaleString("en-IN")}` },
+                ].map((s) => (
+                  <View key={s.label} style={styles.statCard}>
+                    <Text style={styles.statValue}>{s.value ?? "—"}</Text>
+                    <Text style={styles.statLabel}>{s.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Always absolute (current totals) */}
+              <Text style={styles.subLabel}>Current totals</Text>
+              <View style={styles.statGrid}>
+                {[
+                  { label: "Total users", value: metrics.lifetime?.totalUsers },
+                  { label: "Active subscriptions", value: metrics.lifetime?.activeSubscriptions },
+                  { label: "Open applications", value: metrics.lifetime?.openApplications },
+                  { label: "Pending verifications", value: metrics.lifetime?.pendingVerifications },
+                ].map((s) => (
+                  <View key={s.label} style={styles.statCard}>
+                    <Text style={styles.statValue}>{s.value ?? "—"}</Text>
+                    <Text style={styles.statLabel}>{s.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.sectionHint}>Loading metrics…</Text>
+          )}
 
           {/* Coupons */}
           <Text style={styles.sectionTitle}>Discount Coupons</Text>
@@ -220,6 +316,60 @@ const styles = StyleSheet.create({
     marginTop: 8, marginBottom: 4,
   },
   sectionHint: { color: "#888", fontSize: 12, marginBottom: 12 },
+  periodRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 14,
+  },
+  periodBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#2a2a2e",
+    backgroundColor: "#1c1c1e",
+  },
+  periodBtnActive: { backgroundColor: "#1A80E5", borderColor: "#1A80E5" },
+  periodText: { color: "#9aa1ad", fontSize: 13, fontWeight: "600" },
+  periodTextActive: { color: "#fff" },
+  subLabel: {
+    color: "#9aa1ad",
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 8,
+    fontFamily: FontFamily.beVietnamProMedium,
+  },
+  statGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 20,
+  },
+  statCard: {
+    flexGrow: 1,
+    flexBasis: 150,
+    minWidth: 130,
+    backgroundColor: "#1c1c1e",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2a2a2e",
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+  },
+  statValue: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "700",
+    fontFamily: FontFamily.beVietnamProBold,
+  },
+  statLabel: {
+    color: "#9aa1ad",
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: FontFamily.beVietnamProRegular,
+  },
   couponRow: { flexDirection: "row", gap: 8, marginBottom: 24, flexWrap: "wrap" },
   couponBtn: {
     flex: 1, minWidth: 90, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 8,

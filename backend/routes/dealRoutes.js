@@ -11,6 +11,7 @@ const {
   requestClose,
   acceptClose,
   declineClose,
+  reopenChat,
 } = require("../controllers/dealController");
 
 router.post("/propose", proposeDeal);
@@ -25,5 +26,6 @@ router.post("/chat/:conversationId/payment-pending", paymentPending);
 router.post("/chat/:conversationId/request-close", requestClose);
 router.patch("/chat/:conversationId/accept-close", acceptClose);
 router.patch("/chat/:conversationId/decline-close", declineClose);
+router.patch("/chat/:conversationId/reopen", reopenChat);
 
 module.exports = router;

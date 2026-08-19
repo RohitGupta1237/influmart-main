@@ -29,7 +29,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.influmartsocial.app",
-      "versionCode": 33,
+      "versionCode": 34,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.INTERNET",

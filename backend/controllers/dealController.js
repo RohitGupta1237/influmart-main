@@ -319,6 +319,33 @@ const declineClose = async (req, res) => {
   }
 };
 
+// PATCH /deals/chat/:conversationId/reopen
+// body: { senderId, receiverId } — simply unlocks a closed chat so both sides
+// can message again. Does NOT create a deal; the brand seals a price separately.
+const reopenChat = async (req, res) => {
+  try {
+    const { senderId, receiverId } = req.body;
+    const c = await Conversation.findById(req.params.conversationId);
+    if (!c) return res.status(404).json({ message: "Conversation not found" });
+    if (!c.closed) {
+      return res.status(200).json({ message: "Chat already open", closed: false });
+    }
+    c.closed = false;
+    c.closeRequestBy = null;
+    await c.save();
+    await postSystemMessage(
+      c._id,
+      senderId,
+      receiverId,
+      "🔓 Chat reopened — you can message again."
+    );
+    return res.status(200).json({ message: "Chat reopened", closed: false });
+  } catch (error) {
+    console.error("[reopenChat]", error);
+    return res.status(500).json({ message: "Could not reopen chat" });
+  }
+};
+
 module.exports = {
   proposeDeal,
   sealDeal,
@@ -330,4 +357,5 @@ module.exports = {
   requestClose,
   acceptClose,
   declineClose,
+  reopenChat,
 };
