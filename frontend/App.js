@@ -10,7 +10,7 @@ import { AlertProvider } from "./util/AlertContext";
 import { ThemeProvider } from "./util/ThemeContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-// Import all your screens here
+// Import all your screens here ok
 import Homepage from "./screens/Homepage";
 import BrandorInfluencer from "./screens/BrandorInfluencer";
 import OtpVerification from "./screens/OtpVerification";
