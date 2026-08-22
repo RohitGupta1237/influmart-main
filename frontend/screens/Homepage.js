@@ -245,19 +245,18 @@ const Homepage = ({ route, navigation }) => {
           {/* ── TOP ACCOUNTS ── */}
           <View style={styles.section}>
             <SectionHeader title="Top Accounts" theme={theme} />
-            {isDesktop ? (
-              <View style={styles.accountGrid}>
-                {topAccounts && topAccounts.map((account, index) => (
-                  <AccountCard account={account} key={index} />
-                ))}
-              </View>
-            ) : (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.accountRow}>
-                {topAccounts && topAccounts.map((account, index) => (
-                  <AccountCard account={account} key={index} />
-                ))}
-              </ScrollView>
-            )}
+            {/* Continuous horizontal scroll. Bounded width so the row scrolls
+                inside itself instead of overflowing the page on desktop. */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.accountRow}
+              style={{ width: isDesktop ? Math.min(winWidth - 48, MAX_W) : "100%", alignSelf: "center" }}
+            >
+              {topAccounts && topAccounts.map((account, index) => (
+                <AccountCard account={account} key={index} />
+              ))}
+            </ScrollView>
           </View>
 
           {/* ── TESTIMONIALS ── */}

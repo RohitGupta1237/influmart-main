@@ -47,10 +47,19 @@ const ImageWithFallback = ({ image, imageStyle, isSelectedImage, fallback }) => 
     require("../assets/influencer10.jpg"),
   ];
 
-  const getFallback = () =>
-    fallback !== undefined
-      ? fallback
-      : fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+  // Deterministic fallback: the SAME input always maps to the SAME image, so
+  // it never changes on refresh. (Previously Math.random() picked a new image
+  // every render, making selected/placeholder avatars flicker each reload.)
+  const hashStr = (s) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h;
+  };
+  const getFallback = () => {
+    if (fallback !== undefined) return fallback;
+    const key = typeof image === "string" && image ? image : "default";
+    return fallbackImages[hashStr(key) % fallbackImages.length];
+  };
 
   // Resolve the correct source synchronously so we never briefly try to load an
   // avatar key (e.g. "avatar5") as a network URL, which caused a flaky race.

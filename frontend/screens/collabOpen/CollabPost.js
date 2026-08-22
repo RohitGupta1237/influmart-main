@@ -185,7 +185,7 @@ const CollabPost = ({ navigation }) => {
                     imageStyle={[styles.postImage, closed && !isAppliedTab && { opacity: 0.5 }]}
                     image={post?.imageSource || null}
                     isSelectedImage={post?.isSelectedImage}
-                    fallback={require("../../assets/brandDp.png")}
+                    fallback={require("../../assets/influmart_icon.png")}
                   />
                 </View>
               </Pressable>

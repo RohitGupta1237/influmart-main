@@ -81,22 +81,7 @@ const CampaignDetail = ({ route, navigation }) => {
         <View style={styles.shareIcon} />
       </View>
 
-      {/* Hero Image — full bleed */}
-      {data?.imageSource == null ? (
-        <ImageWithFallback
-          imageStyle={styles.mainImage}
-          image={data?.imageSource}
-          isSelectedImage={data?.isSelectedImage}
-        />
-      ) : (
-        data?.imageSource && (
-          <ImageWithFallback
-            imageStyle={styles.mainImage}
-            image={data?.imageSource}
-            isSelectedImage={data?.isSelectedImage}
-          />
-        )
-      )}
+      {/* Hero image removed — brand pic no longer shown on this page. */}
 
       {/* Brand Info Card */}
       <View style={styles.brandCard}>

@@ -29,7 +29,8 @@ const getTopAccounts = async (showAlert) => {
                     ? `${API_ENDPOINT}/${influencer?.profileUrl.replace(/\\/g, '/').replace('uploads/', '')}`
                     : null,
                 name: influencer?.influencerName,
-                accountType: "INFLUENCER"
+                accountType: "INFLUENCER",
+                isSelectedImage: influencer?.isSelectedImage,
             }
         })]
         return res

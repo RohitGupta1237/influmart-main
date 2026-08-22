@@ -89,23 +89,21 @@ const BrandAccountManage = ({ route, navigation }) => {
 
   useEffect(() => {
     if (selectedAvatarIndex !== "") {
-      readImage(
-        `../../../assets/avatars/avatar${selectedAvatarIndex + 1}.png`,
-        function (base64) {
-          setProfileData((prev) => ({
-            ...prev,
-            image: {
-              name: `avatar${selectedAvatarIndex}`,
-              uri: base64,
-              type: "image/png",
-              isSelected: true,
-              file: `avatar${selectedAvatarIndex + 1}`,
-            },
-          }));
-          setSelectedImage(base64);
-          setChange(false);
-        }
-      );
+      // Resolve bundled avatar to a real URI (web + native) instead of the old
+      // readImage() relative-path fetch that 404'd and never saved the avatar.
+      const uri = Asset.fromModule(avatarImages[selectedAvatarIndex].imageUrl).uri;
+      setProfileData((prev) => ({
+        ...prev,
+        image: {
+          name: `avatar${selectedAvatarIndex + 1}`,
+          uri,
+          type: "image/png",
+          isSelected: true,
+          file: `avatar${selectedAvatarIndex + 1}`,
+        },
+      }));
+      setSelectedImage(uri);
+      setChange(false);
     }
   }, [selectedAvatarIndex]);
 

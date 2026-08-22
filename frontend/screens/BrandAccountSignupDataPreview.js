@@ -9,6 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { Image } from "expo-image";
+import { Asset } from "expo-asset";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useAlert } from "../util/AlertContext";
 import { BrandSignUp } from "../controller/signupController";
@@ -167,20 +168,17 @@ const BrandAccountSignupDataPreview = ({ route, navigation }) => {
 
   React.useEffect(() => {
     if (selectedAvatarIndex !== "") {
-      readImage(
-        `../assets/avatars/avatar${selectedAvatarIndex + 1}.png`,
-        function (base64) {
-          setPhoto({
-            name: `avatar${selectedAvatarIndex}`,
-            uri: base64,
-            type: "image/png",
-            isSelected: true,
-            file: `avatar${selectedAvatarIndex + 1}`,
-          });
-          setSelectedImage(base64);
-          console.log(selectedAvatarIndex, `avatar${selectedAvatarIndex + 1}`);
-        }
-      );
+      // Resolve bundled avatar to a real URI (web + native). Old readImage()
+      // fetched a relative path that 404'd, so the avatar was never saved.
+      const uri = Asset.fromModule(avatarImages[selectedAvatarIndex].imageUrl).uri;
+      setPhoto({
+        name: `avatar${selectedAvatarIndex + 1}`,
+        uri,
+        type: "image/png",
+        isSelected: true,
+        file: `avatar${selectedAvatarIndex + 1}`,
+      });
+      setSelectedImage(uri);
     }
   }, [selectedAvatarIndex]);
 

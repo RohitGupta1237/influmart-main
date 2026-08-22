@@ -64,10 +64,12 @@ const UserProfilePhoto = ({ route, navigation }) => {
 
   useEffect(() => {
     if (selectedAvatarIndex !== "") {
-      readImage(`../../../assets/avatars/avatar${selectedAvatarIndex + 1}.png`, function (base64) {
-        setPhoto({ name: `avatar${selectedAvatarIndex}`, uri: base64, type: "image/png", isSelected: true, file: `avatar${selectedAvatarIndex + 1}` });
-        setSelectedImage(base64)
-      });
+      // Resolve the bundled avatar to a real URI (works web + native). The old
+      // readImage() fetched a relative path that 404'd, so the avatar never got
+      // a uri and was never saved — leaving a random fallback on the profile.
+      const uri = Asset.fromModule(avatarImages[selectedAvatarIndex].imageUrl).uri;
+      setPhoto({ name: `avatar${selectedAvatarIndex + 1}`, uri, type: "image/png", isSelected: true, file: `avatar${selectedAvatarIndex + 1}` });
+      setSelectedImage(uri);
     }
   }, [selectedAvatarIndex]);
   const handleImagePick = async (type) => {
