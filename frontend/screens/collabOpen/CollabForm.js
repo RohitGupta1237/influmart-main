@@ -44,6 +44,7 @@ const CollabForm = ({ navigation }) => {
   const [showStartPicker, setShowStartPicker] = React.useState(false);
   const [showEndPicker, setShowEndPicker] = React.useState(false);
   const[campaignTypeDropDown,setCampaignTypeDropdown]=React.useState(false)
+  const [premiumRequested, setPremiumRequested] = React.useState(false);
   const data = [
     { key: "lifestyle-personal-branding", value: "Lifestyle & Personal Branding" },
     { key: "fashion-beauty", value: "Fashion & Beauty" },
@@ -120,6 +121,7 @@ const CollabForm = ({ navigation }) => {
       earningCapacity: money,
       campaignTimelines: `${startDate.toDateString()} - ${endDate.toDateString()}`,
       campaignType: JSON.stringify(selected),
+      premiumRequested,
     };
     navigation.navigate("CollabOpenPayment", { payload: data });
   };
@@ -426,6 +428,28 @@ const CollabForm = ({ navigation }) => {
           onFocus={()=>{setCampaignTypeDropdown(false)}}
         />
       </View>
+      {/* Premium: route this opening to Influmart's team (admin) instead of the
+          public influencer collab list. */}
+      <View style={styles.premiumBox}>
+        <TouchableOpacity
+          style={styles.premiumRow}
+          activeOpacity={0.8}
+          onPress={() => setPremiumRequested((v) => !v)}
+        >
+          <Checkbox
+            status={premiumRequested ? "checked" : "unchecked"}
+            onPress={() => setPremiumRequested((v) => !v)}
+          />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.premiumTitle}>I want Influmart Premium Services to manage this campaign</Text>
+            <Text style={styles.premiumSub}>
+              Our team handles influencer outreach & coordination. This opening goes to Influmart
+              instead of the public creator list.
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity onPress={handleNextPress}>
         <View style={styles.footer}>
           <Text style={styles.footerText}>Next: Review & Publish</Text>
@@ -439,6 +463,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+  },
+  premiumBox: {
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: "#e3e8f0",
+    backgroundColor: "#f5f8ff",
+    borderRadius: 12,
+    padding: 12,
+  },
+  premiumRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  premiumTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#121417",
+  },
+  premiumSub: {
+    fontSize: 12,
+    color: "#4F7096",
+    marginTop: 2,
   },
   header: {
     flexDirection: "row",

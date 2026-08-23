@@ -9,3 +9,11 @@ export const getAdminMetrics = async (adminSecret, period = "all") => {
   });
   return response.data;
 };
+
+// Openings brands asked Influmart to manage (premium) — admin-only.
+export const getBusinessCollabs = async (adminSecret) => {
+  const response = await axios.get(`${API_ENDPOINT}/admin/business-collabs`, {
+    headers: { "x-admin-secret": adminSecret },
+  });
+  return response.data?.openings || [];
+};

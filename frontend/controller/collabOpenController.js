@@ -32,6 +32,7 @@ const createCollabPost = async (collabPostData, showAlert,navigation) => {
   data.append("brandDescription", collabPostData?.brandDescription);
   data.append("brandId", collabPostData?.brandId);
   data.append("compensationType", collabPostData?.compensationType);
+  data.append("premiumRequested", collabPostData?.premiumRequested ? "true" : "false");
 
 
   if (collabPostData.image && collabPostData.image.uri) {

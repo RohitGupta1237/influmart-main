@@ -2,8 +2,10 @@ import * as React from "react";
 import { Image } from "expo-image";
 import { StyleSheet, View, Text, TouchableOpacity, TextInput } from "react-native";
 import { FontSize, FontFamily, Color, Padding,Border } from "../GlobalStyles";
+import { useTheme } from "../util/ThemeContext";
 
 const Depth1Frame4 = ({ onChange, isSearch }) => {
+  const { theme } = useTheme();
   const [isSearchBarOpen, setIsSearchBarOpen] = React.useState(false)
 
   const handleSearch = () => {
@@ -11,20 +13,20 @@ const Depth1Frame4 = ({ onChange, isSearch }) => {
   }
 
   return (
-    <View style={styles.depth1Frame0}>
+    <View style={[styles.depth1Frame0, { backgroundColor: theme.headerBg, borderBottomColor: theme.headerBorder }]}>
       <View style={[styles.depth2Frame0, styles.frameFlexBox]}>
         {
           isSearchBarOpen ?
             <TextInput onChange={(e) => {
               onChange(e.target.value)
-            }} style={styles.SearchBar} placeholder="Search anything" /> :
+            }} style={[styles.SearchBar, { backgroundColor: theme.pill, color: theme.text }]} placeholderTextColor={theme.subText} placeholder="Search anything" /> :
             <>
               <TouchableOpacity style={[styles.depth3Frame0, styles.depth3FrameLayout]}>
               </TouchableOpacity>
               <View style={[styles.depth3Frame1, styles.frameFlexBox]}>
                 <View style={styles.depth4Frame01}>
                   <View style={styles.depth5Frame0}>
-                    <Text style={styles.influmart}>Influmart</Text>
+                    <Text style={[styles.influmart, { color: theme.text }]}>Influmart</Text>
                   </View>
                 </View>
               </View>
@@ -100,6 +102,7 @@ const styles = StyleSheet.create({
   },
   depth1Frame0: {
     backgroundColor: Color.colorWhite,
+    borderBottomWidth: 1,
     width: "100%",
     height: 72,
     paddingHorizontal: Padding.p_base,

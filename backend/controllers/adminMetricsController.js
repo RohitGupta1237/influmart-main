@@ -5,7 +5,23 @@ const Subscription = require("../model/Subscription");
 const Deal = require("../model/Deal");
 const SocialVerificationRequest = require("../model/socialVerificationRequest");
 const CollabOpenRequest = require("../model/CollabOpenRequest");
+const CollabOpening = require("../model/CollabOpening");
 const SiteVisit = require("../model/SiteVisit");
+
+// GET /admin/business-collabs  (admin-only)
+// Openings the brand asked Influmart to manage (premium). These are NOT shown
+// in the public influencer collab list.
+const getBusinessCollabs = async (req, res) => {
+  try {
+    const openings = await CollabOpening.find({ premiumRequested: true })
+      .populate({ path: "brand", select: "brandName email phoneNumber profileUrl isSelectedImage" })
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ openings });
+  } catch (error) {
+    console.error("[getBusinessCollabs]", error);
+    return res.status(500).json({ message: "Could not load business collaborations" });
+  }
+};
 
 // POST /track/visit  (public) — body: { visitorId, path, platform }
 // Records one page/screen view. Fire-and-forget from the client.
@@ -136,4 +152,4 @@ const getMetrics = async (req, res) => {
   }
 };
 
-module.exports = { getMetrics, trackVisit };
+module.exports = { getMetrics, trackVisit, getBusinessCollabs };

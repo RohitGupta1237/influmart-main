@@ -18,7 +18,7 @@ import {
   rejectVerification,
 } from "../controller/socialVerificationController";
 import { getAllCoupons, setCoupon } from "../controller/couponController";
-import { getAdminMetrics } from "../controller/adminMetricsController";
+import { getAdminMetrics, getBusinessCollabs } from "../controller/adminMetricsController";
 
 // Admin-only screen to moderate manual social-verification requests.
 // Gated by an admin secret (matches ADMIN_SECRET on the backend).
@@ -32,6 +32,7 @@ const SocialVerificationAdmin = () => {
   const [coupons, setCoupons] = React.useState([]);
   const [metrics, setMetrics] = React.useState(null);
   const [period, setPeriod] = React.useState("all");
+  const [bizCollabs, setBizCollabs] = React.useState([]);
 
   // Refetch just the metrics when the period changes (once unlocked).
   React.useEffect(() => {
@@ -60,6 +61,7 @@ const SocialVerificationAdmin = () => {
       await AsyncStorage.setItem("adminSecret", sec);
       try { setCoupons(await getAllCoupons(sec)); } catch (e) {}
       try { setMetrics(await getAdminMetrics(sec, period)); } catch (e) {}
+      try { setBizCollabs(await getBusinessCollabs(sec)); } catch (e) {}
     } catch (err) {
       const msg = err?.response?.status === 401 ? "Wrong admin secret" : "Failed to load";
       showAlert("Error", msg);
@@ -209,6 +211,33 @@ const SocialVerificationAdmin = () => {
             <Text style={styles.sectionHint}>Loading metrics…</Text>
           )}
 
+          {/* Business Collaboration Requests (premium openings) */}
+          <Text style={styles.sectionTitle}>Business Collaboration Requests</Text>
+          <Text style={styles.sectionHint}>
+            Campaigns where the brand asked Influmart to manage the collaboration (premium). These
+            are not shown to influencers.
+          </Text>
+          {bizCollabs.length === 0 ? (
+            <Text style={styles.sectionHint}>No premium requests yet.</Text>
+          ) : (
+            bizCollabs.map((c) => (
+              <View key={c._id} style={styles.bizCard}>
+                <Text style={styles.bizTitle}>{c.campaignTitle || "Untitled campaign"}</Text>
+                <Text style={styles.bizBrand}>
+                  {c.brand?.brandName || "Brand"}
+                  {c.brand?.email ? ` · ${c.brand.email}` : ""}
+                  {c.brand?.phoneNumber ? ` · ${c.brand.phoneNumber}` : ""}
+                </Text>
+                <Text style={styles.bizMeta}>
+                  {c.campaignType ? `Type: ${c.campaignType}   ` : ""}
+                  {c.earningCapacity ? `₹${c.earningCapacity.min || 0}–₹${c.earningCapacity.max || 0}   ` : ""}
+                  {c.numberOfInfluencers ? `${c.numberOfInfluencers} influencers` : ""}
+                </Text>
+                {c.campaignTimelines ? <Text style={styles.bizMeta}>{c.campaignTimelines}</Text> : null}
+              </View>
+            ))
+          )}
+
           {/* Coupons */}
           <Text style={styles.sectionTitle}>Discount Coupons</Text>
           <Text style={styles.sectionHint}>
@@ -347,6 +376,17 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 20,
   },
+  bizCard: {
+    backgroundColor: "#1c1c1e",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2a2a2e",
+    padding: 14,
+    marginBottom: 10,
+  },
+  bizTitle: { color: "#fff", fontSize: 15, fontWeight: "700", fontFamily: FontFamily.beVietnamProBold },
+  bizBrand: { color: "#8ab4f8", fontSize: 13, marginTop: 4 },
+  bizMeta: { color: "#9aa1ad", fontSize: 12, marginTop: 4 },
   statCard: {
     flexGrow: 1,
     flexBasis: 150,

@@ -24,6 +24,10 @@ const collabOpeningSchema = new mongoose.Schema({
   numberOfInfluencers: Number,
   brandDescription: String,
   photoUrl: String,
+  // When true, this opening is handled by Influmart (premium) and is routed to
+  // the admin "Business Collaboration Requests" section instead of the public
+  // influencer collab list. Old openings have no field → treated as false.
+  premiumRequested: { type: Boolean, default: false },
   status: {
     type: String,
     enum: ['active', 'successfully_closed', 'cancelled'],

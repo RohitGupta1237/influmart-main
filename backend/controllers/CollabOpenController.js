@@ -19,7 +19,8 @@ const postCollabOpen = async (req, res) => {
         campaignSteps,
         compensationType,
         numberOfInfluencers,
-        brandDescription
+        brandDescription,
+        premiumRequested
       } = req.body;
 
       const collabOpening = new CollabOpening({
@@ -35,7 +36,9 @@ const postCollabOpen = async (req, res) => {
         compensationType,
         numberOfInfluencers,
         brandDescription,
-        photoUrl: req.file?.path
+        photoUrl: req.file?.path,
+        // FormData sends booleans as strings.
+        premiumRequested: premiumRequested === true || premiumRequested === "true",
       });
   
       await collabOpening.save();
@@ -62,6 +65,9 @@ const getAllCollabOpen =  async (req, res) => {
       // Fetch all openings, excluding applied posts and non-active campaigns
       const baseFilter = {
         $or: [{ status: 'active' }, { status: { $exists: false } }],
+        // Premium (Influmart-managed) openings go to the admin section only.
+        // $ne:true keeps old openings (field undefined) visible here.
+        premiumRequested: { $ne: true },
         ...(appliedPostIds.length > 0 ? { _id: { $nin: appliedPostIds } } : {}),
       };
       const collabOpenings = await CollabOpening.find(baseFilter).populate({
