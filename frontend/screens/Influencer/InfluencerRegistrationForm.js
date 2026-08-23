@@ -346,7 +346,7 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
               <Text style={styles.desc}>Verify your email via OTP to proceed</Text>
               <View style={[styles.textInput, { flexDirection: "row", alignItems: "center" }]}>
                 <TextInput
-                    style={{ flex: 1, color: "#4F7A94", fontSize: FontSize.size_base, outlineStyle: "none" }}
+                    style={{ flex: 1, minWidth: 0, color: "#4F7A94", fontSize: FontSize.size_base, outlineStyle: "none" }}
                     value={email}
                     onChangeText={(val) => { setEmail(val); setEmailVerified(false); setShowEmailOtp(false); setEmailOtpValue(""); }}
                     placeholder="Email"
@@ -356,13 +356,20 @@ const InfluencerRegistrationForm = ({ route, navigation }) => {
                     onFocus={() => { setInfluTypeDropdown(false); setGenderDropdown(false); }}
                 />
                 {emailVerified ? (
-                    <Image style={{ width: 28, height: 28 }} source={require("../../assets/green_tick.png")} />
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Image style={{ width: 18, height: 18 }} source={require("../../assets/green_tick.png")} />
+                      <Text style={{ color: "#1e9e5a", fontWeight: "700", fontSize: 13 }}>Verified</Text>
+                    </View>
                 ) : (
-                    <TouchableOpacity onPress={handleSendEmailOtp} disabled={emailOtpLoading}>
+                    <TouchableOpacity
+                      onPress={handleSendEmailOtp}
+                      disabled={emailOtpLoading}
+                      style={{ backgroundColor: "#1a5ce6", borderRadius: 8, paddingVertical: 6, paddingHorizontal: 14, marginLeft: 8, flexShrink: 0 }}
+                    >
                       {emailOtpLoading ? (
-                          <ActivityIndicator size="small" color="#4A90E2" />
+                          <ActivityIndicator size="small" color="#fff" />
                       ) : (
-                          <Image style={{ width: 28, height: 28 }} source={require("../../assets/verify_symbol.png")} />
+                          <Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>Get OTP</Text>
                       )}
                     </TouchableOpacity>
                 )}
