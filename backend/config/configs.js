@@ -44,6 +44,9 @@ const configs = {
   TIKTOK_CLIENT_SECRET: process.env.TIKTOK_CLIENT_SECRET,
   TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
   GROQ_API_KEY: process.env.GROQ_API_KEY,
+  // Groq deprecates models periodically (e.g. llama-3.3-70b-versatile was
+  // decommissioned Aug 2026). Override via env when they retire this one.
+  GROQ_MODEL: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
   HF_API_KEY: process.env.HF_API_KEY,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-flash-latest",

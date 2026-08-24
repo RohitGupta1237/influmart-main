@@ -112,9 +112,18 @@ Intelligence rules:
 - "macro influencer" → followers.ig min 100000 max 1000000
 - "micro influencer" → followers.ig min 10000 max 100000
 - "nano influencer" → followers.ig min 1000 max 10000
-- "from city" or "in city" → cities array
-- "audience in city" → also set audienceCityMinPercent: 0.01
-- Percentages like "5% audience" → audienceCityMinPercent: 0.05
+- GEOGRAPHY — reason about places using your own world knowledge:
+  * "views/audience/followers FROM <place>" = AUDIENCE geography → set "cities" (NOT "location") AND "audienceCityMinPercent".
+  * "based in / lives in / located in / from <place>" (about the creator, no audience word) → set "cities" for a city, or "location" for a state/country.
+  * EXPAND regions/zones into their major cities yourself. Examples of your reasoning:
+    - "North India" → ["Delhi","New Delhi","Noida","Gurugram","Ghaziabad","Chandigarh","Jaipur","Lucknow","Kanpur","Ludhiana","Amritsar","Dehradun"]
+    - "South India" → ["Bengaluru","Chennai","Hyderabad","Kochi","Coimbatore","Mysuru","Visakhapatnam","Thiruvananthapuram"]
+    - "NCR" → ["Delhi","New Delhi","Noida","Gurugram","Ghaziabad","Faridabad"]
+    - "West India" → ["Mumbai","Pune","Ahmedabad","Surat","Nagpur","Goa"]
+  * A percentage like "views more than 30% from north india" → cities = the region's cities, audienceCityMinPercent = 0.30.
+  * "audience in <city>" with no number → audienceCityMinPercent: 0.01
+  * Percentages like "5% audience" → audienceCityMinPercent: 0.05
+  * NEVER put a region name (like "North India") in "location" — always expand it into "cities".
 - "sneakers/shoes/footwear/kicks" → category Fashion & Beauty
 - "food/recipe/cooking" → category Food & Cooking
 - "gym/workout/fitness" → category Fitness & Health
@@ -127,31 +136,40 @@ Examples:
 "influencer with 60% female audience under ₹10k budget" → {"audienceGender":{"female":{"min":60}},"price":{"ig":{"max":10000}}}
 "high reach audience above 50%" → {"reachability":{"tier":"r1500_plus","minPercent":50}}
 "most viral facebook reels creator" → {"platform":["facebook"],"sort":{"field":"fbViews","order":"desc"}}
-"affordable nano influencer for sneakers brand" → {"followers":{"ig":{"min":1000,"max":10000}},"category":["Fashion & Beauty"],"sort":{"field":"igPrice","order":"asc"}}`;
+"affordable nano influencer for sneakers brand" → {"followers":{"ig":{"min":1000,"max":10000}},"category":["Fashion & Beauty"],"sort":{"field":"igPrice","order":"asc"}}
+"influencer with views more than 30% from north india" → {"cities":["Delhi","New Delhi","Noida","Gurugram","Chandigarh","Jaipur","Lucknow","Kanpur","Ludhiana","Amritsar"],"audienceCityMinPercent":0.30}
+"creators whose audience is mostly from south india" → {"cities":["Bengaluru","Chennai","Hyderabad","Kochi","Coimbatore","Mysuru"],"audienceCityMinPercent":0.30}
+"influencer based in goa" → {"cities":["Goa","Panaji"]}`;
 
 const parseQueryWithGroq = async (userQuery) => {
   try {
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: "llama-3.3-70b-versatile",
+        model: config.GROQ_MODEL,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userQuery },
         ],
         temperature: 0.1,
-        max_tokens: 512,
+        // gpt-oss/qwen are reasoning models: keep reasoning minimal, force pure
+        // JSON output, and give enough tokens so content isn't truncated empty.
+        reasoning_effort: "low",
+        response_format: { type: "json_object" },
+        max_tokens: 1024,
       },
       {
         headers: {
           Authorization: `Bearer ${config.GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
-        timeout: 10000,
+        timeout: 15000,
       }
     );
 
-    const raw = response.data?.choices?.[0]?.message?.content?.trim();
+    const msg = response.data?.choices?.[0]?.message;
+    // Reasoning models may put the answer in content; fall back to reasoning field.
+    const raw = (msg?.content || msg?.reasoning || "").trim();
     if (!raw) throw new Error("Empty response from Groq");
 
     const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();

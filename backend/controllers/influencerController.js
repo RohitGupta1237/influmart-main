@@ -766,12 +766,16 @@ exports.aiSearchInfluencers = async (req, res) => {
       const minPct = filters.audienceCityMinPercent;
       result = result.filter(inf => {
         const cities = inf.instaData?.[0]?.memberCities || [];
-        return cities.some(mc => {
+        // Region-correct: SUM the audience share of every member city that
+        // matches the (possibly region-expanded) city list, then compare once.
+        // e.g. "30% from North India" = combined share of all N-India cities ≥ 0.30.
+        const combined = cities.reduce((acc, mc) => {
           const mcName = (mc.name || "").toLowerCase();
           const mcCat = (mc.category || "").toLowerCase();
           const matchesCity = cityLower.some(c => mcName.includes(c) || mcCat.includes(c));
-          return matchesCity && (mc.value || 0) >= minPct;
-        });
+          return matchesCity ? acc + (mc.value || 0) : acc;
+        }, 0);
+        return combined >= minPct;
       });
     }
 
