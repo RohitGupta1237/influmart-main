@@ -122,6 +122,31 @@ const ChatInterface = ({ route, navigation }) => {
     getdata();
   }, [conversationId]);
 
+  // Real-time: append incoming messages instantly via the socket (the backend
+  // emits "newMessage" on send). No polling, no refetch — no manual refresh.
+  useEffect(() => {
+    if (!socket) return;
+    const onNewMessage = (message) => {
+      const from = String(message?.sender?._id || message?.sender || "");
+      const to = String(message?.receiver?._id || message?.receiver || "");
+      // Only messages from the other party in THIS conversation.
+      if (from !== String(receiverId) || to !== String(userId)) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: message.content,
+          sender: { name: name || "", profileUrl: image, isSelectedImage },
+          timeAgo: "now",
+        },
+      ]);
+      // A deal/close system note may have changed chat state — keep it fresh.
+      refreshDeal();
+      refreshChat();
+    };
+    socket.on("newMessage", onNewMessage);
+    return () => socket.off("newMessage", onNewMessage);
+  }, [socket, receiverId, userId, name, image, isSelectedImage]);
+
   const handlePaymentPending = async () => {
     const ok = await sendPaymentPending(
       conversationId,
@@ -229,8 +254,10 @@ const ChatInterface = ({ route, navigation }) => {
     ]);
     const ok = await sendMessage(userId, receiverId, message);
     if (ok) {
-      // Delivered → refresh with the server list (replaces the optimistic one, un-faded).
-      await getMessages(conversationId, userId, userType, setMessages);
+      // Delivered → un-fade the optimistic bubble in place (no refetch round-trip).
+      setMessages((prev) =>
+        prev.map((m) => (m.localId === localId ? { ...m, pending: false, timeAgo: "now" } : m))
+      );
     } else {
       // Failed → mark it red + tap-to-retry (keep it in place).
       setMessages((prev) =>

@@ -30,7 +30,8 @@ export const SocketContextProvider = ({ children }) => {
     if (authUser) {
       const socket = io(API_ENDPOINT, {
         query: {
-          userId: authUser._id,
+          // authUser is the id string (influencerId/brandId), not an object.
+          userId: authUser,
         },
       });
 

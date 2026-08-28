@@ -4,7 +4,7 @@ const Message = require("../model/Message");
 const InfluencerSignupRequest = require("../model/influencerSignupRequestModel");
 const Brand = require("../model/brandDbRequestModel");
 const Conversation = require("../model/conversation");
-const { getReceiverSocketId } = require("../socket/socket");
+const { io, getReceiverSocketId } = require("../socket/socket");
 
 // Send a connection request
 const sendRequest = async (req, res) => {
@@ -180,11 +180,16 @@ const sendMessage = async (req, res) => {
     }
 
     await Promise.all([conversation.save(), message.save()]);
-    const receiverSocketId = getReceiverSocketId(receiverId);
-		if (receiverSocketId) {
-			// io.to(<socket_id>).emit() used to send events to specific client
-			io.to(receiverSocketId).emit("newMessage", message);
-		}
+    // Real-time push to the receiver. Wrapped so a socket error can never fail
+    // the send — the message is already saved at this point.
+    try {
+      const receiverSocketId = getReceiverSocketId(receiverId);
+      if (receiverSocketId && io) {
+        io.to(receiverSocketId).emit("newMessage", message);
+      }
+    } catch (emitErr) {
+      console.error("[sendMessage] socket emit failed:", emitErr.message);
+    }
     res.status(200).json({ message: "Message sent" });
   } catch (error) {
     res.status(500).json({ message: "Message not sent" });
