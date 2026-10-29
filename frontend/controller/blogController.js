@@ -35,6 +35,28 @@ export const getPendingBlogArticles = async (adminSecret) => {
   return response.data?.articles || [];
 };
 
+export const getAllBlogArticlesForAdmin = async (adminSecret) => {
+  const response = await axios.get(`${API_ENDPOINT}/blog/admin/articles`, {
+    headers: { "x-admin-secret": adminSecret },
+  });
+  return response.data?.articles || [];
+};
+
+export const deleteMyBlogArticle = async (id) => {
+  const token = await AsyncStorage.getItem("token");
+  const response = await axios.delete(`${API_ENDPOINT}/blog/my-articles/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const deleteBlogArticleAsAdmin = async (id, adminSecret) => {
+  const response = await axios.delete(`${API_ENDPOINT}/blog/admin/${id}`, {
+    headers: { "x-admin-secret": adminSecret },
+  });
+  return response.data;
+};
+
 export const reviewBlogArticle = async (id, action, rejectionNote, adminSecret) => {
   const response = await axios.patch(
     `${API_ENDPOINT}/blog/admin/${id}/${action}`,

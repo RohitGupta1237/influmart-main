@@ -3,7 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOp
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../../util/ThemeContext";
-import { getMyArticles, submitBlogArticle } from "../../controller/blogController";
+import { deleteMyBlogArticle, getMyArticles, submitBlogArticle } from "../../controller/blogController";
 import { useAlert } from "../../util/AlertContext";
 
 const statusText = { pending: "In review", approved: "Published", rejected: "Not approved" };
@@ -19,6 +19,8 @@ const BlogSubmitScreen = ({ navigation }) => {
   const [confirmed, setConfirmed] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [deletingId, setDeletingId] = React.useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState("");
   const [articles, setArticles] = React.useState([]);
   const [loggedIn, setLoggedIn] = React.useState(true);
   const colors = {
@@ -62,6 +64,18 @@ const BlogSubmitScreen = ({ navigation }) => {
     } catch (error) {
       showAlert("Submission failed", error?.response?.data?.message || "Please try again.");
     } finally { setSaving(false); }
+  };
+
+  const deleteArticle = async (article) => {
+    setDeletingId(article._id);
+    try {
+      await deleteMyBlogArticle(article._id);
+      setArticles((current) => current.filter((item) => item._id !== article._id));
+      setConfirmDeleteId("");
+      showAlert("Article deleted", article.status === "approved" ? "Your published article has been removed from the blog." : "Your submission has been deleted.");
+    } catch (error) {
+      showAlert("Could not delete article", error?.response?.data?.message || "Please try again.");
+    } finally { setDeletingId(""); }
   };
 
   const renderField = ({ label, value, onChangeText, placeholder, multiline, maxLength, minHeight = 52 }) => (
@@ -126,6 +140,19 @@ const BlogSubmitScreen = ({ navigation }) => {
             <View style={styles.submissionTop}><Text style={[styles.submissionTitle, { color: colors.text }]}>{article.title}</Text><Text style={[styles.status, { color: statusColor[article.status] || colors.sub }]}>{statusText[article.status] || article.status}</Text></View>
             <Text style={[styles.summaryText, { color: colors.sub }]} numberOfLines={2}>{article.summary}</Text>
             {article.rejectionNote ? <Text style={styles.rejection}>Admin note: {article.rejectionNote}</Text> : null}
+            {confirmDeleteId === article._id ? (
+              <View style={styles.deleteConfirm}>
+                <Text style={[styles.deleteConfirmText, { color: colors.sub }]}>{article.status === "approved" ? "This will remove the published article from the blog. Delete it?" : "Delete this submission permanently?"}</Text>
+                <TouchableOpacity disabled={!!deletingId} onPress={() => setConfirmDeleteId("")} style={[styles.cancelDelete, { borderColor: colors.border }]}><Text style={[styles.cancelDeleteText, { color: colors.text }]}>Cancel</Text></TouchableOpacity>
+                <TouchableOpacity disabled={!!deletingId} onPress={() => deleteArticle(article)} style={styles.confirmDelete}>
+                  {deletingId === article._id ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.confirmDeleteText}>Delete</Text>}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity disabled={!!deletingId} onPress={() => setConfirmDeleteId(article._id)} style={styles.deleteButton} accessibilityLabel={`Delete ${article.title}`}>
+                <Ionicons name="trash-outline" size={16} color="#b42318" /><Text style={styles.deleteButtonText}>Delete article</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ))}
       </ScrollView>
@@ -165,6 +192,14 @@ const styles = StyleSheet.create({
   status: { fontSize: 12, fontWeight: "800" },
   summaryText: { fontSize: 13, lineHeight: 19, marginTop: 8 },
   rejection: { marginTop: 9, color: "#b42318", fontSize: 12, lineHeight: 18 },
+  deleteButton: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 9, marginTop: 6 },
+  deleteButtonText: { color: "#b42318", fontSize: 13, fontWeight: "800" },
+  deleteConfirm: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 10, padding: 12, backgroundColor: "#fff5f5", borderRadius: 10 },
+  deleteConfirmText: { flexBasis: "100%", fontSize: 12, lineHeight: 18 },
+  cancelDelete: { minHeight: 36, borderWidth: 1, borderRadius: 9, paddingHorizontal: 13, alignItems: "center", justifyContent: "center" },
+  cancelDeleteText: { fontSize: 12, fontWeight: "700" },
+  confirmDelete: { minHeight: 36, minWidth: 75, borderRadius: 9, backgroundColor: "#b42318", paddingHorizontal: 13, alignItems: "center", justifyContent: "center" },
+  confirmDeleteText: { color: "#fff", fontSize: 12, fontWeight: "800" },
 });
 
 export default BlogSubmitScreen;

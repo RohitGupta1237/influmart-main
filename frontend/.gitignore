@@ -41,4 +41,5 @@ Thumbs.db
 android/
 # Turtle
 turtle-build/
-  
+.vercel
+.env*

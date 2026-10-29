@@ -101,6 +101,47 @@ exports.listPendingArticles = async (_req, res) => {
   }
 };
 
+exports.listAllArticlesForAdmin = async (_req, res) => {
+  try {
+    const articles = await BlogArticle.find({})
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .limit(500)
+      .lean();
+    return res.json({ articles });
+  } catch (error) {
+    console.error("[blog admin] list all articles:", error.message);
+    return res.status(500).json({ message: "Could not load blog articles" });
+  }
+};
+
+exports.deleteMyArticle = async (req, res) => {
+  try {
+    const article = await BlogArticle.findOneAndDelete({
+      _id: req.params.articleId,
+      authorId: req.blogAuthor.id,
+      authorRole: req.blogAuthor.role,
+    });
+    if (!article) return res.status(404).json({ message: "Your article was not found" });
+    return res.json({ message: "Article deleted" });
+  } catch (error) {
+    if (error.name === "CastError") return res.status(404).json({ message: "Article not found" });
+    console.error("[blog] delete my article:", error.message);
+    return res.status(500).json({ message: "Could not delete your article" });
+  }
+};
+
+exports.deleteArticleAsAdmin = async (req, res) => {
+  try {
+    const article = await BlogArticle.findByIdAndDelete(req.params.articleId);
+    if (!article) return res.status(404).json({ message: "Article not found" });
+    return res.json({ message: "Article deleted" });
+  } catch (error) {
+    if (error.name === "CastError") return res.status(404).json({ message: "Article not found" });
+    console.error("[blog admin] delete article:", error.message);
+    return res.status(500).json({ message: "Could not delete article" });
+  }
+};
+
 exports.reviewArticle = async (req, res) => {
   const action = req.params.action;
   if (!["approve", "reject"].includes(action)) {
