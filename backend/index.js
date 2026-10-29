@@ -52,6 +52,7 @@ const couponRoutes = require("./routes/couponRoutes");
 const dealRoutes = require("./routes/dealRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const trackRoutes = require("./routes/trackRoutes");
+const blogRoutes = require("./routes/blogRoutes");
 
 app.use((req, res, next) => {
     req.io = io;
@@ -87,6 +88,7 @@ app.use("/deals", dealRoutes);
 app.use("/admin", adminRoutes);
 
 app.use("/track", trackRoutes);
+app.use("/blog", blogRoutes);
 
 // Mount the brand routes on a specific path
 app.use("/brands", brandRoutes);

@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, View, Text, ImageSourcePropType, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { FontFamily, FontSize, Border, Color, Padding } from "../GlobalStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../util/ThemeContext";
@@ -175,6 +176,18 @@ const BrandProfileBottomBar = ({
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('InfluencersList')}>
+          <View style={[styles.depth3Frame1, styles.depth3FrameLayout]}>
+            <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
+              <Image style={styles.depth5Frame0} contentFit="cover" tintColor={uiColor} source={depth5Frame01} />
+            </View>
+            <View style={[styles.depth4Frame11, styles.depth4FrameSpaceBlock]}>
+              <View style={styles.depth5Frame01}>
+                <Text style={[styles.search, styles.homeTypo, { color: uiColor }]}>Influencers</Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Blog', { returnTo: 'BrandProfile' })}>
 
           <View
             style={[
@@ -184,12 +197,7 @@ const BrandProfileBottomBar = ({
             ]}
           >
             <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
-              <Image
-                style={styles.depth5Frame0}
-                contentFit="cover"
-                tintColor={uiColor}
-                source={depth5Frame01}
-              />
+              <Ionicons name="newspaper-outline" size={20} color={uiColor} />
             </View>
             <View
               style={[
@@ -200,45 +208,13 @@ const BrandProfileBottomBar = ({
             >
               <View style={styles.depth5Frame01}>
                 <Text style={[styles.search, styles.homeTypo, searchStyle, {color: uiColor}]}>
-                  {search}
+                  Blog
                 </Text>
               </View>
             </View>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('BrandsAssosciated')}>
-
-          <View
-            style={[
-              styles.depth3Frame1,
-              styles.depth3FrameLayout,
-              depth3Frame2Style,
-            ]}
-          >
-            <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
-              <Image
-                style={styles.depth5Frame0}
-                contentFit="cover"
-                tintColor={uiColor}
-                source={depth5Frame02}
-              />
-            </View>
-            <View
-              style={[
-                styles.depth4Frame12,
-                styles.depth4FrameSpaceBlock,
-                depth4Frame12Style,
-              ]}
-            >
-              <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, myBrandsStyle, {color: uiColor}]}>
-                  {myBrands}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity >
         <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('BrandCampaigns')}>
           <View style={[styles.depth3Frame1, styles.depth3FrameLayout]}>
             <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>

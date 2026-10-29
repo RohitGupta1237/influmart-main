@@ -194,9 +194,7 @@ const Depth1Frame = ({
             </View>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("InfluencersList")}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate("Blog")}>
           <View
             style={[
               styles.depth3Frame1,
@@ -220,40 +218,7 @@ const Depth1Frame = ({
             >
               <View style={styles.depth5Frame01}>
                 <Text style={[styles.search, styles.homeTypo, searchStyle, { color: uiColor }]}>
-                  {search}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate("BrandsAssosciated")}
-        >
-          <View
-            style={[
-              styles.depth3Frame1,
-              styles.depth3FrameLayout,
-              depth3Frame2Style,
-            ]}
-          >
-            <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
-              <Image
-                style={styles.depth5Frame0} tintColor={uiColor}
-                contentFit="cover"
-                source={depth5Frame02}
-              />
-            </View>
-            <View
-              style={[
-                styles.depth4Frame12,
-                styles.depth4FrameSpaceBlock,
-                depth4Frame12Style,
-              ]}
-            >
-              <View style={styles.depth5Frame01}>
-                <Text style={[styles.search, styles.homeTypo, myBrandsStyle, { color: uiColor }]}>
-                  {myBrands}
+                  Blog
                 </Text>
               </View>
             </View>

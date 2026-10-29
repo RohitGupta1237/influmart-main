@@ -307,8 +307,7 @@ const Homepage = ({ route, navigation }) => {
               </View>
               <View style={styles.footerCol}>
                 <Text style={[styles.footerHead, { color: theme.text }]}>Product</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('InfluencersList')}><Text style={[styles.footerLink, { color: theme.subText }]}>For Creators</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('BrandsAssosciated')}><Text style={[styles.footerLink, { color: theme.subText }]}>For Brands</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Blog')}><Text style={[styles.footerLink, { color: theme.subText }]}>Blog</Text></TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('BrandorInfluencer')}><Text style={[styles.footerLink, { color: theme.subText }]}>Get Started</Text></TouchableOpacity>
               </View>
               <View style={styles.footerCol}>
@@ -437,8 +436,7 @@ const TopNav = ({ navigation, theme }) => (
     <View style={styles.topNavInner}>
       <Text style={[styles.topNavLogo, { color: theme.text }]}>Influmart</Text>
       <View style={styles.topNavLinks}>
-        <TouchableOpacity onPress={() => navigation.navigate("InfluencersList")}><Text style={[styles.topNavLink, { color: theme.subText }]}>Influencers</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("BrandsAssosciated")}><Text style={[styles.topNavLink, { color: theme.subText }]}>Brands</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Blog")}><Text style={[styles.topNavLink, { color: theme.subText }]}>Blog</Text></TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("BrandorInfluencer")}><Text style={[styles.topNavLink, { color: theme.subText }]}>Login</Text></TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("BrandorInfluencer")} activeOpacity={0.85}>
           <LinearGradient colors={[PINK, PURPLE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.topNavCta}>

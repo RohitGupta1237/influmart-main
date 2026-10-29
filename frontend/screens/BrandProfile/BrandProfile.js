@@ -35,8 +35,8 @@ import ThemeToggle from "../../shared/ThemeToggle";
 // Desktop top nav (mirrors the brand bottom bar routes).
 const BRAND_NAV = [
   { key: "post", label: "Post", icon: "add-circle", route: "CollabForm" },
-  { key: "influencer", label: "Influencers", icon: "search", route: "InfluencersList" },
-  { key: "brands", label: "Brands", icon: "briefcase", route: "BrandsAssosciated" },
+  { key: "influencers", label: "Influencers", icon: "search", route: "InfluencersList" },
+  { key: "blog", label: "Blog", icon: "newspaper", route: "Blog" },
   { key: "campaigns", label: "Campaigns", icon: "megaphone", route: "BrandCampaigns" },
   { key: "profile", label: "Profile", icon: "person-circle", route: "BrandProfile" },
 ];
@@ -47,7 +47,7 @@ const BrandTopNav = ({ navigation, theme, isDark, toggleTheme, avatar, isSelecte
       <Text style={[styles.brandPink, { color: theme.text }]}>Influmart</Text>
       <View style={styles.navCenter}>
         {BRAND_NAV.map((it) => (
-          <TouchableOpacity key={it.key} style={styles.topNavItem} onPress={() => navigation.navigate(it.route, it.key === "post" ? { navigation } : undefined)}>
+          <TouchableOpacity key={it.key} style={styles.topNavItem} onPress={() => navigation.navigate(it.route, it.key === "post" ? { navigation } : it.key === "blog" ? { returnTo: "BrandProfile" } : undefined)}>
             <Text style={[styles.topNavLabel, { color: theme.subText }]}>{it.label}</Text>
           </TouchableOpacity>
         ))}

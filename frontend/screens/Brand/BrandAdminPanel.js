@@ -80,6 +80,16 @@ const BrandAdminPanel = () => {
             />
           </TouchableOpacity>
         </View>
+        <View style={styles.optionContainer}>
+          <Text style={styles.optionLabel}>Post an article</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("BlogSubmit")}>
+            <Image
+              style={styles.optionImage}
+              contentFit="cover"
+              source={require("../../assets/depth-3-frame-1.png")}
+            />
+          </TouchableOpacity>
+        </View>
         <View style={styles.supportContainer}>
           <Text style={styles.supportText}>Support</Text>
         </View>

@@ -18,8 +18,7 @@ import ThemeToggle from "../../shared/ThemeToggle";
 
 // Desktop-only top navigation (mirrors the mobile floating bottom bar routes).
 const NAV_ITEMS = [
-  { key: "list", label: "Influencers", icon: "search", route: "InfluencersList" },
-  { key: "partnership", label: "Brands", icon: "briefcase", route: "BrandsAssosciated" },
+  { key: "blog", label: "Blog", icon: "newspaper", route: "Blog" },
   { key: "settings", label: "Settings", icon: "settings-sharp", route: "AdminPanel" },
   { key: "network", label: "Collabs", icon: "people", route: "CollabPost" },
   { key: "profile", label: "Profile", icon: "person-circle", route: "Analytics" },
@@ -41,7 +40,7 @@ const ProfileTopNav = ({ navigation, theme, isDark, toggleTheme, avatar, isSelec
             <TouchableOpacity
               key={it.key}
               style={styles.topNavItem}
-              onPress={() => navigation.navigate(it.route, it.key === "network" ? { navigation } : undefined)}
+              onPress={() => navigation.navigate(it.route, it.key === "network" ? { navigation } : it.key === "blog" ? { returnTo: "UserProfile" } : undefined)}
             >
               <Text style={[styles.topNavLabel, { color: theme.subText }]}>{it.label}</Text>
             </TouchableOpacity>

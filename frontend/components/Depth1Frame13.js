@@ -41,7 +41,7 @@ const Depth1Frame13 = ({ active }) => {
   return (
     <View style={styles.depth1Frame8}>
       <View style={[styles.depth2Frame0, pillStyle]}>
-        <TouchableOpacity style={styles.tabItem} onPress={()=>{handleClick("list")}}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate("Blog", { returnTo: "UserProfile" })}>
           <View style={styles.depth3Frame0}>
             <View style={[styles.depth4Frame0, styles.depth4FrameFlexBox]}>
               <Image
@@ -53,29 +53,10 @@ const Depth1Frame13 = ({ active }) => {
             </View>
             <View style={[styles.depth4Frame1, styles.depth4FrameSpaceBlock]}>
               <View style={styles.depth5Frame01}>
-                <Text style={[styles.homeTypo, { color: labelColor("list") }]}>Influencers</Text>
+                <Text style={[styles.homeTypo, { color: uiColor }]}>Blog</Text>
               </View>
             </View>
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={()=>{handleClick("partnership")}}>
-        <View style={[styles.depth3Frame1, styles.depth3FrameSpaceBlock]}>
-          <View style={[styles.depth4Frame01, styles.depth4FrameFlexBox]}>
-            <Image
-              style={styles.depth5Frame0}
-              contentFit="cover"
-              tintColor={uiColor}
-              source={require("../assets/depth-5-frame-0281.png")}
-            />
-          </View>
-          <View style={[styles.depth4Frame11, styles.depth4FrameSpaceBlock]}>
-            <View style={styles.depth5Frame01}>
-              <Text style={[styles.homeTypo, { color: labelColor("partnership") }]}>
-                Brands
-              </Text>
-            </View>
-          </View>
-        </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem} onPress={() => {handleClick("settings")}}>
 

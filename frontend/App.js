@@ -69,6 +69,10 @@ import BrandCollabRequestPage from "./screens/BrandProfile/components/BrandColla
 import CollabOpenPayment from "./screens/collabOpen/CollabOpenPayment";
 import RaiseTicket from "./screens/Brand/Settings/Support/RaiseTicket";
 import RenewSubscription from "./screens/Influencer/Settings/RenewSubscription";
+import BlogScreen from "./screens/Blog/BlogScreen";
+import BlogArticleScreen from "./screens/Blog/BlogArticleScreen";
+import BlogSubmitScreen from "./screens/Blog/BlogSubmitScreen";
+import BlogModerationAdmin from "./screens/Blog/BlogModerationAdmin";
 
 const Stack = createNativeStackNavigator();
 
@@ -270,6 +274,10 @@ const App = () => {
                   component={AdminPanel}
                   options={{ headerShown: false }}
                 />
+                <Stack.Screen name="Blog" component={BlogScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="BlogArticle" component={BlogArticleScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="BlogSubmit" component={BlogSubmitScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="BlogModerationAdmin" component={BlogModerationAdmin} options={{ headerShown: false }} />
                 <Stack.Screen
                   name="SocialVerificationAdmin"
                   component={SocialVerificationAdmin}

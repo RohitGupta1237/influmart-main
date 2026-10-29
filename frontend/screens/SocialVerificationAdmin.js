@@ -123,6 +123,12 @@ const SocialVerificationAdmin = () => {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: Padding.p_base }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("BlogModerationAdmin")}
+            style={[styles.refresh, { backgroundColor: "#f1e9ff", borderRadius: 10, paddingVertical: 12 }]}
+          >
+            <Text style={[styles.refreshText, { color: "#7c3aed" }]}>Review blog articles →</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => load(secret)} style={styles.refresh}>
             <Text style={styles.refreshText}>{loading ? "Refreshing..." : "↻ Refresh"}</Text>
           </TouchableOpacity>
